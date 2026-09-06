@@ -2,18 +2,32 @@ import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
 import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders } from '../services/wmsService';
 
-// Helper parse JSON body
-function parseJsonBody(req: IncomingMessage): Promise<any> {
+// Helper parse JSON body (tương thích cả Vite dev server lẫn Express body-parser)
+function parseJsonBody(req: any): Promise<any> {
+  // Nếu Express đã parse sẵn body thành object
+  if (req.body && typeof req.body === 'object') {
+    return Promise.resolve(req.body);
+  }
+  // Nếu stream đã kết thúc
+  if (req.readableEnded || req._body) {
+    return Promise.resolve(req.body || {});
+  }
+
   return new Promise((resolve) => {
     let body = '';
-    req.on('data', chunk => { body += chunk; });
+    req.on('data', (chunk: any) => { body += chunk; });
     req.on('end', () => {
       try {
-        resolve(body ? JSON.parse(body) : {});
+        resolve(body ? JSON.parse(body) : (req.body || {}));
       } catch (e) {
-        resolve({});
+        resolve(req.body || {});
       }
     });
+
+    // An toàn tuyệt đối: Timeout 2 giây tự động trả về req.body nếu stream không phát ra sự kiện end
+    setTimeout(() => {
+      resolve(req.body || {});
+    }, 2000);
   });
 }
 

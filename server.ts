@@ -14,9 +14,10 @@ const PORT = process.env.PORT || 3001;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// WMS API Middleware
+// Logger & WMS API Middleware
 app.use((req, res, next) => {
   if (req.url.startsWith('/api/wms')) {
+    console.log(`[WMS API] ${req.method} ${req.url}`);
     handleWmsApi(req, res, next);
   } else {
     next();

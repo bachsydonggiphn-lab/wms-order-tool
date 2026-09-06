@@ -265,7 +265,16 @@ export async function fetchWmsOrders(
   const allWmsOrders: WmsRawOrderData[] = Array.isArray(page1Json.data) ? page1Json.data : [];
 
   const totalPages = Math.ceil(totalOrders / pageSize) || 1;
-  const pagesToFetch = maxPages > 0 ? Math.min(maxPages, totalPages) : totalPages;
+  let pagesToFetch = maxPages > 0 ? Math.min(maxPages, totalPages) : totalPages;
+
+  // Bảo vệ thông minh tránh timeout và quá tải bộ nhớ:
+  // Với trạng thái Shipped (E11 = 8) có tới >150.000 đơn lịch sử, nếu người dùng không chỉ định maxPages thì tự động lấy tối đa 2 trang (1.000 đơn mới nhất)
+  if (status === '8' && (!maxPages || maxPages === 0)) {
+    pagesToFetch = Math.min(totalPages, 2);
+  } else if (!maxPages || maxPages === 0) {
+    // Với các trạng thái khác, nếu số trang > 10, chỉ lấy tối đa 10 trang (5.000 đơn)
+    pagesToFetch = Math.min(totalPages, 10);
+  }
 
   if (onProgress) {
     onProgress({
