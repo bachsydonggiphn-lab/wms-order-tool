@@ -1,0 +1,6 @@
+{
+  "name": "Công Cụ Xử Lý & Phân Loại Đơn Hàng Kho (SKU / PCS / Khu Vực)",
+  "description": "Web tool xử lý tổng hợp SKU, phân loại số lượng PCS, phân nhóm khu vực kho, lọc thảm Yoga, đơn 1 PCS và in phiếu nhặt hàng chuẩn khổ tem nhiệt 100x150 mm.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

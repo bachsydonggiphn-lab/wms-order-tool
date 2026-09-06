@@ -1,0 +1,325 @@
+import React from 'react';
+import {
+  Layers,
+  MapPin,
+  Sparkles,
+  Search,
+  Filter,
+  Download,
+  Printer,
+  Settings,
+  TableProperties,
+  ListOrdered,
+  Code2,
+  Boxes,
+  Truck,
+  CheckCircle2,
+  Zap,
+} from 'lucide-react';
+import { CarrierCode } from '../types';
+import { CARRIER_CONFIG } from '../utils/orderProcessor';
+
+export type ActiveTabType =
+  | 'sku_pcs'
+  | 'picking_detail'
+  | 'area_group'
+  | 'mix_analysis'
+  | 'yoga_mat'
+  | 'single_pcs'
+  | 'all_table'
+  | 'sku_settings'
+  | 'apps_script';
+
+interface ToolbarProps {
+  activeTab: ActiveTabType;
+  setActiveTab: (tab: ActiveTabType) => void;
+  pickingLists: string[];
+  selectedPickingList: string;
+  setSelectedPickingList: (pl: string) => void;
+  selectedCarrier: CarrierCode;
+  setSelectedCarrier: (carrier: CarrierCode) => void;
+  carrierCounts: Record<CarrierCode, number>;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  onExportExcel: () => void;
+  onPrintPreview: () => void;
+  totalOrders: number;
+}
+
+export const Toolbar: React.FC<ToolbarProps> = ({
+  activeTab,
+  setActiveTab,
+  pickingLists = [],
+  selectedPickingList = '',
+  setSelectedPickingList,
+  selectedCarrier = 'ALL',
+  setSelectedCarrier = (_c: CarrierCode) => {},
+  carrierCounts = { ALL: 0, JNT: 0, SPX: 0, GHN: 0, OTHER: 0 },
+  searchTerm = '',
+  setSearchTerm,
+  onExportExcel,
+  onPrintPreview,
+  totalOrders = 0,
+}) => {
+  const tabs = [
+    {
+      id: 'sku_pcs' as ActiveTabType,
+      label: 'Tổng hợp SKU & Gộp PCS',
+      icon: Layers,
+      badge: 'Cột S:T & PCS',
+    },
+    {
+      id: 'picking_detail' as ActiveTabType,
+      label: 'Tổng Hợp Theo Picking List',
+      icon: ListOrdered,
+      badge: `${pickingLists.length} Lists`,
+    },
+    {
+      id: 'area_group' as ActiveTabType,
+      label: 'Phân nhóm Khu Vực',
+      icon: MapPin,
+      badge: '13 Khu Vực',
+    },
+    {
+      id: 'mix_analysis' as ActiveTabType,
+      label: 'Bóc Tách Đơn MIX',
+      icon: Boxes,
+      badge: 'Lấy 1 lần',
+    },
+    {
+      id: 'yoga_mat' as ActiveTabType,
+      label: 'Phân loại Thảm Yoga',
+      icon: Sparkles,
+      badge: 'Yoga & L46',
+    },
+    {
+      id: 'single_pcs' as ActiveTabType,
+      label: 'Phân Tách SKU & Đóng Gói PCS',
+      icon: Zap,
+      badge: '1, 2, 3, Đồng chất...',
+    },
+    {
+      id: 'all_table' as ActiveTabType,
+      label: 'Dữ Liệu Gốc & Tra Cứu',
+      icon: TableProperties,
+      badge: `${totalOrders} đơn`,
+    },
+    {
+      id: 'sku_settings' as ActiveTabType,
+      label: 'Cấu hình SKU',
+      icon: Settings,
+    },
+    {
+      id: 'apps_script' as ActiveTabType,
+      label: 'Mã Google Apps Script',
+      icon: Code2,
+      badge: 'Code.gs',
+    },
+  ];
+
+  const carrierOptions: { code: CarrierCode; label: string; prefixHint: string; colorStyle: string; activeStyle: string }[] = [
+    {
+      code: 'ALL',
+      label: 'Tất Cả ĐVVC',
+      prefixHint: 'Tất cả đơn',
+      colorStyle: 'border-gray-200 text-gray-700 bg-white hover:bg-gray-50',
+      activeStyle: 'bg-indigo-600 text-white border-indigo-600 shadow-xs ring-2 ring-indigo-200',
+    },
+    {
+      code: 'JNT',
+      label: 'J&T Express',
+      prefixHint: 'Đầu 862...',
+      colorStyle: 'border-red-200 text-red-700 bg-red-50/50 hover:bg-red-50',
+      activeStyle: 'bg-red-600 text-white border-red-600 shadow-xs ring-2 ring-red-200',
+    },
+    {
+      code: 'SPX',
+      label: 'Shopee Express',
+      prefixHint: 'Đầu SPX / SPXVN...',
+      colorStyle: 'border-orange-200 text-orange-700 bg-orange-50/50 hover:bg-orange-50',
+      activeStyle: 'bg-orange-600 text-white border-orange-600 shadow-xs ring-2 ring-orange-200',
+    },
+    {
+      code: 'GHN',
+      label: 'GHN',
+      prefixHint: 'Đầu GY...',
+      colorStyle: 'border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-50',
+      activeStyle: 'bg-blue-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-200',
+    },
+    {
+      code: 'GHN_TIKTOK',
+      label: 'GHN TikTok',
+      prefixHint: 'Đầu VNGH...',
+      colorStyle: 'border-cyan-300 text-cyan-800 bg-cyan-50/50 hover:bg-cyan-50',
+      activeStyle: 'bg-cyan-700 text-white border-cyan-700 shadow-xs ring-2 ring-cyan-200',
+    },
+    {
+      code: 'VNPOST',
+      label: 'Vietnam Post',
+      prefixHint: 'Đầu EB...',
+      colorStyle: 'border-amber-300 text-amber-800 bg-amber-50/50 hover:bg-amber-50',
+      activeStyle: 'bg-amber-600 text-white border-amber-600 shadow-xs ring-2 ring-amber-200',
+    },
+    {
+      code: 'OTHER',
+      label: 'Khác / Không Xác Định',
+      prefixHint: 'ĐVVC khác',
+      colorStyle: 'border-slate-300 text-slate-700 bg-slate-100 hover:bg-slate-200',
+      activeStyle: 'bg-slate-700 text-white border-slate-700 shadow-xs ring-2 ring-slate-300',
+    },
+  ];
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-xs mb-6 overflow-hidden">
+      {/* Top Filter and Actions Row */}
+      <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        {/* Picking List Selector (Tương đương ô V1 trong Google Sheet) */}
+        <div className="flex items-center flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-white px-2.5 py-1.5 rounded-xl border border-gray-200 shadow-2xs">
+            <Filter className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Picking List (Ô V1):</span>
+          </div>
+
+          <select
+            value={selectedPickingList}
+            onChange={(e) => setSelectedPickingList(e.target.value)}
+            className="text-xs font-medium bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer min-w-[200px]"
+          >
+            <option value="">-- Tất cả Picking Lists (Toàn bộ đơn) --</option>
+            {pickingLists.map((pl) => (
+              <option key={pl} value={pl}>
+                {pl}
+              </option>
+            ))}
+          </select>
+
+          {selectedPickingList && (
+            <button
+              onClick={() => setSelectedPickingList('')}
+              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline px-1 cursor-pointer"
+            >
+              Xem tất cả
+            </button>
+          )}
+        </div>
+
+        {/* Search & Export Buttons */}
+        <div className="flex items-center flex-wrap gap-2">
+          {/* Quick Search */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Tìm mã đơn, SKU, Tracking..."
+              className="text-xs pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 sm:w-56 shadow-2xs"
+            />
+          </div>
+
+          {/* Export Excel Button */}
+          <button
+            onClick={onExportExcel}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer"
+            title="Xuất file Excel đầy đủ các sheet và màu sắc chuẩn Google Sheets"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Xuất Excel (.xlsx)</span>
+          </button>
+
+          {/* Print Checklist Button */}
+          <button
+            onClick={onPrintPreview}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            title="In phiếu gom hàng cho kho (Hỗ trợ khổ tem nhiệt 100×150 mm & A4)"
+          >
+            <Printer className="w-3.5 h-3.5 text-indigo-600" />
+            <span>In Phiếu</span>
+            <span className="text-[10px] px-1.5 py-0.2 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-200">
+              100×150
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Row 2: Chọn Đơn Vị Vận Chuyển Để Đóng Gói (J&T: 862, Shopee: SPX, GHN: GY, Khác / Tất cả) */}
+      <div className="px-4 py-3 bg-indigo-50/40 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-white px-2.5 py-1.5 rounded-xl border border-indigo-200 shadow-2xs">
+            <Truck className="w-4 h-4 text-indigo-600" />
+            <span>Đóng Gói Theo ĐVVC:</span>
+          </div>
+          <span className="text-[11px] text-gray-500 hidden sm:inline">
+            (Chọn 1 ĐVVC để đóng gói riêng hoặc chọn Tất cả)
+          </span>
+        </div>
+
+        {/* Carrier Badges Filter Group */}
+        <div className="flex items-center flex-wrap gap-2">
+          {carrierOptions.map((opt) => {
+            const count = carrierCounts[opt.code] || 0;
+            const isSelected = selectedCarrier === opt.code;
+
+            return (
+              <button
+                key={opt.code}
+                onClick={() => setSelectedCarrier(opt.code)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  isSelected ? opt.activeStyle : opt.colorStyle
+                }`}
+              >
+                <span>{opt.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    isSelected
+                      ? 'bg-white/30 text-white'
+                      : 'bg-black/5 text-gray-700'
+                  }`}
+                >
+                  {count}
+                </span>
+                <span className="text-[10px] opacity-75 hidden xl:inline">
+                  ({opt.prefixHint})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Tabs Navigation */}
+      <div className="flex items-center overflow-x-auto scrollbar-none p-2 gap-1 bg-white">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+              <span>{tab.label}</span>
+              {tab.badge && (
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
