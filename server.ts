@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 });
 
 // Serve frontend static build nếu có thư mục dist
-const distPath = path.resolve(__dirname, 'dist');
+const distPath = path.resolve(process.cwd(), 'dist');
 app.use(express.static(distPath));
 app.get('*', (req, res, next) => {
   if (req.url.startsWith('/api')) return next();
