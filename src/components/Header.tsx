@@ -1,6 +1,7 @@
 import React from 'react';
 import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
+import { GKP_LOGO_BASE64 } from '../utils/logoBase64';
 
 interface HeaderProps {
   orders: RawOrderRow[];
@@ -27,16 +28,15 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="bg-white border-b border-gray-200 shrink-0 sticky top-0 z-30 shadow-xs">
       <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-3.5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Logo & Title */}
+          {/* Logo GKP & Title */}
           <div className="flex items-center space-x-3">
-            <img
-              src="/logo.webp"
-              alt="Logo Kho WMS"
-              className="w-10 h-10 object-contain rounded-xl shadow-xs border border-slate-200/80 bg-white p-0.5 shrink-0"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
+            <div className="h-10 px-2 bg-white rounded-xl flex items-center justify-center border border-slate-200/90 shadow-2xs shrink-0 overflow-hidden">
+              <img
+                src={GKP_LOGO_BASE64}
+                alt="Logo GKP Kho WMS"
+                className="h-8 w-auto object-contain"
+              />
+            </div>
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-base font-semibold tracking-tight text-gray-900">
