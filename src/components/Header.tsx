@@ -1,7 +1,7 @@
 import React from 'react';
 import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
-import { GKP_LOGO_BASE64 } from '../utils/logoBase64';
+import { GKP_LOGO_PNG_BASE64 } from '../utils/logoBase64';
 
 interface HeaderProps {
   orders: RawOrderRow[];
@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center space-x-3">
             <div className="h-10 px-2 bg-white rounded-xl flex items-center justify-center border border-slate-200/90 shadow-2xs shrink-0 overflow-hidden">
               <img
-                src={GKP_LOGO_BASE64}
+                src={GKP_LOGO_PNG_BASE64}
                 alt="Logo GKP Kho WMS"
                 className="h-8 w-auto object-contain"
               />
