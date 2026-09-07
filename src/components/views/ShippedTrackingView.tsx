@@ -105,8 +105,8 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
           const data = await res.json();
           if (data && data.results) {
             setTrackingResults(prev => ({
-              ...data.results,
-              ...prev
+              ...prev,
+              ...data.results
             }));
             if (data.updatedAt) {
               const dt = new Date(data.updatedAt);
@@ -376,16 +376,8 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
     setIsBatchChecking(false);
   };
 
-  // Auto-start scanning when component mounts or orders change if there are unchecked orders
-  useEffect(() => {
-    if (!autoStartedRef.current && trackingOrderItems.length > 0) {
-      const hasUnchecked = trackingOrderItems.some(o => o.rawStatusText === 'Chưa tra cứu');
-      if (hasUnchecked) {
-        autoStartedRef.current = true;
-        handleStartBatchTrack(false);
-      }
-    }
-  }, [trackingOrderItems.length]);
+  // Đã tắt chế độ tự động quét ngầm trên trình duyệt để không tốn CPU máy tính.
+  // Toàn bộ việc quét được thực hiện hoàn toàn trên GitHub Actions Cloud.
 
   const handleStopBatchTrack = () => {
     stopRequestedRef.current = true;
@@ -611,10 +603,15 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
             <span className="text-sm font-bold text-slate-900 font-mono">
               {stats.checked.toLocaleString()} / {stats.total.toLocaleString()} ({stats.percentComplete}%)
             </span>
-            {isBatchChecking && (
+            {isBatchChecking ? (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-900 text-emerald-400 border border-slate-700 animate-pulse font-mono">
                 <Zap className="w-3 h-3 mr-1 text-amber-400" />
-                Đang gọi API đa luồng (Cụm 10 mã J&T, Concurrency 20)
+                Đang quét thủ công bằng máy tính...
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200 font-mono">
+                <Sparkles className="w-3 h-3 mr-1 text-sky-600" />
+                Đồng bộ tự động từ GitHub Cloud (0% CPU máy tính)
               </span>
             )}
           </div>
