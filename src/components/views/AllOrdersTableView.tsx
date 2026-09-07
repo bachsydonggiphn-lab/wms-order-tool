@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Copy, Check, Filter, ExternalLink, ChevronDown, ChevronRight, Truck } from 'lucide-react';
+import { Search, Copy, Check, Filter, ExternalLink, ChevronDown, ChevronRight, Truck, Clock } from 'lucide-react';
 import { RawOrderRow, SkuGroupsMap, CarrierCode } from '../../types';
 import { layNhomTuSKU, CARRIER_CONFIG, xacDinhDonViVanChuyen } from '../../utils/orderProcessor';
 import { DEFAULT_AREA_ORDER } from '../../utils/skuData';
@@ -45,7 +45,8 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
         const matchPicking = order.pickingList.toLowerCase().includes(term);
         const matchSku = order.items.some((it) => it.sku.toLowerCase().includes(term));
         const matchRaw = order.rawOrderText.toLowerCase().includes(term);
-        if (!matchOrder && !matchTracking && !matchCarrier && !matchPicking && !matchSku && !matchRaw) {
+        const matchTime = (order.shippedTime || '').toLowerCase().includes(term) || (order.creationTime || '').toLowerCase().includes(term);
+        if (!matchOrder && !matchTracking && !matchCarrier && !matchPicking && !matchSku && !matchRaw && !matchTime) {
           return false;
         }
       }
@@ -131,7 +132,7 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
             )}
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
-            Hiển thị {filteredOrders.length} / {orders.length} đơn hàng (Cột P: Order No, Q: Tracking, U: Picking List, ĐVVC)
+            Hiển thị {filteredOrders.length} / {orders.length} đơn hàng (Cột P: Order No, Q: Tracking, U: Picking List, Thời gian Xuất Kho)
           </p>
         </div>
 
@@ -166,13 +167,14 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
               <th className="py-2.5 px-3.5">Chi Tiết SKU (Piece)</th>
               <th className="py-2.5 px-3.5 text-center">Tổng PCS</th>
               <th className="py-2.5 px-3.5">Khu Vực</th>
+              <th className="py-2.5 px-3.5">Thời Gian Xuất Kho / Tạo</th>
               <th className="py-2.5 px-3.5 text-center">Chi tiết</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {displayedOrders.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-gray-400">
+                <td colSpan={10} className="py-12 text-center text-gray-400">
                   Không tìm thấy đơn hàng nào khớp với tìm kiếm hoặc bộ lọc ĐVVC.
                 </td>
               </tr>
@@ -296,6 +298,22 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
                         <span>{primaryArea || 'Chưa rõ'}</span>
                       </td>
 
+                      <td className="py-2.5 px-3.5 font-mono text-[11px]">
+                        {order.shippedTime ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-medium">
+                            <Clock className="w-3 h-3 text-emerald-600" />
+                            {order.shippedTime}
+                          </span>
+                        ) : order.creationTime ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200/80">
+                            <Clock className="w-3 h-3 text-blue-500" />
+                            {order.creationTime}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">-</span>
+                        )}
+                      </td>
+
                       <td className="py-2.5 px-3.5 text-center">
                         <button
                           onClick={() => setExpandedRowId(isExpanded ? null : order.id)}
@@ -314,7 +332,7 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
                     {/* Expanded Detail Panel */}
                     {isExpanded && (
                       <tr className="bg-gray-50/60 border-b border-gray-100">
-                        <td colSpan={9} className="p-4">
+                        <td colSpan={10} className="p-4">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                             <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-2xs">
                               <div className="font-semibold text-gray-700 mb-1 flex items-center justify-between">

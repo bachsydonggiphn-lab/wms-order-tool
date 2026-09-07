@@ -33,6 +33,9 @@ export interface RawOrderRow {
   hasYoga: boolean;
   isRealTimeNew?: boolean;   // Đơn mới bắt được trong phiên Live Tracker
   newTimestamp?: number;     // Thời điểm đơn được bắt
+  creationTime?: string;     // Thời gian tạo đơn (vd: 2026-09-07 10:15:30)
+  shippedTime?: string;      // Thời gian xuất kho / Shipped (vd: 2026-09-07 12:30:15)
+  statusE11?: string;        // Trạng thái WMS E11 ('4' = Submitted, '8' = Shipped, '5' = Shelved)
 }
 
 export type SkuGroupsMap = Record<string, string[]>;

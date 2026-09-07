@@ -167,6 +167,20 @@ export function convertWmsOrdersToRawOrderRows(
     const trackingNo = (order.tracking_number || '').trim();
     const pickingList = (order.picking_code || '').trim();
 
+    // Trích xuất các mốc thời gian (Thời gian tạo & thời gian xuất kho Shipped)
+    const creationTime = (order.E14 || '').trim();
+    const shippedTime = (
+      order.E15 ||
+      order.E16 ||
+      order.E18 ||
+      order.E20 ||
+      order.shipped_time ||
+      order.outbound_time ||
+      order.ship_time ||
+      ''
+    ).trim();
+    const statusE11 = (order.E11 || '').trim();
+
     // Lấy danh sách sản phẩm
     const productList = order.productList || [];
     const itemStrings: string[] = [];
@@ -185,7 +199,8 @@ export function convertWmsOrdersToRawOrderRows(
       trackingNo ? `Tracking No.: ${trackingNo}` : '',
       order.E17 ? `RefNo.: ${order.E17}` : '',
       order.E7 ? `Channel: ${order.E7}` : '',
-      order.E14 ? `Creation Time: ${order.E14}` : '',
+      creationTime ? `Creation Time: ${creationTime}` : '',
+      shippedTime ? `Shipped Time: ${shippedTime}` : '',
     ].filter(Boolean).join('\n');
 
     const rawPickingText = pickingList ? `Picking List No.: ${pickingList}` : '';
@@ -197,6 +212,9 @@ export function convertWmsOrdersToRawOrderRows(
       orderNo,
       trackingNo,
       pickingList,
+      creationTime,
+      shippedTime,
+      statusE11,
     };
   });
 
@@ -216,7 +234,7 @@ export async function fetchWmsOrders(
     warehouse = '7', // VN02 HCM mặc định
     status = '4',    // Submitted mặc định
     pageSize = 500,  // Kéo 500 đơn mỗi lần
-    maxPages = 0,    // 0 = kéo hết các trang
+    maxPages = 0,    // 0 = kéo toàn bộ các trang
     skuGroups = DEFAULT_SKU_GROUPS
   } = options;
 
@@ -265,16 +283,9 @@ export async function fetchWmsOrders(
   const allWmsOrders: WmsRawOrderData[] = Array.isArray(page1Json.data) ? page1Json.data : [];
 
   const totalPages = Math.ceil(totalOrders / pageSize) || 1;
-  let pagesToFetch = maxPages > 0 ? Math.min(maxPages, totalPages) : totalPages;
 
-  // Bảo vệ thông minh tránh timeout và quá tải bộ nhớ:
-  // Với trạng thái Shipped (E11 = 8) có tới >150.000 đơn lịch sử, nếu người dùng không chỉ định maxPages thì tự động lấy tối đa 2 trang (1.000 đơn mới nhất)
-  if (status === '8' && (!maxPages || maxPages === 0)) {
-    pagesToFetch = Math.min(totalPages, 2);
-  } else if (!maxPages || maxPages === 0) {
-    // Với các trạng thái khác, nếu số trang > 10, chỉ lấy tối đa 10 trang (5.000 đơn)
-    pagesToFetch = Math.min(totalPages, 10);
-  }
+  // Nếu maxPages > 0 thì chỉ lấy số trang đó, ngược lại lấy toàn bộ (totalPages)
+  const pagesToFetch = maxPages > 0 ? Math.min(maxPages, totalPages) : totalPages;
 
   if (onProgress) {
     onProgress({

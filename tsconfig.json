@@ -22,5 +22,10 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "tra-cứu-vận-đơn-hàng-loạt",
+    "node_modules",
+    "dist"
+  ]
 }

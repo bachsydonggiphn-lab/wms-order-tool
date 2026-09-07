@@ -1,0 +1,40 @@
+name: Auto Track Shipped Orders (GitHub Cloud Runner)
+
+on:
+  schedule:
+    # Chạy tự động 2 tiếng / lần trên Cloud GitHub Actions (Miễn phí 100%, 0% CPU máy tính)
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Cho phép nhấn nút "Run workflow" thủ công trên GitHub UI
+
+jobs:
+  track-shipped:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci || npm install
+
+      - name: 🚀 Run Shipped Tracking Automation
+        run: npx tsx scripts/autoTrackCron.ts
+        env:
+          WMS_WAREHOUSE: '7'
+          WMS_USERNAME: 'David'
+          WMS_PASSWORD: '12345abc'
+
+      - name: 📤 Auto Commit & Push JSON Results
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(cloud-cron): Tự động quét & cập nhật trạng thái đơn Shipped [skip ci]"
+          file_pattern: "public/shipped_tracking_results.json"

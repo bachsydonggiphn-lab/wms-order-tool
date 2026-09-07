@@ -19,6 +19,7 @@ import { MixOrderAnalysisView } from './components/views/MixOrderAnalysisView';
 import { YogaClassificationView } from './components/views/YogaClassificationView';
 import { SinglePcsView } from './components/views/SinglePcsView';
 import { AllOrdersTableView } from './components/views/AllOrdersTableView';
+import { ShippedTrackingView } from './components/views/ShippedTrackingView';
 import { SkuSettingsView } from './components/views/SkuSettingsView';
 import { AppsScriptCodeView } from './components/views/AppsScriptCodeView';
 import { PrintPickingModal } from './components/PrintPickingModal';
@@ -374,6 +375,14 @@ export default function App() {
               selectedPickingList={selectedPickingList}
               selectedCarrier={selectedCarrier}
               searchTerm={searchTerm}
+            />
+          )}
+
+          {activeTab === 'shipped_tracking' && (
+            <ShippedTrackingView
+              orders={orders}
+              skuGroups={skuGroups}
+              onOpenWmsModal={() => setIsWmsModalOpen(true)}
             />
           )}
 

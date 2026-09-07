@@ -636,6 +636,9 @@ export function parseRawOrderRows(
     orderNo?: string;
     trackingNo?: string;
     pickingList?: string;
+    creationTime?: string;
+    shippedTime?: string;
+    statusE11?: string;
   }>,
   skuGroups: SkuGroupsMap = DEFAULT_SKU_GROUPS
 ): RawOrderRow[] {
@@ -672,6 +675,9 @@ export function parseRawOrderRows(
       isSingleSku,
       hasL46,
       hasYoga,
+      creationTime: row.creationTime,
+      shippedTime: row.shippedTime,
+      statusE11: row.statusE11,
     };
   });
 }

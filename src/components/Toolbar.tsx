@@ -27,6 +27,7 @@ export type ActiveTabType =
   | 'yoga_mat'
   | 'single_pcs'
   | 'all_table'
+  | 'shipped_tracking'
   | 'sku_settings'
   | 'apps_script';
 
@@ -67,6 +68,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       label: 'Tổng hợp SKU & Gộp PCS',
       icon: Layers,
       badge: 'Cột S:T & PCS',
+    },
+    {
+      id: 'shipped_tracking' as ActiveTabType,
+      label: 'Tra Cứu Vận Đơn Shipped',
+      icon: Truck,
+      badge: 'E11 = 8 & Realtime',
     },
     {
       id: 'picking_detail' as ActiveTabType,

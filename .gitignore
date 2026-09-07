@@ -6,3 +6,4 @@ coverage/
 *.log
 .env*
 !.env.example
+tra-cứu-vận-đơn-hàng-loạt/
