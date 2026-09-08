@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-09-08T20:29:32.086Z",
+  "updatedAt": "2026-09-08T23:46:45.244Z",
   "totalOrders": 5000,
   "stats": {
-    "checkedCount": 7142,
-    "scannedCount": 3508,
-    "notScannedCount": 1482,
+    "checkedCount": 7231,
+    "scannedCount": 3512,
+    "notScannedCount": 1567,
     "inTransitCount": 3139,
     "deliveredCount": 365,
     "returnedCount": 20,
@@ -31513,8 +31513,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDQPAH": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:22 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDQPXT": {
       "success": false,
@@ -33657,8 +33670,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNMHEV": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:24 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "SPXVN061429243449": {
       "success": true,
@@ -49810,42 +49836,16 @@
       }
     },
     "GYYNTDLX": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:29:15 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNTDLY": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNTDLA": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:29:15 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNTDF6": {
       "success": false,
@@ -52113,21 +52113,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80999639105": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:29:17 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN069636744199": {
       "success": true,
@@ -53254,21 +53241,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNWL7P": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:29:17 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNK4WH": {
       "success": false,
@@ -55549,7 +55523,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:29:19 09/09/2026",
+            "time": "06:46:35 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -56562,8 +56536,21 @@
       }
     },
     "GYYN4QN3": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:37 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYN4QPK": {
       "success": false,
@@ -56946,8 +56933,21 @@
       "error": "Chưa hỗ trợ API"
     },
     "GYYN33LY": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:37 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYN33LP": {
       "success": false,
@@ -57158,8 +57158,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYN3BEU": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:39 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYN33LK": {
       "success": false,
@@ -57358,8 +57371,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYN3BMY": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:39 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYN3BMW": {
       "success": false,
@@ -248249,10 +248275,6 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMKK9": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYDMKKL": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -248261,13 +248283,17 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:28:12 09/09/2026",
+            "time": "06:45:33 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
+    },
+    "GYYDMKKL": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMKK4": {
       "success": false,
@@ -248414,8 +248440,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMK38": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:33 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDMKKB": {
       "success": false,
@@ -248434,10 +248473,6 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMCD9": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYDMK3A": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -248446,19 +248481,31 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:28:14 09/09/2026",
+            "time": "06:45:35 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
+    },
+    "GYYDMK3A": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMK4Y": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMK3E": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYDMKBE": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYDMCNR": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -248467,21 +248514,13 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:28:12 09/09/2026",
+            "time": "06:45:35 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
-    },
-    "GYYDMKBE": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYDMCNR": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDRNAB": {
       "success": false,
@@ -249079,21 +249118,8 @@
       }
     },
     "VNGH80011209108": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:15 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDRQ9X": {
       "success": false,
@@ -250235,8 +250261,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDYKDE": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:36 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "VNGH80134099107": {
       "success": false,
@@ -259778,21 +259817,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDPUWP": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:28 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDPCM4": {
       "success": false,
@@ -260495,38 +260521,12 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDRWC": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:30 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDRWD": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:30 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDRWU": {
       "success": false,
@@ -261181,8 +261181,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDD8T9": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:50 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "SPXVN068061835239": {
       "success": true,
@@ -261409,21 +261422,8 @@
       }
     },
     "GYYDDX8L": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:32 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDX8Q": {
       "success": false,
@@ -261978,8 +261978,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80363759105": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:51 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDDDB3": {
       "success": false,
@@ -263894,8 +263907,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDNEDH": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:53 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "SPXVN066537016989": {
       "success": true,
@@ -268222,42 +268248,16 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD6UBP": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:44 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD6UBL": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD6UPX": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:44 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD6UB9": {
       "success": false,
@@ -268436,21 +268436,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVEGC": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:46 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVECR": {
       "success": false,
@@ -268809,6 +268796,10 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVMMX": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYDVHMH": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -268817,17 +268808,13 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:28:46 09/09/2026",
+            "time": "06:46:05 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
-    },
-    "GYYDVHMH": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVXQU": {
       "success": false,
@@ -269158,6 +269145,14 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80981479106": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYDVHEP": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYDVHEF": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -269166,21 +269161,13 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:28:48 09/09/2026",
+            "time": "06:46:05 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
-    },
-    "GYYDVHEP": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYDVHEF": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDV34H": {
       "success": false,
@@ -269411,8 +269398,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDV344": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:07 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDV34W": {
       "success": false,
@@ -269591,8 +269591,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDV63M": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:09 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDV63E": {
       "success": false,
@@ -277385,42 +277398,16 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80307269106": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:59 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDUHTM": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDUPMK": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:59 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80615259106": {
       "success": false,
@@ -279179,21 +279166,8 @@
       }
     },
     "GYYDGUCH": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:29:01 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDGUVL": {
       "success": false,
@@ -279208,21 +279182,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDGU96": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:29:01 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDGUCX": {
       "success": false,
@@ -279620,8 +279581,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD7A6T": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:20 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "VNGH80056249106": {
       "success": false,
@@ -280088,8 +280062,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD7NPW": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:20 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYD7NPM": {
       "success": false,
@@ -280548,21 +280535,8 @@
       }
     },
     "GYYDFE9Y": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:29:03 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDFMRD": {
       "success": false,
@@ -282497,8 +282471,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDLQ3K": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:22 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDLQ4L": {
       "success": false,
@@ -288983,7 +288970,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:27:57 09/09/2026",
+            "time": "06:45:16 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -289660,27 +289647,10 @@
       }
     },
     "VNGH80504159107": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:27:58 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
-    },
-    "GYYPCMN9": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
-    "VNGH80284279108": {
+    "GYYPCMN9": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -289689,13 +289659,17 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:27:58 09/09/2026",
+            "time": "06:45:17 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
+    },
+    "VNGH80284279108": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYPCEPG": {
       "success": false,
@@ -290274,14 +290248,6 @@
       }
     },
     "GYYPU8BH": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYPCDP3": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYPCDPF": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -290290,7 +290256,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:27:59 09/09/2026",
+            "time": "06:45:18 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -290298,9 +290264,30 @@
         ]
       }
     },
-    "GYYPCDPD": {
+    "GYYPCDP3": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYPCDPF": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYPCDPD": {
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:17 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "SPXVN064563957029": {
       "success": true,
@@ -291638,14 +291625,6 @@
       }
     },
     "GYYPU8PA": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYPU78P": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
-    },
-    "GYYPU787": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -291654,13 +291633,21 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "03:27:57 09/09/2026",
+            "time": "06:45:18 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
+    },
+    "GYYPU78P": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYPU787": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN067659231979": {
       "success": true,
@@ -304571,21 +304558,8 @@
       "error": "Chưa hỗ trợ API"
     },
     "GYYDMK3X": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:14 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMK4M": {
       "success": false,
@@ -310866,21 +310840,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDPFVW": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "03:28:28 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDPQVQ": {
       "success": false,
@@ -311857,8 +311818,21 @@
       }
     },
     "GYYDDXA4": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:50 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDDXA3": {
       "success": false,
@@ -312165,8 +312139,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDVYA": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:45:52 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDDTP4": {
       "success": false,
@@ -314940,8 +314927,21 @@
       }
     },
     "GYYDV348": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "06:46:07 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDV34F": {
       "success": false,
@@ -319058,6 +319058,2259 @@
     "GYYDLQ3F": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "SPXVN068341222579": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "05:40:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2641156393272",
+        "timeline": [
+          {
+            "time": "05:40:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "05:40:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068420303429": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "05:40:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN263743722494B",
+        "timeline": [
+          {
+            "time": "05:40:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "05:40:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN063431266379": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "05:18:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN267637796677C",
+        "timeline": [
+          {
+            "time": "05:18:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "05:18:16 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061419043979": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "05:07:14 09/09/2026",
+        "recipientLocation": "Mã SLS: VN264583402721X",
+        "timeline": [
+          {
+            "time": "05:07:14 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "05:07:14 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060232591909": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "04:56:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2686162118039",
+        "timeline": [
+          {
+            "time": "04:56:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "04:56:16 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN065450498459": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "04:45:15 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2656036684888",
+        "timeline": [
+          {
+            "time": "04:45:15 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "04:45:14 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN062199168379": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "04:34:18 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2624529614784",
+        "timeline": [
+          {
+            "time": "04:34:18 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "04:34:17 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066063501199": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "04:45:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN265482938475U",
+        "timeline": [
+          {
+            "time": "04:45:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "04:45:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068476914069": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "04:23:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2616630022856",
+        "timeline": [
+          {
+            "time": "04:23:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "04:23:16 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN063685834869": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "04:01:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2661613658534",
+        "timeline": [
+          {
+            "time": "04:01:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "04:01:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061846697919": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "03:28:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN265247312568C",
+        "timeline": [
+          {
+            "time": "03:28:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "03:28:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN065657908809": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "03:39:17 09/09/2026",
+        "recipientLocation": "Mã SLS: VN265154851098E",
+        "timeline": [
+          {
+            "time": "03:39:17 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "03:39:17 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066769654019": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "03:06:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN262189994324G",
+        "timeline": [
+          {
+            "time": "03:06:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "03:06:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060596247319": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "02:55:14 09/09/2026",
+        "recipientLocation": "Mã SLS: VN267836996789K",
+        "timeline": [
+          {
+            "time": "02:55:14 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "02:55:13 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064677989709": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "02:44:17 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2603558042380",
+        "timeline": [
+          {
+            "time": "02:44:17 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "02:44:17 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069463157989": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "02:44:15 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2618875700371",
+        "timeline": [
+          {
+            "time": "02:44:15 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "02:44:14 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069744073789": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "02:55:15 09/09/2026",
+        "recipientLocation": "Mã SLS: VN268490484928F",
+        "timeline": [
+          {
+            "time": "02:55:15 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "02:55:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060059552169": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "02:44:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN263920586327Z",
+        "timeline": [
+          {
+            "time": "02:44:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "02:44:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN062417056519": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "02:22:13 09/09/2026",
+        "recipientLocation": "Mã SLS: VN267267312533X",
+        "timeline": [
+          {
+            "time": "02:22:13 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "02:22:12 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN067535077799": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:49:20 09/09/2026",
+        "recipientLocation": "Mã SLS: VN269132168954T",
+        "timeline": [
+          {
+            "time": "01:49:20 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:49:20 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064466446519": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:49:18 09/09/2026",
+        "recipientLocation": "Mã SLS: VN264636026908F",
+        "timeline": [
+          {
+            "time": "01:49:18 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:49:17 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061436491069": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:17 09/09/2026",
+        "recipientLocation": "Mã SLS: VN261750812010W",
+        "timeline": [
+          {
+            "time": "01:38:17 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:16 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060985524079": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:19 09/09/2026",
+        "recipientLocation": "Mã SLS: VN260829484094O",
+        "timeline": [
+          {
+            "time": "01:38:19 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:19 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN067136530499": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:27:35 09/09/2026",
+        "recipientLocation": "Mã SLS: VN269157577315Y",
+        "timeline": [
+          {
+            "time": "01:27:35 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:27:34 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068302473149": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:27:27 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2689202702077",
+        "timeline": [
+          {
+            "time": "01:27:27 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:27:26 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066946593609": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:20 09/09/2026",
+        "recipientLocation": "Mã SLS: VN261153556962C",
+        "timeline": [
+          {
+            "time": "01:38:20 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:20 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064008898199": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:49:15 09/09/2026",
+        "recipientLocation": "Mã SLS: VN261763912278Z",
+        "timeline": [
+          {
+            "time": "01:49:15 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:49:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069518828119": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:14 09/09/2026",
+        "recipientLocation": "Mã SLS: VN262769401010K",
+        "timeline": [
+          {
+            "time": "01:38:14 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:14 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061581435089": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:49:18 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2632787630270",
+        "timeline": [
+          {
+            "time": "01:49:18 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:49:17 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068419231129": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:17 09/09/2026",
+        "recipientLocation": "Mã SLS: VN263950749498W",
+        "timeline": [
+          {
+            "time": "01:38:17 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:16 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068972181419": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:49:15 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2687985249467",
+        "timeline": [
+          {
+            "time": "01:49:15 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:49:14 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN063996577779": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:27:27 09/09/2026",
+        "recipientLocation": "Mã SLS: VN261965102774Z",
+        "timeline": [
+          {
+            "time": "01:27:27 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:27:26 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060096833289": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN261953838665W",
+        "timeline": [
+          {
+            "time": "01:38:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068328513589": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:27:26 09/09/2026",
+        "recipientLocation": "Mã SLS: VN269869437833D",
+        "timeline": [
+          {
+            "time": "01:27:26 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:27:26 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061156295139": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:19 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2606320205058",
+        "timeline": [
+          {
+            "time": "01:38:19 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:19 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN063338944919": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:16 09/09/2026",
+        "recipientLocation": "Mã SLS: VN260600834996R",
+        "timeline": [
+          {
+            "time": "01:38:16 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:15 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064533817909": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:17 09/09/2026",
+        "recipientLocation": "Mã SLS: VN267354387684J",
+        "timeline": [
+          {
+            "time": "01:38:17 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:16 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068745484889": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:27:39 09/09/2026",
+        "recipientLocation": "Mã SLS: VN262469576241W",
+        "timeline": [
+          {
+            "time": "01:27:39 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:27:38 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN062895707069": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:38:19 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2686262609161",
+        "timeline": [
+          {
+            "time": "01:38:19 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:38:19 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN063294197779": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:27:26 09/09/2026",
+        "recipientLocation": "Mã SLS: VN269217077226A",
+        "timeline": [
+          {
+            "time": "01:27:26 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:27:25 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060513620559": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:05:28 09/09/2026",
+        "recipientLocation": "Mã SLS: VN261631485691V",
+        "timeline": [
+          {
+            "time": "01:05:28 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:05:27 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068952374929": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:16:27 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2605411988993",
+        "timeline": [
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN067525014539": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "00:23:12 09/09/2026",
+        "recipientLocation": "Mã SLS: VN263910215242N",
+        "timeline": [
+          {
+            "time": "00:23:12 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "00:23:11 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064951632199": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:25:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2646497659564",
+        "timeline": [
+          {
+            "time": "23:25:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:25:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064791132439": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:25:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2691485206315",
+        "timeline": [
+          {
+            "time": "23:25:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:25:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066894971589": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:47:13 08/09/2026",
+        "recipientLocation": "Mã SLS: VN265292803928L",
+        "timeline": [
+          {
+            "time": "23:47:13 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:47:13 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066805085619": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:16:27 09/09/2026",
+        "recipientLocation": "Mã SLS: VN265082190523H",
+        "timeline": [
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069412944169": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:16:27 09/09/2026",
+        "recipientLocation": "Mã SLS: VN263423035933G",
+        "timeline": [
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066275065529": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:25:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN266578296104V",
+        "timeline": [
+          {
+            "time": "23:25:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:25:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064543229579": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:25:22 08/09/2026",
+        "recipientLocation": "Mã SLS: VN264238395986U",
+        "timeline": [
+          {
+            "time": "23:25:22 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:25:21 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061774010599": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:25:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN269458125528U",
+        "timeline": [
+          {
+            "time": "23:25:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:25:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064941001429": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:05:28 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2679028714024",
+        "timeline": [
+          {
+            "time": "01:05:28 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:05:28 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068823211089": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:08:43 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2654666989334",
+        "timeline": [
+          {
+            "time": "01:08:43 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:08:43 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN065217377469": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:19:21 09/09/2026",
+        "recipientLocation": "Mã SLS: VN262113231794Z",
+        "timeline": [
+          {
+            "time": "01:19:21 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:19:20 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061109512659": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:47:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2675317046478",
+        "timeline": [
+          {
+            "time": "23:47:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:47:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064990564599": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:19:26 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2677000879928",
+        "timeline": [
+          {
+            "time": "01:19:26 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:19:25 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069844284209": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:19:21 09/09/2026",
+        "recipientLocation": "Mã SLS: VN266378563685W",
+        "timeline": [
+          {
+            "time": "01:19:21 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:19:20 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN065674570789": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:25:18 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2629176163266",
+        "timeline": [
+          {
+            "time": "23:25:18 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:25:17 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068595541929": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:27:25 09/09/2026",
+        "recipientLocation": "Mã SLS: VN268514285990A",
+        "timeline": [
+          {
+            "time": "01:27:25 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:27:24 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN067344662149": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "01:16:27 09/09/2026",
+        "recipientLocation": "Mã SLS: VN2690994191941",
+        "timeline": [
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "01:16:27 09/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061926401619": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "20:18:18 08/09/2026",
+        "recipientLocation": "Mã SLS: VN260916103801O",
+        "timeline": [
+          {
+            "time": "20:18:18 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "20:18:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064733391499": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "19:34:24 08/09/2026",
+        "recipientLocation": "Mã SLS: VN268833756458M",
+        "timeline": [
+          {
+            "time": "19:34:24 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "19:34:23 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN065167012569": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "19:12:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN268872874925G",
+        "timeline": [
+          {
+            "time": "19:12:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "19:12:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066446238409": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "20:51:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN264701136691L",
+        "timeline": [
+          {
+            "time": "20:51:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "20:51:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066800780539": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "22:41:20 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2655828436419",
+        "timeline": [
+          {
+            "time": "22:41:20 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "22:41:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN067327774979": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "21:35:18 08/09/2026",
+        "recipientLocation": "Mã SLS: VN266544764366T",
+        "timeline": [
+          {
+            "time": "21:35:18 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "21:35:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN063580472219": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "19:45:18 08/09/2026",
+        "recipientLocation": "Mã SLS: VN262614462583X",
+        "timeline": [
+          {
+            "time": "19:45:18 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "19:45:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066217387959": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "18:28:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN267863407093K",
+        "timeline": [
+          {
+            "time": "18:28:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "18:28:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069734445659": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "19:01:18 08/09/2026",
+        "recipientLocation": "Mã SLS: VN267875955073L",
+        "timeline": [
+          {
+            "time": "19:01:18 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "19:01:17 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN067359052419": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "21:35:17 08/09/2026",
+        "recipientLocation": "Mã SLS: VN262219336644U",
+        "timeline": [
+          {
+            "time": "21:35:17 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "21:35:17 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069875406269": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:03:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2627765592890",
+        "timeline": [
+          {
+            "time": "23:03:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:03:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN062121106559": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "20:40:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN260381284504I",
+        "timeline": [
+          {
+            "time": "20:40:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "20:40:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069781660689": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "19:01:21 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2612283963799",
+        "timeline": [
+          {
+            "time": "19:01:21 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "19:01:20 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061453384119": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "18:17:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN263796990201L",
+        "timeline": [
+          {
+            "time": "18:17:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "18:17:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060637646119": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "19:01:21 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2699682631934",
+        "timeline": [
+          {
+            "time": "19:01:21 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "19:01:20 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066677170239": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "23:25:19 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2653513914961",
+        "timeline": [
+          {
+            "time": "23:25:19 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "23:25:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060728721139": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "18:17:16 08/09/2026",
+        "recipientLocation": "Mã SLS: VN267591569785F",
+        "timeline": [
+          {
+            "time": "18:17:16 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "18:17:16 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064716364319": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "22:30:17 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2631848007320",
+        "timeline": [
+          {
+            "time": "22:30:17 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "22:30:17 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060163436039": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "22:52:18 08/09/2026",
+        "recipientLocation": "Mã SLS: VN263681362018W",
+        "timeline": [
+          {
+            "time": "22:52:18 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "22:52:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN068703125549": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "22:30:20 08/09/2026",
+        "recipientLocation": "Mã SLS: VN261934434079G",
+        "timeline": [
+          {
+            "time": "22:30:20 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "22:30:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN067296110459": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "scanned",
+        "rawStatusText": "Lấy hàng không thành công",
+        "statusDetail": "SPX đã lấy hàng và quét mã thành công",
+        "updatedAt": "17:49:58 08/09/2026",
+        "scannedAt": "17:49:58 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2654274836508",
+        "timeline": [
+          {
+            "time": "17:49:58 08/09/2026",
+            "statusText": "Lấy hàng không thành công",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F001"
+          },
+          {
+            "time": "15:44:16 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "15:44:16 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN069913470739": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "scanned",
+        "rawStatusText": "Lấy hàng không thành công",
+        "statusDetail": "SPX đã lấy hàng và quét mã thành công",
+        "updatedAt": "17:49:58 08/09/2026",
+        "scannedAt": "17:49:58 08/09/2026",
+        "recipientLocation": "Mã SLS: VN261095601667Y",
+        "timeline": [
+          {
+            "time": "17:49:58 08/09/2026",
+            "statusText": "Lấy hàng không thành công",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F001"
+          },
+          {
+            "time": "15:44:16 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "15:44:16 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064201485969": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "scanned",
+        "rawStatusText": "Lấy hàng không thành công",
+        "statusDetail": "SPX đã lấy hàng và quét mã thành công",
+        "updatedAt": "17:49:58 08/09/2026",
+        "scannedAt": "17:49:58 08/09/2026",
+        "recipientLocation": "Mã SLS: VN261227925169Y",
+        "timeline": [
+          {
+            "time": "17:49:58 08/09/2026",
+            "statusText": "Lấy hàng không thành công",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F001"
+          },
+          {
+            "time": "15:44:17 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "15:44:16 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN062720014889": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "16:17:20 08/09/2026",
+        "recipientLocation": "Mã SLS: VN268199303585C",
+        "timeline": [
+          {
+            "time": "16:17:20 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "16:17:19 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060022227449": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "scanned",
+        "rawStatusText": "Lấy hàng không thành công",
+        "statusDetail": "SPX đã lấy hàng và quét mã thành công",
+        "updatedAt": "17:49:58 08/09/2026",
+        "scannedAt": "17:49:58 08/09/2026",
+        "recipientLocation": "Mã SLS: VN262850853026V",
+        "timeline": [
+          {
+            "time": "17:49:58 08/09/2026",
+            "statusText": "Lấy hàng không thành công",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F001"
+          },
+          {
+            "time": "15:44:16 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "15:44:16 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN061755998919": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "16:06:22 08/09/2026",
+        "recipientLocation": "Mã SLS: VN2647851970336",
+        "timeline": [
+          {
+            "time": "16:06:22 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "16:06:21 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN064392981699": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "18:17:17 08/09/2026",
+        "recipientLocation": "Mã SLS: VN269167189384L",
+        "timeline": [
+          {
+            "time": "18:17:17 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "18:17:16 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN066718309579": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "17:32:30 08/09/2026",
+        "recipientLocation": "Mã SLS: VN269266910587O",
+        "timeline": [
+          {
+            "time": "17:32:30 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "17:32:29 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
+    },
+    "SPXVN060735707309": {
+      "success": true,
+      "data": {
+        "carrier": "spx",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Người bán đang chuẩn bị hàng",
+        "statusDetail": "Đơn hàng mới tạo, SPX chưa tới lấy",
+        "updatedAt": "17:12:18 08/09/2026",
+        "recipientLocation": "Mã SLS: VN263396531919U",
+        "timeline": [
+          {
+            "time": "17:12:18 08/09/2026",
+            "statusText": "Người bán đang chuẩn bị hàng",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: F000"
+          },
+          {
+            "time": "17:12:18 08/09/2026",
+            "statusText": "SLSTN đã được tạo, đang gửi yêu cầu đến đối tác vận chuyển",
+            "location": "Hệ thống Shopee Express (SPX)",
+            "description": "Mã sự kiện: A000"
+          }
+        ]
+      }
     }
   }
 }
