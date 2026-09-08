@@ -1,8 +1,8 @@
 {
-  "updatedAt": "2026-09-08T17:41:42.438Z",
+  "updatedAt": "2026-09-08T20:29:32.086Z",
   "totalOrders": 5000,
   "stats": {
-    "checkedCount": 7140,
+    "checkedCount": 7142,
     "scannedCount": 3508,
     "notScannedCount": 1482,
     "inTransitCount": 3139,
@@ -34669,21 +34669,8 @@
       }
     },
     "GYYNRPPF": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:19 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNRP3M": {
       "success": false,
@@ -37031,21 +37018,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYN864M": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:19 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYN864W": {
       "success": false,
@@ -37500,21 +37474,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80474069105": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:21 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80607679105": {
       "success": false,
@@ -39840,21 +39801,8 @@
       }
     },
     "GYYNA4BE": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:21 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNA4BU": {
       "success": false,
@@ -42279,21 +42227,8 @@
       }
     },
     "GYYNAQA7": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:23 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNAQAC": {
       "success": false,
@@ -49875,16 +49810,42 @@
       }
     },
     "GYYNTDLX": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:15 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYNTDLY": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNTDLA": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:15 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYNTDF6": {
       "success": false,
@@ -52152,8 +52113,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80999639105": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:17 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "SPXVN069636744199": {
       "success": true,
@@ -53280,8 +53254,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNWL7P": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:17 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYNK4WH": {
       "success": false,
@@ -55554,8 +55541,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYN4KL9": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:19 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYN4KQL": {
       "success": false,
@@ -57394,21 +57394,8 @@
       "error": "Chưa hỗ trợ API"
     },
     "GYYN3BM9": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:36 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN061810344239": {
       "success": true,
@@ -58463,21 +58450,8 @@
       }
     },
     "GYYNBYRA": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:36 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNB6AP": {
       "success": false,
@@ -59650,42 +59624,16 @@
       }
     },
     "GYYNPWXC": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:37 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNDMGY": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNPWTK": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:37 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SHOPEEVTPVN264681437122E": {
       "success": false,
@@ -60816,21 +60764,8 @@
       }
     },
     "GYYNDFCY": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:39 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYC33XV": {
       "success": false,
@@ -63731,8 +63666,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYNG3TP": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:30 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYNG3TC": {
       "success": false,
@@ -64315,8 +64263,21 @@
       }
     },
     "GYYNG3TD": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:30 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYN7YN8": {
       "success": false,
@@ -248292,8 +248253,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMKKL": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:12 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDMKK4": {
       "success": false,
@@ -248472,7 +248446,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "00:40:29 09/09/2026",
+            "time": "03:28:14 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -248485,8 +248459,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMK3E": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:12 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDMKBE": {
       "success": false,
@@ -249100,7 +249087,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "00:40:31 09/09/2026",
+            "time": "03:28:15 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -249723,21 +249710,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80412179106": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:32 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDRQ94": {
       "success": false,
@@ -259804,8 +259778,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDPUWP": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:28 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDPCM4": {
       "success": false,
@@ -260508,12 +260495,38 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDRWC": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:30 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDDRWD": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:30 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDDRWU": {
       "success": false,
@@ -261404,7 +261417,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "00:40:46 09/09/2026",
+            "time": "03:28:32 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -261717,21 +261730,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80379699106": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:46 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDTPK": {
       "success": false,
@@ -263062,21 +263062,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80329899106": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:48 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN061620204179": {
       "success": true,
@@ -263499,21 +263486,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDDFXM": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:48 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN068001104799": {
       "success": true,
@@ -264832,21 +264806,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80767689106": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:50 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80304099106": {
       "success": false,
@@ -268261,16 +268222,42 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD6UBP": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:44 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYD6UBL": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYD6UPX": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:44 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYD6UB9": {
       "success": false,
@@ -268449,8 +268436,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVEGC": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:46 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDVECR": {
       "success": false,
@@ -268809,8 +268809,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVMMX": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:46 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDVHMH": {
       "success": false,
@@ -269145,8 +269158,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80981479106": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:48 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDVHEP": {
       "success": false,
@@ -269425,21 +269451,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80491069106": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:03 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDV6KC": {
       "success": false,
@@ -269574,21 +269587,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDV64B": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:03 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDV63M": {
       "success": false,
@@ -269799,42 +269799,16 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVGWR": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:05 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80844279106": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVG87": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:05 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDVG8L": {
       "success": false,
@@ -271089,21 +271063,8 @@
       }
     },
     "GYYD9RAK": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:41:06 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80549679106": {
       "success": false,
@@ -277424,16 +277385,42 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "VNGH80307269106": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:59 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDUHTM": {
       "success": false,
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDUPMK": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:59 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "VNGH80615259106": {
       "success": false,
@@ -279192,8 +279179,21 @@
       }
     },
     "GYYDGUCH": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:01 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDGUVL": {
       "success": false,
@@ -279208,8 +279208,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDGU96": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:01 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDGUCX": {
       "success": false,
@@ -280535,8 +280548,21 @@
       }
     },
     "GYYDFE9Y": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:29:03 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDFMRD": {
       "success": false,
@@ -288957,7 +288983,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "00:40:14 09/09/2026",
+            "time": "03:27:57 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -288966,21 +288992,8 @@
       }
     },
     "GYYP9DXD": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:14 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYP9D4K": {
       "success": false,
@@ -289647,8 +289660,21 @@
       }
     },
     "VNGH80504159107": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:27:58 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYPCMN9": {
       "success": false,
@@ -289663,7 +289689,7 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "00:40:15 09/09/2026",
+            "time": "03:27:58 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
@@ -290252,6 +290278,10 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYPCDP3": {
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+    },
+    "GYYPCDPF": {
       "success": true,
       "data": {
         "carrier": "ghn",
@@ -290260,17 +290290,13 @@
         "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
         "timeline": [
           {
-            "time": "00:40:15 09/09/2026",
+            "time": "03:27:59 09/09/2026",
             "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
             "location": "Cổng GHN",
             "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
           }
         ]
       }
-    },
-    "GYYPCDPF": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYPCDPD": {
       "success": false,
@@ -291620,8 +291646,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYPU787": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:27:57 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "SPXVN067659231979": {
       "success": true,
@@ -292216,21 +292255,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYPG3XW": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:17 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN061465400639": {
       "success": true,
@@ -304545,8 +304571,21 @@
       "error": "Chưa hỗ trợ API"
     },
     "GYYDMK3X": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:14 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDMK4M": {
       "success": false,
@@ -304561,21 +304600,8 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDMK3M": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:29 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN067598917269": {
       "success": true,
@@ -305556,21 +305582,8 @@
       }
     },
     "VNGH80989409108": {
-      "success": true,
-      "data": {
-        "carrier": "ghn",
-        "statusCategory": "not_scanned",
-        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
-        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
-        "timeline": [
-          {
-            "time": "00:40:31 09/09/2026",
-            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
-            "location": "Cổng GHN",
-            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
-          }
-        ]
-      }
+      "success": false,
+      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "SPXVN067546860049": {
       "success": true,
@@ -310853,8 +310866,21 @@
       "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
     },
     "GYYDPFVW": {
-      "success": false,
-      "error": "Hệ thống GHN không phản hồi, vui lòng thử lại"
+      "success": true,
+      "data": {
+        "carrier": "ghn",
+        "statusCategory": "not_scanned",
+        "rawStatusText": "Đã tạo đơn trên GHN (Bảo mật SĐT)",
+        "statusDetail": "Mã vận đơn tồn tại trên GHN (4 số cuối SĐT chưa khớp)",
+        "timeline": [
+          {
+            "time": "03:28:28 09/09/2026",
+            "statusText": "Đơn hàng tồn tại trên hệ thống GHN",
+            "location": "Cổng GHN",
+            "description": "Bưu kiện đã được ghi nhận trên hệ thống GHN."
+          }
+        ]
+      }
     },
     "GYYDPQVQ": {
       "success": false,
