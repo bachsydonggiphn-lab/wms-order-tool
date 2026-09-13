@@ -385,8 +385,15 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
           <div className="flex items-center gap-2.5">
             <h2 className="text-sm font-bold text-gray-900">Bảng Tổng Hợp SKU & Gộp PCS</h2>
             {selectedPickingList ? (
-              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-medium">
-                Lọc: {selectedPickingList}
+              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-semibold">
+                List {selectedPickingList}
+                {selectedCarrier && selectedCarrier !== 'ALL'
+                  ? ` (${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier})`
+                  : ''}
+              </span>
+            ) : selectedCarrier && selectedCarrier !== 'ALL' ? (
+              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-semibold">
+                ĐVVC: {CARRIER_CONFIG[selectedCarrier]?.name || selectedCarrier}
               </span>
             ) : (
               <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Layers,
   MapPin,
@@ -241,6 +241,101 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     },
   ];
 
+  // 1. Thống kê số đơn theo từng Picking List cho ĐVVC đang chọn và toàn bộ ĐVVC
+  const pickingListStats = useMemo(() => {
+    const stats: Record<string, { totalInList: number; carrierCount: number }> = {};
+
+    pickingLists.forEach((pl) => {
+      stats[pl] = { totalInList: 0, carrierCount: 0 };
+    });
+
+    orders.forEach((o) => {
+      const pl = (o.pickingList || '').trim();
+      if (!pl) return;
+      if (!stats[pl]) {
+        stats[pl] = { totalInList: 0, carrierCount: 0 };
+      }
+      stats[pl].totalInList++;
+      if (selectedCarrier === 'ALL' || o.carrier === selectedCarrier) {
+        stats[pl].carrierCount++;
+      }
+    });
+
+    return stats;
+  }, [orders, pickingLists, selectedCarrier]);
+
+  // 2. Sắp xếp danh sách Picking List: danh sách có đơn của ĐVVC đang chọn được ưu tiên đưa lên trước
+  const sortedPickingLists = useMemo(() => {
+    return [...pickingLists].sort((a, b) => {
+      if (selectedCarrier !== 'ALL') {
+        const countA = pickingListStats[a]?.carrierCount || 0;
+        const countB = pickingListStats[b]?.carrierCount || 0;
+        if (countA !== countB) return countB - countA; // Có nhiều đơn của ĐVVC hơn lên trước
+      }
+      return a.localeCompare(b);
+    });
+  }, [pickingLists, pickingListStats, selectedCarrier]);
+
+  // 3. Danh sách các Picking List có đơn cho ĐVVC đang chọn (dùng cho quick list chips)
+  const listsWithCarrierOrders = useMemo(() => {
+    if (selectedCarrier === 'ALL') return [];
+    return sortedPickingLists
+      .map((pl) => ({
+        name: pl,
+        count: pickingListStats[pl]?.carrierCount || 0,
+        totalInList: pickingListStats[pl]?.totalInList || 0,
+      }))
+      .filter((it) => it.count > 0);
+  }, [sortedPickingLists, pickingListStats, selectedCarrier]);
+
+  // 4. Thống kê chi tiết các ĐVVC có trong Picking List đang chọn
+  const carriersInSelectedList = useMemo(() => {
+    if (!selectedPickingList) return [];
+    const counts: Record<string, number> = {};
+    orders.forEach((o) => {
+      if ((o.pickingList || '').trim() === selectedPickingList) {
+        const c = o.carrier || 'OTHER';
+        counts[c] = (counts[c] || 0) + 1;
+      }
+    });
+    return Object.entries(counts)
+      .map(([code, count]) => ({
+        code: code as CarrierCode,
+        label: CARRIER_CONFIG[code as keyof typeof CARRIER_CONFIG]?.shortName || code,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [orders, selectedPickingList]);
+
+  // 5. Số đơn hiện tại thoả mãn cả Picking List và ĐVVC
+  const currentFilteredCount = useMemo(() => {
+    return orders.filter((o) => {
+      const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
+      const matchCarrier = selectedCarrier === 'ALL' || o.carrier === selectedCarrier;
+      return matchPl && matchCarrier;
+    }).length;
+  }, [orders, selectedPickingList, selectedCarrier]);
+
+  const totalInCurrentList = useMemo(() => {
+    if (!selectedPickingList) return 0;
+    return orders.filter((o) => (o.pickingList || '').trim() === selectedPickingList).length;
+  }, [orders, selectedPickingList]);
+
+  // 6. Copy nhanh các mã đơn của riêng List và ĐVVC hiện tại
+  const handleCopyCurrentListCarrier = () => {
+    const matched = orders.filter((o) => {
+      const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
+      const matchCarrier = selectedCarrier === 'ALL' || o.carrier === selectedCarrier;
+      return matchPl && matchCarrier;
+    });
+    const orderNos = matched.map((o) => o.orderNo).filter(Boolean);
+    if (orderNos.length === 0) return;
+    navigator.clipboard.writeText(orderNos.join('\n'));
+    const carrierName = selectedCarrier !== 'ALL' ? (CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier) : 'Tất cả';
+    setQuickToastMessage(`Đã copy ${orderNos.length} đơn (${selectedPickingList || 'Tất cả list'} - ${carrierName})`);
+    setTimeout(() => setQuickToastMessage(null), 2500);
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-xs mb-6 overflow-hidden">
       {/* Top Filter and Actions Row */}
@@ -255,14 +350,25 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <select
             value={selectedPickingList}
             onChange={(e) => setSelectedPickingList(e.target.value)}
-            className="text-xs font-medium bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer min-w-[200px]"
+            className="text-xs font-medium bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer min-w-[240px]"
           >
-            <option value="">-- Tất cả Picking Lists (Toàn bộ đơn) --</option>
-            {pickingLists.map((pl) => (
-              <option key={pl} value={pl}>
-                {pl}
-              </option>
-            ))}
+            <option value="">
+              {selectedCarrier !== 'ALL'
+                ? `-- Tất cả Picking Lists (${carrierCounts[selectedCarrier] || 0} đơn ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier}) --`
+                : `-- Tất cả Picking Lists (${orders.length} đơn) --`}
+            </option>
+            {sortedPickingLists.map((pl) => {
+              const stat = pickingListStats[pl] || { totalInList: 0, carrierCount: 0 };
+              const label =
+                selectedCarrier !== 'ALL'
+                  ? `${pl} ➔ ${stat.carrierCount} đơn ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier} (${stat.totalInList} tổng)`
+                  : `${pl} ➔ ${stat.totalInList} đơn`;
+              return (
+                <option key={pl} value={pl}>
+                  {label}
+                </option>
+              );
+            })}
           </select>
 
           {selectedPickingList && (
@@ -270,8 +376,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               onClick={() => setSelectedPickingList('')}
               className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline px-1 cursor-pointer"
             >
-              Xem tất cả
+              Xem tất cả lists
             </button>
+          )}
+
+          {/* Badge thông tin List & ĐVVC trực quan ngay tại ô chọn */}
+          {selectedPickingList && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-bold shadow-2xs">
+              <span>📦 List {selectedPickingList}:</span>
+              <span className="text-indigo-600">
+                {selectedCarrier !== 'ALL'
+                  ? `${currentFilteredCount} đơn ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier} / ${totalInCurrentList} đơn list`
+                  : `${totalInCurrentList} đơn`}
+              </span>
+            </span>
           )}
         </div>
 
@@ -409,6 +527,107 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           })}
         </div>
       </div>
+
+      {/* Dynamic List & Carrier Breakdown Insights Bar (Thống kê chi tiết List & ĐVVC) */}
+      {(selectedCarrier !== 'ALL' || selectedPickingList) && (
+        <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-50/80 via-blue-50/50 to-white border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs animate-in fade-in slide-in-from-top-1 duration-150">
+          {/* Case A: User selected a Carrier (e.g. SPX or JNT) */}
+          {selectedCarrier !== 'ALL' && (
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="font-bold text-gray-800 flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-indigo-600" />
+                <span>
+                  Hãng <b>{CARRIER_CONFIG[selectedCarrier]?.name || selectedCarrier}</b> ({carrierCounts[selectedCarrier] || 0} đơn)
+                  {listsWithCarrierOrders.length > 0 ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:` : ' (Không có trong list nào)'}
+                </span>
+              </span>
+
+              {/* All Lists chip */}
+              <button
+                type="button"
+                onClick={() => setSelectedPickingList('')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer border transition-all ${
+                  !selectedPickingList
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                }`}
+                title="Xem toàn bộ các list của hãng này"
+              >
+                Tất cả ({carrierCounts[selectedCarrier] || 0} đơn)
+              </button>
+
+              {/* Clickable List Chips with direct counts */}
+              {listsWithCarrierOrders.map((it) => {
+                const isListSelected = selectedPickingList === it.name;
+                return (
+                  <button
+                    key={it.name}
+                    type="button"
+                    onClick={() => setSelectedPickingList(it.name)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-all flex items-center gap-1.5 ${
+                      isListSelected
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs ring-2 ring-indigo-200'
+                        : 'bg-white text-gray-800 border-gray-200 hover:bg-indigo-50 hover:border-indigo-300'
+                    }`}
+                    title={`Chọn ${it.name}: có ${it.count} đơn ${selectedCarrier} trên tổng ${it.totalInList} đơn`}
+                  >
+                    <span>{it.name}:</span>
+                    <span className={`font-bold ${isListSelected ? 'text-white' : 'text-indigo-600'}`}>
+                      {it.count} đơn
+                    </span>
+                    <span className={`text-[10px] ${isListSelected ? 'text-indigo-200' : 'text-gray-400'}`}>
+                      ({it.totalInList} tổng)
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Case B: Carrier is ALL but a Picking List is selected */}
+          {selectedCarrier === 'ALL' && selectedPickingList && (
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="font-bold text-gray-800 flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-amber-600" />
+                <span>
+                  List <b>{selectedPickingList}</b> (<b>{totalInCurrentList} đơn</b>) gồm các hãng vận chuyển:
+                </span>
+              </span>
+
+              {carriersInSelectedList.map((c) => (
+                <button
+                  key={c.code}
+                  type="button"
+                  onClick={() => setSelectedCarrier(c.code)}
+                  className="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition-all"
+                  title={`Lọc chỉ xem ${c.label} trong list này`}
+                >
+                  <span>{c.label}:</span>
+                  <span className="font-bold text-indigo-600">{c.count} đơn</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Right Action: Quick Copy for currently filtered selection */}
+          {selectedPickingList && currentFilteredCount > 0 && (
+            <div className="flex items-center gap-2 shrink-0 ml-auto">
+              <button
+                type="button"
+                onClick={handleCopyCurrentListCarrier}
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 rounded-lg shadow-2xs transition-colors cursor-pointer"
+                title={`Sao chép ${currentFilteredCount} mã đơn của List ${selectedPickingList} (${selectedCarrier})`}
+              >
+                <Copy className="w-3.5 h-3.5 text-indigo-600" />
+                <span>
+                  Copy {currentFilteredCount} đơn ({selectedPickingList}
+                  {selectedCarrier !== 'ALL' ? ` - ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier}` : ''})
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Main Tabs Navigation */}
       <div className="flex items-center overflow-x-auto scrollbar-none p-2 gap-1 bg-white">
