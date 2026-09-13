@@ -344,6 +344,8 @@ export default function App() {
               selectedPickingList={selectedPickingList}
               onSelectPickingList={setSelectedPickingList}
               searchTerm={searchTerm}
+              selectedCarrier={selectedCarrier}
+              onSelectCarrier={setSelectedCarrier}
               onOpenPrintModal={(pl) => {
                 if (pl) setSelectedPickingList(pl);
                 setIsPrintModalOpen(true);
