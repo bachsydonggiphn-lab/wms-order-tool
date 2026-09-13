@@ -214,7 +214,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     {
       code: 'VIETTELPOST',
       label: 'Viettel Post',
-      prefixHint: 'VTP, VT...',
+      prefixHint: 'SHOPEEVTP, VTP...',
       colorStyle: 'border-emerald-300 text-emerald-800 bg-emerald-50/50 hover:bg-emerald-50',
       activeStyle: 'bg-emerald-600 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-200',
     },

@@ -107,7 +107,7 @@ export const CARRIER_CONFIG: Record<
     badgeText: 'text-emerald-700',
     badgeBorder: 'border-emerald-200',
     iconColor: 'text-emerald-600',
-    description: 'Mã SHOPEEVTP..., VT..., VTP... hoặc mã số 9–11 chữ số',
+    description: 'Mã SHOPEEVTP..., VTP..., VT kèm số hoặc mã bưu cục 10-15...',
   },
   VNPOST: {
     code: 'VNPOST',
@@ -162,20 +162,47 @@ export function xacDinhDonViVanChuyen(
   const tracking = (trackingNo || '').trim().toUpperCase();
   const raw = (rawText || '').toUpperCase();
 
-  // 1. Viettel Post (VTP): SHOPEEVTP..., VT..., VTP... hoặc mã số 9–11 chữ số
+  // 1. GHN TikTok: Mã bắt đầu bằng VNGH... (Giao Hàng Nhanh trên TikTok Shop)
+  if (
+    tracking.startsWith('VNGH') ||
+    raw.includes('VNGH') ||
+    raw.includes('GHN TIKTOK') ||
+    raw.includes('TIKTOK GHN') ||
+    (raw.includes('TIKTOK') && (raw.includes('GHN') || tracking.startsWith('GY')))
+  ) {
+    return { carrier: 'GHN_TIKTOK', carrierName: CARRIER_CONFIG.GHN_TIKTOK.name };
+  }
+
+  // 2. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE..., VNSP...
+  if (
+    tracking.startsWith('SPXVN') ||
+    tracking.startsWith('SPX') ||
+    tracking.startsWith('VNSPX') ||
+    tracking.startsWith('SPE') ||
+    tracking.startsWith('VNSP') ||
+    raw.includes('SPXVN') ||
+    raw.includes('SPX_') ||
+    raw.includes('SHOPEE EXPRESS') ||
+    raw.includes('SHOPEE_EXPRESS')
+  ) {
+    return { carrier: 'SPX', carrierName: CARRIER_CONFIG.SPX.name };
+  }
+
+  // 3. Viettel Post (VTP): SHOPEEVTP..., VTP..., VT kèm số (VT123456789), hoặc đầu mã 10-15
   if (
     tracking.startsWith('SHOPEEVTP') ||
     tracking.startsWith('VTP') ||
-    tracking.startsWith('VT') ||
-    (tracking.startsWith('VN') && tracking.length >= 14 && /^[A-Z0-9]+$/.test(tracking) && !tracking.endsWith('VN')) ||
-    (/^\d{9,11}$/.test(tracking)) ||
+    (/^VT\d{6,14}$/i.test(tracking)) ||
+    (/^(10|11|12|13|14|15)\d{8,10}$/.test(tracking)) ||
     raw.includes('VIETTEL') ||
-    raw.includes('VTP')
+    raw.includes('VIETTELPOST') ||
+    raw.includes('VIETTEL POST') ||
+    (raw.includes('VTP') && !raw.includes('VNPOST'))
   ) {
     return { carrier: 'VIETTELPOST', carrierName: CARRIER_CONFIG.VIETTELPOST.name };
   }
 
-  // 2. Vietnam Post (VNPost / EMS): Chuẩn UPU 13 ký tự (EA...VN, EB...VN, CO...VN), EMS..., VNPOST...
+  // 4. Vietnam Post (VNPost / EMS): Chuẩn UPU 13 ký tự (EA...VN, EB...VN, CO...VN), EMS..., VNPOST...
   if (
     tracking.startsWith('EA') ||
     tracking.startsWith('EB') ||
@@ -194,7 +221,7 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'VNPOST', carrierName: CARRIER_CONFIG.VNPOST.name };
   }
 
-  // 3. Ninja Van: NIVN..., NLVN..., NV..., hoặc mã Shopee SHP... (dài > 10 ký tự)
+  // 5. Ninja Van: NIVN..., NLVN..., NV..., hoặc mã Shopee SHP... (dài > 10 ký tự)
   if (
     tracking.startsWith('NIVN') ||
     tracking.startsWith('NLVN') ||
@@ -206,39 +233,13 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'NINJAVAN', carrierName: CARRIER_CONFIG.NINJAVAN.name };
   }
 
-  // 4. Best Express: Mã 12 chữ số bắt đầu bằng 61... hoặc tiền tố BEST...
+  // 6. Best Express: Mã 12 chữ số bắt đầu bằng 61... hoặc tiền tố BEST...
   if (
     tracking.startsWith('BEST') ||
     ((tracking.startsWith('61') || tracking.startsWith('81')) && tracking.length === 12 && /^\d+$/.test(tracking)) ||
     raw.includes('BEST')
   ) {
     return { carrier: 'BEST', carrierName: CARRIER_CONFIG.BEST.name };
-  }
-
-  // 5. GHN TikTok: Bắt đầu bằng VNGH... hoặc từ khóa GHN TIKTOK (tách riêng phục vụ đơn TikTok Shop)
-  if (
-    tracking.startsWith('VNGH') ||
-    raw.includes('VNGH') ||
-    raw.includes('GHN TIKTOK') ||
-    raw.includes('TIKTOK GHN') ||
-    (raw.includes('TIKTOK') && (raw.includes('GHN') || tracking.startsWith('GY')))
-  ) {
-    return { carrier: 'GHN_TIKTOK', carrierName: CARRIER_CONFIG.GHN_TIKTOK.name };
-  }
-
-  // 6. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE...
-  if (
-    tracking.startsWith('SPXVN') ||
-    tracking.startsWith('SPX') ||
-    tracking.startsWith('VNSPX') ||
-    tracking.startsWith('SPE') ||
-    tracking.startsWith('VNSP') ||
-    raw.includes('SPXVN') ||
-    raw.includes('SPX_') ||
-    raw.includes('SHOPEE EXPRESS') ||
-    raw.includes('SHOPEE_EXPRESS')
-  ) {
-    return { carrier: 'SPX', carrierName: CARRIER_CONFIG.SPX.name };
   }
 
   // 7. J&T Cargo (Hàng Nặng): Mã 12 số bắt đầu bằng 530... hoặc 53...

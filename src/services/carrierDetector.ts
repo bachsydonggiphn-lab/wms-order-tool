@@ -110,11 +110,12 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
   const cleanChannel = (channelHint || '').trim().toUpperCase();
 
   // 1. PRIMARY RULE: Direct Tracking Number Prefix / Format Check
+  // Viettel Post (VTP): SHOPEEVTP..., VTP..., hoặc VT kèm số
   if (
     cleanCode.startsWith('SHOPEEVTP') ||
-    cleanCode.startsWith('VT') || 
     cleanCode.startsWith('VTP') ||
-    (cleanCode.startsWith('VN') && cleanCode.length >= 14 && /^[A-Z0-9]+$/.test(cleanCode) && !cleanCode.endsWith('VN'))
+    (/^VT\d{6,14}$/i.test(cleanCode)) ||
+    (/^(10|11|12|13|14|15)\d{8,10}$/.test(cleanCode))
   ) {
     return 'viettelpost';
   }
@@ -192,7 +193,7 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
     return 'jt';
   }
 
-  if (/^\d{9,11}$/.test(cleanCode)) {
+  if (/^(10|11|12|13|14|15)\d{8,10}$/.test(cleanCode)) {
     return 'viettelpost';
   }
 
