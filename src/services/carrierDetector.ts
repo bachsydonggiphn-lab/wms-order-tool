@@ -25,12 +25,23 @@ export const CARRIERS: Record<CarrierId, CarrierConfig> = {
   },
   jt: {
     id: 'jt',
-    name: 'J&T Express / J&T Cargo',
-    shortName: 'J&T (Cargo)',
+    name: 'J&T Express (Tiêu Chuẩn)',
+    shortName: 'J&T Express',
     logoColor: '#E60012',
     badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
     badgeText: 'text-rose-600',
-    prefixHints: ['86', '84', '530', '53', 'JT', 'JTE', 'JTT'],
+    prefixHints: ['8', '8623', '84', '83', 'JT', 'JNT'],
+    trackingUrlPattern: 'https://jtexpress.vn/vi/tracking?type=track&billcode={CODE}',
+    website: 'https://jtexpress.vn/'
+  },
+  jt_cargo: {
+    id: 'jt_cargo',
+    name: 'J&T Cargo (Hàng Nặng)',
+    shortName: 'J&T Cargo',
+    logoColor: '#C41230',
+    badgeBg: 'bg-red-100 text-red-800 border-red-300',
+    badgeText: 'text-red-700',
+    prefixHints: ['530', '53'],
     trackingUrlPattern: 'https://jtexpress.vn/vi/tracking?type=track&billcode={CODE}',
     website: 'https://jtexpress.vn/'
   },
@@ -155,19 +166,29 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
     return 'best';
   }
 
+  // J&T Cargo (Hàng Nặng): 12 số bắt đầu bằng 530... hoặc 53...
+  if (
+    cleanCode.startsWith('530') ||
+    (cleanCode.startsWith('53') && cleanCode.length === 12 && /^\d+$/.test(cleanCode))
+  ) {
+    return 'jt_cargo';
+  }
+
+  // J&T Express (Tiêu Chuẩn): Mã 12 số bắt đầu bằng 8... (8623..., 84..., 83...), JT..., JNT...
   if (
     cleanCode.startsWith('JT') || 
     cleanCode.startsWith('JTE') || 
     cleanCode.startsWith('JTT') || 
     cleanCode.startsWith('JNT') ||
-    cleanCode.startsWith('530') ||
-    ((cleanCode.startsWith('86') || cleanCode.startsWith('84') || cleanCode.startsWith('53')) && cleanCode.length === 12 && /^\d+$/.test(cleanCode))
+    (cleanCode.length === 12 && /^\d+$/.test(cleanCode) && cleanCode.startsWith('8')) ||
+    ((cleanCode.startsWith('86') || cleanCode.startsWith('84') || cleanCode.startsWith('83')) && cleanCode.length === 12 && /^\d+$/.test(cleanCode))
   ) {
     return 'jt';
   }
 
   // 2. Fallback heuristics
   if (/^\d{12}$/.test(cleanCode)) {
+    if (cleanCode.startsWith('53')) return 'jt_cargo';
     return 'jt';
   }
 
@@ -183,11 +204,13 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
     if (cleanChannel.includes('SPX') || cleanChannel.includes('SHOPEE') || cleanChannel.includes('SPE')) {
       return 'spx';
     }
+    if (cleanChannel.includes('CARGO') || cleanChannel.includes('J&T CARGO')) {
+      return 'jt_cargo';
+    }
     if (
       cleanChannel.includes('J&T') || 
       cleanChannel.includes('JNT') || 
-      cleanChannel.includes('JTEXPRESS') ||
-      cleanChannel.includes('J&T CARGO')
+      cleanChannel.includes('JTEXPRESS')
     ) {
       return 'jt';
     }
@@ -221,7 +244,7 @@ export function getDirectTrackingUrl(carrier: CarrierId, code: string, phone: st
     return `https://spx.vn/track?${encodeURIComponent(cleanCode)}`;
   }
   let url = config.trackingUrlPattern.replace('{CODE}', encodeURIComponent(cleanCode));
-  if (carrier === 'jt') {
+  if (carrier === 'jt' || carrier === 'jt_cargo') {
     const cleanPhone = phone ? phone.replace(/\D/g, '').slice(-4) : '8836';
     if (cleanPhone) {
       url += `&cellphone=${encodeURIComponent(cleanPhone)}`;

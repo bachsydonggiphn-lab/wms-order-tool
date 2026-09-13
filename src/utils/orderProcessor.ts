@@ -26,36 +26,58 @@ import { DEFAULT_AREA_ORDER, DEFAULT_SKU_GROUPS } from './skuData';
  * - GY / GHN... là Giao Hàng Nhanh
  * - Khác / Chưa xác định
  */
-export const CARRIER_CONFIG: Record<'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'VIETTELPOST' | 'OTHER', CarrierDetails> = {
-  JNT: {
-    code: 'JNT',
-    name: 'J&T Express & Cargo (862..., 530...)',
-    shortName: 'J&T (Cargo)',
-    badgeBg: 'bg-red-50',
-    badgeText: 'text-red-700',
-    badgeBorder: 'border-red-200',
-    iconColor: 'text-red-600',
-    description: 'Mã vận đơn bắt đầu bằng 862, 530, 84, 86, JT (J&T Express & J&T Cargo)',
-  },
+export const CARRIER_CONFIG: Record<
+  | 'JNT'
+  | 'JT_CARGO'
+  | 'SPX'
+  | 'GHN'
+  | 'GHN_TIKTOK'
+  | 'NINJAVAN'
+  | 'VIETTELPOST'
+  | 'VNPOST'
+  | 'BEST'
+  | 'OTHER',
+  CarrierDetails
+> = {
   SPX: {
     code: 'SPX',
-    name: 'Shopee Express (SPX...)',
-    shortName: 'Shopee Express',
+    name: 'Shopee Express (SPX)',
+    shortName: 'SPX',
     badgeBg: 'bg-orange-50',
     badgeText: 'text-orange-700',
     badgeBorder: 'border-orange-200',
     iconColor: 'text-orange-600',
-    description: 'Mã vận đơn bắt đầu bằng SPX / SPXVN (Shopee Express)',
+    description: 'Mã vận đơn bắt đầu bằng SPX / SPXVN / SPE (Shopee Express)',
+  },
+  JNT: {
+    code: 'JNT',
+    name: 'J&T Express (Tiêu Chuẩn)',
+    shortName: 'J&T Express',
+    badgeBg: 'bg-red-50',
+    badgeText: 'text-red-700',
+    badgeBorder: 'border-red-200',
+    iconColor: 'text-red-600',
+    description: 'Mã 12 số bắt đầu bằng 8... (8623..., 84..., 83...), JT..., JNT...',
+  },
+  JT_CARGO: {
+    code: 'JT_CARGO',
+    name: 'J&T Cargo (Hàng Nặng)',
+    shortName: 'J&T Cargo',
+    badgeBg: 'bg-rose-100',
+    badgeText: 'text-rose-800',
+    badgeBorder: 'border-rose-300',
+    iconColor: 'text-rose-700',
+    description: 'Mã 12 số bắt đầu bằng 530... hoặc 53... (hàng cồng kềnh)',
   },
   GHN: {
     code: 'GHN',
-    name: 'Giao Hàng Nhanh (GY..., GHN...)',
+    name: 'Giao Hàng Nhanh (GHN)',
     shortName: 'GHN',
     badgeBg: 'bg-blue-50',
     badgeText: 'text-blue-700',
     badgeBorder: 'border-blue-200',
     iconColor: 'text-blue-600',
-    description: 'Mã vận đơn bắt đầu bằng GY hoặc GHN (Giao Hàng Nhanh truyền thống)',
+    description: 'Mã GY..., GHN..., NL_... hoặc mã TMĐT 8 ký tự (GYY..., GY8...)',
   },
   GHN_TIKTOK: {
     code: 'GHN_TIKTOK',
@@ -67,29 +89,49 @@ export const CARRIER_CONFIG: Record<'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPO
     iconColor: 'text-cyan-600',
     description: 'Mã vận đơn bắt đầu bằng VNGH (Giao Hàng Nhanh trên TikTok Shop)',
   },
-  VNPOST: {
-    code: 'VNPOST',
-    name: 'Vietnam Post / EMS (EA..., EB...)',
-    shortName: 'VNPost / EMS',
-    badgeBg: 'bg-amber-50',
-    badgeText: 'text-amber-800',
-    badgeBorder: 'border-amber-300',
-    iconColor: 'text-amber-600',
-    description: 'Mã vận đơn Vietnam Post / EMS bắt đầu bằng EA, EB (EA...VN, EB...VN) hoặc EMS/VNPost',
+  NINJAVAN: {
+    code: 'NINJAVAN',
+    name: 'Ninja Van',
+    shortName: 'Ninja Van',
+    badgeBg: 'bg-purple-50',
+    badgeText: 'text-purple-700',
+    badgeBorder: 'border-purple-200',
+    iconColor: 'text-purple-600',
+    description: 'Mã NIVN..., NLVN..., NV..., hoặc mã Shopee SHP... dài > 10 ký tự',
   },
   VIETTELPOST: {
     code: 'VIETTELPOST',
-    name: 'Viettel Post (VTP...)',
+    name: 'Viettel Post (VTP)',
     shortName: 'Viettel Post',
     badgeBg: 'bg-emerald-50',
     badgeText: 'text-emerald-700',
     badgeBorder: 'border-emerald-200',
     iconColor: 'text-emerald-600',
-    description: 'Mã vận đơn Viettel Post bắt đầu bằng VTP, VT, SHOPEEVTP hoặc mã VN...',
+    description: 'Mã SHOPEEVTP..., VT..., VTP... hoặc mã số 9–11 chữ số',
+  },
+  VNPOST: {
+    code: 'VNPOST',
+    name: 'Bưu điện Việt Nam (VNPost / EMS)',
+    shortName: 'VNPost / EMS',
+    badgeBg: 'bg-amber-50',
+    badgeText: 'text-amber-800',
+    badgeBorder: 'border-amber-300',
+    iconColor: 'text-amber-600',
+    description: 'Chuẩn UPU 13 ký tự (EA...VN, EB...VN, CO...VN), EMS..., VNPOST...',
+  },
+  BEST: {
+    code: 'BEST',
+    name: 'Best Express',
+    shortName: 'Best Express',
+    badgeBg: 'bg-sky-50',
+    badgeText: 'text-sky-700',
+    badgeBorder: 'border-sky-200',
+    iconColor: 'text-sky-600',
+    description: 'Mã 12 chữ số bắt đầu bằng 61... hoặc tiền tố BEST...',
   },
   OTHER: {
     code: 'OTHER',
-    name: 'Khác / Không xác định',
+    name: 'Khác / Chưa xác định',
     shortName: 'Khác',
     badgeBg: 'bg-slate-100',
     badgeText: 'text-slate-700',
@@ -101,39 +143,43 @@ export const CARRIER_CONFIG: Record<'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPO
 
 /**
  * Tự động phân loại Đơn Vị Vận Chuyển dựa trên Tracking No và Raw Text
- * - SPX... / SPXVN... là Shopee Express
- * - 862... / 530... / JT... là J&T Express & J&T Cargo
- * - VNGH... là GHN TikTok (Tách riêng biệt)
- * - GY... / GHN... / 8 ký tự alphanumeric là Giao Hàng Nhanh (GHN truyền thống)
- * - EA...VN / EB...VN là Vietnam Post / EMS
- * - SHOPEEVTP... / VTP... / VT... là Viettel Post
- * - Các mã khác hoặc không xác định là OTHER
+ * Phân loại chính xác 8 hãng vận chuyển theo chuẩn kho vận:
+ * 1. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE...
+ * 2. J&T Express (Tiêu Chuẩn): 8... (12 số như 8623..., 84...), JT..., JNT...
+ * 3. J&T Cargo (Hàng Nặng): 530..., 53... (12 số)
+ * 4. Giao Hàng Nhanh (GHN): GY..., GHN..., NL_..., 8 ký tự alphanumeric
+ * 5. GHN TikTok: VNGH...
+ * 6. Ninja Van: NIVN..., NLVN..., NV..., SHP... (>10 ký tự)
+ * 7. Viettel Post: SHOPEEVTP..., VT..., VTP..., 9-11 số
+ * 8. Vietnam Post (VNPost / EMS): EA...VN, EB...VN, CO...VN, EMS..., VNPOST...
+ * 9. Best Express: 61..., 81..., BEST...
+ * 10. Khác: Chưa rõ
  */
 export function xacDinhDonViVanChuyen(
   trackingNo: string | null | undefined,
   rawText?: string | null | undefined
-): { carrier: 'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'VIETTELPOST' | 'OTHER'; carrierName: string } {
+): { carrier: CarrierCode; carrierName: string } {
   const tracking = (trackingNo || '').trim().toUpperCase();
   const raw = (rawText || '').toUpperCase();
 
-  // 1. Kiểm tra Viettel Post: Bắt đầu bằng SHOPEEVTP, VTP, VT hoặc từ khóa VIETTEL / VTP
+  // 1. Viettel Post (VTP): SHOPEEVTP..., VT..., VTP... hoặc mã số 9–11 chữ số
   if (
     tracking.startsWith('SHOPEEVTP') ||
     tracking.startsWith('VTP') ||
     tracking.startsWith('VT') ||
     (tracking.startsWith('VN') && tracking.length >= 14 && /^[A-Z0-9]+$/.test(tracking) && !tracking.endsWith('VN')) ||
+    (/^\d{9,11}$/.test(tracking)) ||
     raw.includes('VIETTEL') ||
     raw.includes('VTP')
   ) {
     return { carrier: 'VIETTELPOST', carrierName: CARRIER_CONFIG.VIETTELPOST.name };
   }
 
-  // 2. Kiểm tra Vietnam Post (VNPost / EMS):
-  // - Bắt đầu bằng EA... (như EA343202459VN, EMS...) hoặc EB... (như EB343473417VN...)
-  // - Hoặc chứa từ khoá VNPOST / VIETNAMPOST / VNPORT / BƯU ĐIỆN
+  // 2. Vietnam Post (VNPost / EMS): Chuẩn UPU 13 ký tự (EA...VN, EB...VN, CO...VN), EMS..., VNPOST...
   if (
     tracking.startsWith('EA') ||
     tracking.startsWith('EB') ||
+    tracking.startsWith('CO') ||
     tracking.startsWith('EMS') ||
     tracking.startsWith('VNPOST') ||
     tracking.startsWith('VNP') ||
@@ -148,7 +194,28 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'VNPOST', carrierName: CARRIER_CONFIG.VNPOST.name };
   }
 
-  // 3. Kiểm tra GHN TikTok: Bắt đầu bằng VNGH... hoặc chứa từ khóa GHN TIKTOK / TIKTOK GHN (TÁCH RIÊNG KHÔNG GỘP)
+  // 3. Ninja Van: NIVN..., NLVN..., NV..., hoặc mã Shopee SHP... (dài > 10 ký tự)
+  if (
+    tracking.startsWith('NIVN') ||
+    tracking.startsWith('NLVN') ||
+    tracking.startsWith('NV') ||
+    (tracking.startsWith('SHP') && tracking.length > 10) ||
+    raw.includes('NINJA') ||
+    raw.includes('NIVN')
+  ) {
+    return { carrier: 'NINJAVAN', carrierName: CARRIER_CONFIG.NINJAVAN.name };
+  }
+
+  // 4. Best Express: Mã 12 chữ số bắt đầu bằng 61... hoặc tiền tố BEST...
+  if (
+    tracking.startsWith('BEST') ||
+    ((tracking.startsWith('61') || tracking.startsWith('81')) && tracking.length === 12 && /^\d+$/.test(tracking)) ||
+    raw.includes('BEST')
+  ) {
+    return { carrier: 'BEST', carrierName: CARRIER_CONFIG.BEST.name };
+  }
+
+  // 5. GHN TikTok: Bắt đầu bằng VNGH... hoặc từ khóa GHN TIKTOK (tách riêng phục vụ đơn TikTok Shop)
   if (
     tracking.startsWith('VNGH') ||
     raw.includes('VNGH') ||
@@ -159,9 +226,7 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'GHN_TIKTOK', carrierName: CARRIER_CONFIG.GHN_TIKTOK.name };
   }
 
-  // 4. Kiểm tra Shopee Express (SPX):
-  // - Bắt đầu bằng SPXVN, SPX, VNSPX, SPE
-  // - Hoặc raw có SPXVN / SPX / SHOPEE EXPRESS (Lưu ý: Không dùng chỉ 'SHOPEE' vì nhiều shop Shopee dùng ĐVVC khác)
+  // 6. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE...
   if (
     tracking.startsWith('SPXVN') ||
     tracking.startsWith('SPX') ||
@@ -176,22 +241,23 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'SPX', carrierName: CARRIER_CONFIG.SPX.name };
   }
 
-  // 5. Kiểm tra J&T Express & J&T Cargo:
-  // - Bắt đầu bằng 862 (J&T Express 12 số)
-  // - Bắt đầu bằng 530, 53 (J&T Cargo 12 số)
-  // - Bắt đầu bằng 84, 86, JT, JNT, JTE
-  // - Hoặc 12 chữ số thuần
-  // - Hoặc kênh JTTH_ / từ khóa JNT, J&T
+  // 7. J&T Cargo (Hàng Nặng): Mã 12 số bắt đầu bằng 530... hoặc 53...
+  if (
+    tracking.startsWith('530') ||
+    (tracking.startsWith('53') && tracking.length === 12 && /^\d+$/.test(tracking)) ||
+    raw.includes('J&T CARGO') ||
+    raw.includes('CARGO')
+  ) {
+    return { carrier: 'JT_CARGO', carrierName: CARRIER_CONFIG.JT_CARGO.name };
+  }
+
+  // 8. J&T Express (Tiêu Chuẩn): Mã 12 số bắt đầu bằng 8... (8623..., 84..., 83...), JT..., JNT...
   if (
     tracking.startsWith('862') ||
-    tracking.startsWith('86') ||
-    tracking.startsWith('84') ||
-    tracking.startsWith('530') ||
-    tracking.startsWith('53') ||
+    (tracking.startsWith('8') && tracking.length === 12 && /^\d+$/.test(tracking)) ||
     tracking.startsWith('JT') ||
     tracking.startsWith('JNT') ||
     tracking.startsWith('JTE') ||
-    (/^\d{12}$/.test(tracking)) ||
     raw.includes('8622') ||
     (raw.includes('862') && /Tracking\s*No\.?\s*[:：]\s*862/i.test(rawText || '')) ||
     raw.includes('JNT') ||
@@ -205,13 +271,11 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'JNT', carrierName: CARRIER_CONFIG.JNT.name };
   }
 
-  // 6. Kiểm tra Giao Hàng Nhanh (GHN) thường:
-  // - GY... là mã vận đơn Giao Hàng Nhanh (GY8D..., GYYW..., GYYT...)
-  // - GHN... hoặc chứa từ khóa GHN / Giao Hàng Nhanh
-  // - Mã 8 ký tự alphanumeric chuẩn GHN (như 26NSGKJY)
+  // 9. Giao Hàng Nhanh (GHN): GY..., GHN..., NL_..., mã 8 ký tự alphanumeric (GYY..., GY8...)
   if (
     tracking.startsWith('GY') ||
     tracking.startsWith('GHN') ||
+    tracking.startsWith('NL_') ||
     (tracking.length === 8 && /^[A-Z0-9]{8}$/.test(tracking)) ||
     raw.includes('GY8D') ||
     raw.includes('GHN') ||
@@ -224,11 +288,17 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'GHN', carrierName: CARRIER_CONFIG.GHN.name };
   }
 
-  // 7. Fallback: Nếu không có mã tracking nhưng channel ghi rõ
+  // 10. Fallback heuristics: nếu 12 chữ số thuần chưa gán
+  if (/^\d{12}$/.test(tracking)) {
+    if (tracking.startsWith('53')) return { carrier: 'JT_CARGO', carrierName: CARRIER_CONFIG.JT_CARGO.name };
+    return { carrier: 'JNT', carrierName: CARRIER_CONFIG.JNT.name };
+  }
+
+  // 11. Fallback channel hints
   if (raw.includes('SPX')) return { carrier: 'SPX', carrierName: CARRIER_CONFIG.SPX.name };
   if (raw.includes('J&T') || raw.includes('JNT')) return { carrier: 'JNT', carrierName: CARRIER_CONFIG.JNT.name };
 
-  // 8. Khác / Chưa xác định
+  // 12. Khác / Chưa xác định
   return { carrier: 'OTHER', carrierName: CARRIER_CONFIG.OTHER.name };
 }
 

@@ -108,11 +108,35 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
         </span>
       );
     }
+    if (c === 'JT_CARGO') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+          J&T Cargo
+        </span>
+      );
+    }
+    if (c === 'NINJAVAN') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-800 border border-purple-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+          Ninja Van
+        </span>
+      );
+    }
     if (c === 'VIETTELPOST') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           Viettel Post
+        </span>
+      );
+    }
+    if (c === 'BEST') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-600"></span>
+          Best Express
         </span>
       );
     }

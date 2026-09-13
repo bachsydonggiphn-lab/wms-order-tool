@@ -189,12 +189,15 @@ export default function App() {
   const carrierCounts = useMemo(() => {
     const counts: Record<CarrierCode, number> = {
       ALL: 0,
-      JNT: 0,
       SPX: 0,
+      JNT: 0,
+      JT_CARGO: 0,
       GHN: 0,
       GHN_TIKTOK: 0,
-      VNPOST: 0,
+      NINJAVAN: 0,
       VIETTELPOST: 0,
+      VNPOST: 0,
+      BEST: 0,
       OTHER: 0,
     };
     const filtered = selectedPickingList

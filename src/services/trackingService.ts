@@ -446,9 +446,10 @@ export async function trackSingleOrder(
     }
   }
 
-  // 3. J&T Express tracking
+  // 3. J&T Express & J&T Cargo tracking
   if (
     (carrier === 'jt' || 
+    carrier === 'jt_cargo' ||
     upperCode.startsWith('JT') || 
     upperCode.startsWith('JTE') || 
     upperCode.startsWith('JNT') || 
@@ -469,11 +470,12 @@ export async function trackSingleOrder(
       });
 
       const json = await liveRes.json();
+      const currentCarrier: CarrierId = (carrier === 'jt_cargo' || upperCode.startsWith('53')) ? 'jt_cargo' : 'jt';
       if (liveRes.ok && json.success && json.data) {
         const liveTimeline = json.data.timeline || [];
         const classified = classifyLogisticsStatus(json.data.rawStatusText || '', liveTimeline, json.data.statusCategory as TrackingStatusCategory);
         const liveData = {
-          carrier: 'jt' as CarrierId,
+          carrier: currentCarrier,
           statusCategory: classified.statusCategory,
           rawStatusText: json.data.rawStatusText,
           statusDetail: json.data.statusDetail,
@@ -487,7 +489,7 @@ export async function trackSingleOrder(
       } else {
         const errDetail = json.error || 'J&T: Không tìm thấy thông tin vận đơn';
         return {
-          carrier: 'jt' as CarrierId,
+          carrier: currentCarrier,
           statusCategory: 'error' as TrackingStatusCategory,
           rawStatusText: 'Lỗi tra cứu J&T',
           statusDetail: errDetail,
@@ -497,7 +499,7 @@ export async function trackSingleOrder(
       }
     } catch (err: any) {
       return {
-        carrier: 'jt' as CarrierId,
+        carrier: (carrier === 'jt_cargo' || upperCode.startsWith('53')) ? 'jt_cargo' : 'jt',
         statusCategory: 'error',
         rawStatusText: 'Lỗi mạng khi gọi J&T',
         statusDetail: err.message || 'Không thể kết nối đến cổng J&T',
