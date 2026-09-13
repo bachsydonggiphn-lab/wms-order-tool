@@ -380,7 +380,7 @@ export async function pollLatestWmsOrders(
   const fetchPage1 = async (currentCookie: string) => {
     const res = await httpsRequest({
       hostname: 'czwh.wms.yunwms.com',
-      path: '/order/orders/list/page/1/pageSize/50',
+      path: '/order/orders/list/page/1/pageSize/500',
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

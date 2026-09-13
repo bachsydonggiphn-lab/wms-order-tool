@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Layers,
   MapPin,
@@ -15,9 +15,12 @@ import {
   Truck,
   CheckCircle2,
   Zap,
+  Copy,
+  Check,
 } from 'lucide-react';
-import { CarrierCode } from '../types';
+import { RawOrderRow, CarrierCode } from '../types';
 import { CARRIER_CONFIG } from '../utils/orderProcessor';
+import { CopyCarrierOrdersModal } from './CopyCarrierOrdersModal';
 
 export type ActiveTabType =
   | 'sku_pcs'
@@ -45,6 +48,7 @@ interface ToolbarProps {
   onExportExcel: () => void;
   onPrintPreview: () => void;
   totalOrders: number;
+  orders?: RawOrderRow[];
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -61,7 +65,40 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onExportExcel,
   onPrintPreview,
   totalOrders = 0,
+  orders = [],
 }) => {
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState<boolean>(false);
+  const [copyModalCarrier, setCopyModalCarrier] = useState<CarrierCode>('ALL');
+  const [quickCopiedCarrier, setQuickCopiedCarrier] = useState<CarrierCode | null>(null);
+  const [quickToastMessage, setQuickToastMessage] = useState<string | null>(null);
+
+  const handleQuickCopyOrders = (carrierCode: CarrierCode, carrierLabel: string) => {
+    if (!orders || orders.length === 0) {
+      alert('Không có dữ liệu đơn hàng để sao chép.');
+      return;
+    }
+
+    const list = orders.filter((o) => {
+      if (selectedPickingList && o.pickingList !== selectedPickingList) return false;
+      if (carrierCode === 'ALL') return true;
+      return o.carrier === carrierCode;
+    });
+
+    if (list.length === 0) {
+      alert(`Không có đơn hàng nào cho hãng ${carrierLabel}!`);
+      return;
+    }
+
+    const text = list.map((o) => o.orderNo).filter(Boolean).join('\n');
+    navigator.clipboard.writeText(text);
+
+    setQuickCopiedCarrier(carrierCode);
+    setQuickToastMessage(`Đã copy ${list.length} mã đơn ${carrierLabel}`);
+    setTimeout(() => {
+      setQuickCopiedCarrier(null);
+      setQuickToastMessage(null);
+    }, 2200);
+  };
   const tabs = [
     {
       id: 'sku_pcs' as ActiveTabType,
@@ -251,44 +288,95 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
       {/* Row 2: Chọn Đơn Vị Vận Chuyển Để Đóng Gói (J&T: 862, Shopee: SPX, GHN: GY, Khác / Tất cả) */}
       <div className="px-4 py-3 bg-indigo-50/40 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center flex-wrap gap-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-white px-2.5 py-1.5 rounded-xl border border-indigo-200 shadow-2xs">
             <Truck className="w-4 h-4 text-indigo-600" />
             <span>Đóng Gói Theo ĐVVC:</span>
           </div>
-          <span className="text-[11px] text-gray-500 hidden sm:inline">
-            (Chọn 1 ĐVVC để đóng gói riêng hoặc chọn Tất cả)
+
+          {/* Nút mở Modal Sao Chép Đơn Theo Hãng */}
+          <button
+            type="button"
+            onClick={() => {
+              setCopyModalCarrier(selectedCarrier);
+              setIsCopyModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 rounded-xl shadow-2xs transition-all cursor-pointer hover:border-indigo-300"
+            title="Mở bảng sao chép mã đơn hàng hoặc tracking theo từng hãng vận chuyển"
+          >
+            <Copy className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Copy Đơn Theo Hãng</span>
+          </button>
+
+          {quickToastMessage && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 animate-in fade-in zoom-in-95 duration-150">
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{quickToastMessage}</span>
+            </span>
+          )}
+
+          <span className="text-[11px] text-gray-500 hidden xl:inline">
+            (Bấm icon 📋 trên từng hãng để copy nhanh mã đơn)
           </span>
         </div>
 
-        {/* Carrier Badges Filter Group */}
+        {/* Carrier Badges Filter Group & 1-Click Copy */}
         <div className="flex items-center flex-wrap gap-2">
           {carrierOptions.map((opt) => {
             const count = carrierCounts[opt.code] || 0;
             const isSelected = selectedCarrier === opt.code;
+            const isCopied = quickCopiedCarrier === opt.code;
 
             return (
-              <button
+              <div
                 key={opt.code}
-                onClick={() => setSelectedCarrier(opt.code)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`inline-flex items-center rounded-xl border transition-all ${
                   isSelected ? opt.activeStyle : opt.colorStyle
                 }`}
               >
-                <span>{opt.label}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    isSelected
-                      ? 'bg-white/30 text-white'
-                      : 'bg-black/5 text-gray-700'
-                  }`}
+                {/* Nút lọc hãng */}
+                <button
+                  onClick={() => setSelectedCarrier(opt.code)}
+                  className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-xs font-semibold cursor-pointer"
                 >
-                  {count}
-                </span>
-                <span className="text-[10px] opacity-75 hidden xl:inline">
-                  ({opt.prefixHint})
-                </span>
-              </button>
+                  <span>{opt.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                      isSelected
+                        ? 'bg-white/30 text-white'
+                        : 'bg-black/5 text-gray-700'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                  <span className="text-[10px] opacity-75 hidden xl:inline">
+                    ({opt.prefixHint})
+                  </span>
+                </button>
+
+                {/* Nút Copy Nhanh 1-Click trực tiếp trên từng Badge */}
+                {count > 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuickCopyOrders(opt.code, opt.label);
+                    }}
+                    title={`Click để copy nhanh ${count} mã đơn của ${opt.label} (mỗi mã 1 dòng)`}
+                    className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'hover:bg-white/20 text-white'
+                        : 'hover:bg-black/10 text-gray-600'
+                    }`}
+                  >
+                    {isCopied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
+                    )}
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>
@@ -327,6 +415,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           );
         })}
       </div>
+
+      {/* Modal Sao Chép Đơn Theo Hãng Vận Chuyển */}
+      {isCopyModalOpen && (
+        <CopyCarrierOrdersModal
+          isOpen={isCopyModalOpen}
+          onClose={() => setIsCopyModalOpen(false)}
+          orders={orders || []}
+          selectedPickingList={selectedPickingList}
+          initialCarrier={copyModalCarrier}
+        />
+      )}
     </div>
   );
 };

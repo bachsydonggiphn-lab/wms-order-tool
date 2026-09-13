@@ -43,13 +43,20 @@ export default function App() {
     return DEFAULT_SKU_GROUPS;
   });
 
-  // 2. Quản lý danh sách đơn hàng
+  // 2. Quản lý danh sách đơn hàng (Mặc định rỗng, không tự động nạp dữ liệu mẫu)
   const [orders, setOrders] = useState<RawOrderRow[]>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY_ORDERS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          // Nếu dữ liệu trong LocalStorage là dữ liệu mẫu cũ thì xóa bỏ
+          const isSample = parsed.some((o: RawOrderRow) => o.orderNo === 'YD-260816-0756' || o.orderNo === 'YD-260906-0733');
+          if (isSample) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY_ORDERS);
+            return [];
+          }
+
           return parsed.map((o: RawOrderRow) => {
             const cInfo = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText);
             return {
@@ -61,8 +68,8 @@ export default function App() {
         }
       }
     } catch (e) {}
-    // Mặc định khởi tạo dữ liệu mẫu thực tế
-    return taoDuLieuMau(DEFAULT_SKU_GROUPS);
+    // Mặc định khởi tạo rỗng
+    return [];
   });
 
   // Tự động kiểm tra và nâng cấp lại ĐVVC cho các đơn đã lưu trong LocalStorage theo quy tắc mới nhất (VNGH,...)
@@ -310,6 +317,7 @@ export default function App() {
           onExportExcel={handleExportExcel}
           onPrintPreview={() => setIsPrintModalOpen(true)}
           totalOrders={orders.length}
+          orders={orders}
         />
 
         {/* Active Tab View Rendering */}
@@ -380,9 +388,7 @@ export default function App() {
 
           {activeTab === 'shipped_tracking' && (
             <ShippedTrackingView
-              orders={orders}
               skuGroups={skuGroups}
-              onOpenWmsModal={() => setIsWmsModalOpen(true)}
             />
           )}
 

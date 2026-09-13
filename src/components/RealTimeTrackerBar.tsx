@@ -132,12 +132,12 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
 
     const currentStatus = statusRef.current;
     const currentWarehouse = warehouseRef.current;
-    // Tab Shipped (lịch sử) không dùng Replace Mode - luôn dùng poll-new để tránh ghi đè 5000 đơn đã tải
-    const isReplaceMode = autoReplaceRef.current && currentStatus !== '8';
+    // Bật Replace Mode nếu người dùng chọn Xóa cũ & Kéo mới (áp dụng cho tất cả trạng thái)
+    const isReplaceMode = autoReplaceRef.current;
 
     try {
       if (isReplaceMode) {
-        // CHẾ ĐỘ XÓA DỮ LIỆU CŨ VÀ NẠP MỚI SUBMITTED MỚI NHẤT (chỉ dùng cho tab Submit/Shelved)
+        // CHẾ ĐỘ XÓA DỮ LIỆU CŨ VÀ NẠP MỚI TOÀN BỘ (DỮ LIỆU THẬT 100%, KHÔNG CẮT XÉN 500 ĐƠN)
         const res = await fetch('/api/wms/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,7 +145,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             warehouse: currentWarehouse,
             status: currentStatus,
             pageSize: 500,
-            maxPages: 1, // Kéo 500 đơn mới nhất của trạng thái Submit/Shelved
+            maxPages: 0, // Kéo TOÀN BỘ tất cả các trang, không giới hạn 500 đơn hay cắt xén
             username: 'David',
             password: '12345abc',
             skuGroups,
@@ -172,7 +172,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             const newCount = freshOrders.length;
             const statusConfig = WMS_STATUS_CONFIG[currentStatus];
 
-            // Ghi đè: xóa dữ liệu cũ và thay thế bằng dữ liệu Submit mới nhất
+            // Ghi đè: nạp dữ liệu thật 100% đầy đủ
             if (onReloadStatusOrders) {
               onReloadStatusOrders(freshOrders, statusConfig.shortLabel);
             } else {
@@ -191,8 +191,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
         // CHẾ ĐỘ CỘNG DỒN ĐƠN MỚI
         const known = ordersRef.current
           .map((o) => o.orderNo)
-          .filter(Boolean)
-          .slice(0, 300);
+          .filter(Boolean);
 
         const res = await fetch('/api/wms/poll-new', {
           method: 'POST',
@@ -272,9 +271,8 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           warehouse: warehouseRef.current,
           status: targetStatus,
           pageSize: 500,
-          // Shipped có hàng trăm nghìn đơn lịch sử → chỉ kéo 10 trang = 5.000 đơn gần nhất
-          // Submit/Shelved kéo toàn bộ vì số lượng nhỏ hơn nhiều
-          maxPages: targetStatus === '8' ? 10 : 0,
+          // Kéo TOÀN BỘ dữ liệu thật tất cả các trang, không giới hạn 500 hay cắt xén
+          maxPages: 0,
           username: 'David',
           password: '12345abc',
           skuGroups,
@@ -563,22 +561,17 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>
-                  {status === '8'
-                    ? `🚚 Đã nạp đơn Shipped (đã xuất kho) | Tổng trên WMS: ${totalInWms?.toLocaleString() || '?'} đơn | Đã tải: ${orders.length.toLocaleString()} đơn gần nhất lúc ${lastCheckTime}`
-                    : `Đã tự động xóa dữ liệu cũ & kéo đơn ${currentConfig.shortLabel} mới nhất lúc ${lastCheckTime}`
-                  }
+                  {`Đã tự động kéo toàn bộ dữ liệu thật ${currentConfig.shortLabel} (Tổng WMS: ${totalInWms?.toLocaleString() || '?'} đơn | Đang hiển thị: ${orders.length.toLocaleString()} đơn) lúc ${lastCheckTime}`}
                 </span>
               </span>
-              {status === '8' ? (
-                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 rounded-md font-mono shrink-0">
-                  Shipped: 5.000 đơn gần nhất (10 trang × 500)
+              {autoReplace ? (
+                <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-400/30 rounded-md font-mono shrink-0">
+                  (Chế độ: Xóa cũ - Nạp toàn bộ mới mỗi {intervalSec}s)
                 </span>
               ) : (
-                autoReplace && (
-                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-400/30 rounded-md font-mono shrink-0">
-                    (Chế độ: Xóa cũ - Nạp mới mỗi {intervalSec}s)
-                  </span>
-                )
+                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 rounded-md font-mono shrink-0">
+                  (Chế độ: Cộng dồn đơn mới mỗi {intervalSec}s)
+                </span>
               )}
             </div>
           </div>

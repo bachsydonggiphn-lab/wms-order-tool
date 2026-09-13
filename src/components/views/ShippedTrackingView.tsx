@@ -35,19 +35,49 @@ import { CarrierId, OrderItem, TrackingStatusCategory, TrackingEvent } from '../
 import { CARRIERS, detectCarrier, getDirectTrackingUrl } from '../../services/carrierDetector';
 import { trackBatchOrders, trackSingleOrder, classifyLogisticsStatus, createOrderItem } from '../../services/trackingService';
 
+const SHIPPED_ORDERS_KEY = 'shipped_orders_v1';
+const SHIPPED_TRACKING_KEY = 'shipped_tracking_v1';
+
 interface ShippedTrackingViewProps {
-  orders: RawOrderRow[];
   skuGroups: SkuGroupsMap;
-  onOpenWmsModal: () => void;
 }
 
 export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
-  orders,
   skuGroups,
-  onOpenWmsModal
 }) => {
-  // Store tracking state keyed by trackingCode or orderNo
-  const [trackingResults, setTrackingResults] = useState<Record<string, Partial<OrderItem>>>({});
+  // --- Đơn Shipped: Fixed cache từ localStorage, KHÔNG auto-fetch khi F5 ---
+  const [shippedOrders, setShippedOrders] = useState<RawOrderRow[]>(() => {
+    try {
+      const saved = localStorage.getItem(SHIPPED_ORDERS_KEY);
+      if (saved) return JSON.parse(saved) as RawOrderRow[];
+    } catch (e) {}
+    return [];
+  });
+
+  // --- Kết quả tracking ĐVVC: cũng fixed cache từ localStorage ---
+  const [trackingResults, setTrackingResults] = useState<Record<string, Partial<OrderItem>>>(() => {
+    try {
+      const saved = localStorage.getItem(SHIPPED_TRACKING_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {};
+  });
+
+  // Lưu tracking results vào localStorage sau mỗi lần quét (tự động persist)
+  useEffect(() => {
+    try {
+      localStorage.setItem(SHIPPED_TRACKING_KEY, JSON.stringify(trackingResults));
+    } catch (e) {}
+  }, [trackingResults]);
+
+  // --- WMS Fetch State (CHỈ hoạt động khi bấm nút thủ công, KHÔNG tự fetch khi F5) ---
+  const [isFetchingWms, setIsFetchingWms] = useState<boolean>(false);
+  const [lastFetchedAt, setLastFetchedAt] = useState<string | null>(() => {
+    try { return localStorage.getItem('shipped_last_fetched_at'); } catch { return null; }
+  });
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [newOrdersCount, setNewOrdersCount] = useState<number>(0);
+
   const [isBatchChecking, setIsBatchChecking] = useState<boolean>(false);
   const [checkingProgress, setCheckingProgress] = useState<{ completed: number; total: number; speed: number; etaSeconds: number }>({
     completed: 0,
@@ -62,69 +92,68 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [expandedOrderKey, setExpandedOrderKey] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
-  const [cloudUpdatedAt, setCloudUpdatedAt] = useState<string | null>(null);
-  const [isLoadingCloud, setIsLoadingCloud] = useState<boolean>(false);
 
   const stopRequestedRef = useRef<boolean>(false);
-  const autoStartedRef = useRef<boolean>(false);
 
-  // Nạp kết quả từ GitHub Actions Cloud Runner
-  const handleLoadCloudResults = async () => {
-    setIsLoadingCloud(true);
+  // Kéo đơn Shipped (E11=8) từ YunWMS và MERGE vào cache (chỉ thêm đơn mới, không xóa cũ)
+  const fetchShippedFromWms = async () => {
+    if (isFetchingWms) return;
+    setIsFetchingWms(true);
+    setFetchError(null);
+    setNewOrdersCount(0);
     try {
-      const res = await fetch('/shipped_tracking_results.json?t=' + Date.now());
-      if (!res.ok) {
-        alert('Chưa có dữ liệu từ GitHub Cloud Runner. Vui lòng push code và bật GitHub Actions!');
-        setIsLoadingCloud(false);
-        return;
-      }
+      const res = await fetch('/api/wms/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          warehouse: '7',
+          status: '8',
+          pageSize: 500,
+          maxPages: 0,
+          username: 'David',
+          password: '12345abc',
+        }),
+      });
+      if (!res.ok) throw new Error(`Lỗi kết nối API: HTTP ${res.status}`);
       const data = await res.json();
-      if (data && data.results) {
-        setTrackingResults(prev => ({
-          ...prev,
-          ...data.results
-        }));
-        if (data.updatedAt) {
-          const dt = new Date(data.updatedAt);
-          setCloudUpdatedAt(dt.toLocaleString('vi-VN'));
-        }
+      if (data.orders && Array.isArray(data.orders)) {
+        const existingNos = new Set(shippedOrders.map(o => o.orderNo));
+        const newOrders = (data.orders as RawOrderRow[]).filter(o => !existingNos.has(o.orderNo));
+        const merged = [...newOrders, ...shippedOrders];
+        setShippedOrders(merged);
+        setNewOrdersCount(newOrders.length);
+        try { localStorage.setItem(SHIPPED_ORDERS_KEY, JSON.stringify(merged)); } catch (e) {}
+        const fetchTime = new Date().toLocaleString('vi-VN');
+        setLastFetchedAt(fetchTime);
+        try { localStorage.setItem('shipped_last_fetched_at', fetchTime); } catch (e) {}
+      } else {
+        throw new Error(data.message || 'Không nhận được dữ liệu từ WMS');
       }
-    } catch (err) {
-      console.warn('Không tải được kết quả Cloud:', err);
+    } catch (err: any) {
+      setFetchError(err.message || 'Lỗi không xác định khi kết nối WMS');
     } finally {
-      setIsLoadingCloud(false);
+      setIsFetchingWms(false);
     }
   };
 
-  // Tự động tải dữ liệu Cloud lúc khởi tạo nếu có
-  useEffect(() => {
-    const checkCloudData = async () => {
-      try {
-        const res = await fetch('/shipped_tracking_results.json?t=' + Date.now());
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.results) {
-            setTrackingResults(prev => ({
-              ...prev,
-              ...data.results
-            }));
-            if (data.updatedAt) {
-              const dt = new Date(data.updatedAt);
-              setCloudUpdatedAt(dt.toLocaleString('vi-VN'));
-            }
-          }
-        }
-      } catch {
-        // Bỏ qua nếu chưa có file
-      }
-    };
-    checkCloudData();
-  }, []);
+  // Xóa toàn bộ cache Shipped (bấm nút thủ công)
+  const handleClearShippedCache = () => {
+    if (!confirm(`Xóa toàn bộ ${shippedOrders.length} đơn Shipped và kết quả tracking đã lưu trong cache?`)) return;
+    setShippedOrders([]);
+    setTrackingResults({});
+    setLastFetchedAt(null);
+    setNewOrdersCount(0);
+    try {
+      localStorage.removeItem(SHIPPED_ORDERS_KEY);
+      localStorage.removeItem(SHIPPED_TRACKING_KEY);
+      localStorage.removeItem('shipped_last_fetched_at');
+    } catch (e) {}
+  };
 
-  // Map incoming orders into tracking order list
+  // Map đơn Shipped (fixed cache) vào tracking order list để hiển thị
   const trackingOrderItems = useMemo(() => {
     const now = Date.now();
-    return orders.map((o, idx) => {
+    return shippedOrders.map((o, idx) => {
       const code = o.trackingNo || o.orderNo || `ORDER-${idx}`;
       const carrierId = detectCarrier(code, o.carrierName || o.carrier);
       const existing = trackingResults[code] || {};
@@ -172,7 +201,7 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
         ageDays
       };
     });
-  }, [orders, trackingResults]);
+  }, [shippedOrders, trackingResults]);
 
   // Comprehensive statistics calculation
   const stats = useMemo(() => {
@@ -609,9 +638,9 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
                 Đang quét thủ công bằng máy tính...
               </span>
             ) : (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200 font-mono">
-                <Sparkles className="w-3 h-3 mr-1 text-sky-600" />
-                Đồng bộ tự động từ GitHub Cloud (0% CPU máy tính)
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono">
+                <Sparkles className="w-3 h-3 mr-1 text-emerald-600" />
+                Cache cố định – F5 không mất dữ liệu · {shippedOrders.length} đơn
               </span>
             )}
           </div>
@@ -904,26 +933,33 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
             </button>
 
             <button
-              onClick={handleLoadCloudResults}
-              disabled={isLoadingCloud}
-              className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-              title="Kéo dữ liệu đã quét tự động từ GitHub Actions Cloud (0% CPU PC)"
+              onClick={fetchShippedFromWms}
+              disabled={isFetchingWms || isBatchChecking}
+              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-50"
+              title="Kéo thêm đơn Shipped (E11=8) mới từ YunWMS và merge vào cache (chỉ thêm đơn mới, không xóa cũ)"
             >
-              <Sparkles className="w-3.5 h-3.5 text-sky-600 animate-pulse" />
-              <span>{isLoadingCloud ? 'Đang nạp...' : '☁️ Tải kết quả Cloud'}</span>
-              {cloudUpdatedAt && (
-                <span className="text-[10px] bg-sky-200 text-sky-950 px-1.5 py-0.5 rounded font-mono ml-1">
-                  {cloudUpdatedAt}
+              <CloudDownload className={`w-3.5 h-3.5 text-emerald-600 ${isFetchingWms ? 'animate-bounce' : ''}`} />
+              <span>{isFetchingWms ? 'Đang kéo WMS...' : '⬇️ Kéo đơn Shipped mới'}</span>
+              {lastFetchedAt && !isFetchingWms && (
+                <span className="text-[10px] bg-emerald-200 text-emerald-950 px-1.5 py-0.5 rounded font-mono ml-1">
+                  {lastFetchedAt}
+                </span>
+              )}
+              {newOrdersCount > 0 && !isFetchingWms && (
+                <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-mono ml-1 animate-pulse">
+                  +{newOrdersCount} mới
                 </span>
               )}
             </button>
 
             <button
-              onClick={onOpenWmsModal}
-              className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              onClick={handleClearShippedCache}
+              disabled={shippedOrders.length === 0}
+              className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+              title="Xóa toàn bộ cache đơn Shipped và kết quả tracking đã lưu"
             >
-              <CloudDownload className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Kéo từ YunWMS</span>
+              <XCircle className="w-3.5 h-3.5 text-rose-500" />
+              <span>Xóa cache ({shippedOrders.length})</span>
             </button>
 
             <button
@@ -955,6 +991,17 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
             />
           </div>
         </div>
+
+        {/* Error Banner (khi kéo WMS thất bại) */}
+        {fetchError && (
+          <div className="flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 font-medium">
+            <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span className="flex-1">{fetchError}</span>
+            <button onClick={() => setFetchError(null)} className="text-rose-400 hover:text-rose-600 cursor-pointer">
+              <XCircle className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Carrier Selector & Status Filter Bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
@@ -1021,8 +1068,14 @@ export const ShippedTrackingView: React.FC<ShippedTrackingViewProps> = ({
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                    <p className="font-bold text-sm text-slate-600">Không tìm thấy đơn hàng Shipped nào trong khoảng ngày đã chọn</p>
-                    <p className="text-xs text-slate-400 mt-1">Thử chọn "Tất cả ngày" hoặc bấm "Kéo từ YunWMS"</p>
+                    <p className="font-bold text-sm text-slate-600">
+                      {shippedOrders.length === 0 ? 'Chưa có đơn Shipped nào trong cache' : 'Không tìm thấy đơn hàng phù hợp với bộ lọc'}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {shippedOrders.length === 0
+                        ? 'Bấm "⬇️ Kéo đơn Shipped mới" để lấy đơn E11=8 từ YunWMS'
+                        : 'Thử chọn "Tất cả ngày" hoặc bỏ bộ lọc ĐVVC'}
+                    </p>
                   </td>
                 </tr>
               ) : (

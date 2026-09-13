@@ -136,8 +136,54 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-500">Hiển thị:</label>
+        <div className="flex items-center flex-wrap gap-2">
+          {filteredOrders.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  const text = filteredOrders.map((o) => o.orderNo).filter(Boolean).join('\n');
+                  navigator.clipboard.writeText(text);
+                  setCopiedKey('all_filtered_orderNo');
+                  setTimeout(() => setCopiedKey(null), 1500);
+                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer"
+                title="Sao chép toàn bộ mã đơn đang lọc (mỗi mã 1 dòng)"
+              >
+                {copiedKey === 'all_filtered_orderNo' ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-indigo-600" />
+                )}
+                <span>
+                  {copiedKey === 'all_filtered_orderNo' ? 'Đã copy!' : `Copy ${filteredOrders.length} Mã Đơn`}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const text = filteredOrders.map((o) => o.trackingNo).filter(Boolean).join('\n');
+                  navigator.clipboard.writeText(text);
+                  setCopiedKey('all_filtered_trackingNo');
+                  setTimeout(() => setCopiedKey(null), 1500);
+                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer"
+                title="Sao chép toàn bộ mã vận đơn (tracking) đang lọc (mỗi mã 1 dòng)"
+              >
+                {copiedKey === 'all_filtered_trackingNo' ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-indigo-600" />
+                )}
+                <span>
+                  {copiedKey === 'all_filtered_trackingNo' ? 'Đã copy!' : `Copy ${filteredOrders.length} Tracking`}
+                </span>
+              </button>
+            </>
+          )}
+
+          <label className="text-xs text-gray-500 ml-1">Hiển thị:</label>
           <select
             value={pageSize}
             onChange={(e) => {
