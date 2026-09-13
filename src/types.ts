@@ -3,10 +3,10 @@ export interface OrderItem {
   qty: number;
 }
 
-export type CarrierCode = 'ALL' | 'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'OTHER';
+export type CarrierCode = 'ALL' | 'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'VIETTELPOST' | 'OTHER';
 
 export interface CarrierDetails {
-  code: 'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'OTHER';
+  code: 'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'VIETTELPOST' | 'OTHER';
   name: string;
   shortName: string;
   badgeBg: string;
@@ -24,7 +24,7 @@ export interface RawOrderRow {
   orderNo: string;          // Cột P: Order No đã trích xuất
   trackingNo: string;       // Cột Q: Tracking No đã trích xuất
   pickingList: string;      // Cột U: Mã Picking List đã trích xuất
-  carrier: 'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'OTHER'; // ĐVVC: 862 là JNT, SPX là Shopee, GY là GHN, VNGH là GHN TikTok, EB là VNPost, còn lại là OTHER
+  carrier: 'JNT' | 'SPX' | 'GHN' | 'GHN_TIKTOK' | 'VNPOST' | 'VIETTELPOST' | 'OTHER'; // ĐVVC: 862 là JNT, SPX là Shopee, GY là GHN, VNGH là GHN TikTok, EB là VNPost, còn lại là OTHER
   carrierName: string;      // Tên ĐVVC hiển thị
   items: OrderItem[];
   totalQty: number;

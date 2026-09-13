@@ -104,7 +104,15 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-          Vietnam Post
+          VNPost / EMS
+        </span>
+      );
+    }
+    if (c === 'VIETTELPOST') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          Viettel Post
         </span>
       );
     }

@@ -100,6 +100,25 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
 
   // 1. PRIMARY RULE: Direct Tracking Number Prefix / Format Check
   if (
+    cleanCode.startsWith('SHOPEEVTP') ||
+    cleanCode.startsWith('VT') || 
+    cleanCode.startsWith('VTP') ||
+    (cleanCode.startsWith('VN') && cleanCode.length >= 14 && /^[A-Z0-9]+$/.test(cleanCode) && !cleanCode.endsWith('VN'))
+  ) {
+    return 'viettelpost';
+  }
+
+  if (
+    cleanCode.startsWith('EA') ||
+    cleanCode.startsWith('EB') ||
+    cleanCode.startsWith('EMS') || 
+    cleanCode.startsWith('VNPOST') ||
+    /^[ECR][A-Z0-9]{8,11}VN$/i.test(cleanCode)
+  ) {
+    return 'vnpost';
+  }
+
+  if (
     cleanCode.startsWith('SPXVN') || 
     cleanCode.startsWith('SPX') || 
     cleanCode.startsWith('VNSPX') || 
@@ -115,7 +134,7 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
     cleanCode.startsWith('G8') || 
     cleanCode.startsWith('GHN') ||
     cleanCode.startsWith('NL_') ||
-    (cleanCode.length === 8 && /^[A-Z0-9]{8}$/.test(cleanCode) && cleanCode.startsWith('G'))
+    (cleanCode.length === 8 && /^[A-Z0-9]{8}$/.test(cleanCode))
   ) {
     return 'ghn';
   }
@@ -127,21 +146,6 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
     (cleanCode.startsWith('SHP') && cleanCode.length > 10)
   ) {
     return 'ninjavan';
-  }
-
-  if (
-    cleanCode.startsWith('VT') || 
-    cleanCode.startsWith('VTP')
-  ) {
-    return 'viettelpost';
-  }
-
-  if (
-    cleanCode.startsWith('EMS') || 
-    cleanCode.startsWith('VNPOST') ||
-    /^[ECR][A-Z0-9]{8,11}VN$/i.test(cleanCode)
-  ) {
-    return 'vnpost';
   }
 
   if (

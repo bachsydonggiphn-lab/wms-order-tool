@@ -194,6 +194,7 @@ export default function App() {
       GHN: 0,
       GHN_TIKTOK: 0,
       VNPOST: 0,
+      VIETTELPOST: 0,
       OTHER: 0,
     };
     const filtered = selectedPickingList
