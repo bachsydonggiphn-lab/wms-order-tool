@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: wms-order-tool
+    name: gip-xyl-wms-order
     env: node
     region: singapore
     plan: free
