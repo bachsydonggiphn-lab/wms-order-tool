@@ -194,6 +194,7 @@ export default function App() {
       JT_CARGO: 0,
       GHN: 0,
       GHN_TIKTOK: 0,
+      GHN_ALL: 0,
       NINJAVAN: 0,
       VIETTELPOST: 0,
       VNPOST: 0,
@@ -213,6 +214,9 @@ export default function App() {
         counts.OTHER++;
       }
     });
+
+    counts.GHN_ALL = counts.GHN + counts.GHN_TIKTOK;
+
     return counts;
   }, [orders, selectedPickingList]);
 

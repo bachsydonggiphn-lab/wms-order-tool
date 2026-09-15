@@ -108,7 +108,12 @@ export const PickingListDetailView: React.FC<PickingListDetailViewProps> = ({
       entry.orders.push(order);
       entry.carrierCounts[order.carrier] = (entry.carrierCounts[order.carrier] || 0) + 1;
 
-      const isCarrierMatch = !selectedCarrier || selectedCarrier === 'ALL' || order.carrier === selectedCarrier;
+      const isCarrierMatch =
+        !selectedCarrier ||
+        selectedCarrier === 'ALL' ||
+        (selectedCarrier === 'GHN_ALL'
+          ? (order.carrier === 'GHN' || order.carrier === 'GHN_TIKTOK')
+          : order.carrier === selectedCarrier);
       if (isCarrierMatch) {
         entry.carrierOrders.push(order);
         entry.carrierOrderCount += 1;

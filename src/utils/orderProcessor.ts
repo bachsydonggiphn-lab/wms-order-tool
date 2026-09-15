@@ -32,6 +32,7 @@ export const CARRIER_CONFIG: Record<
   | 'SPX'
   | 'GHN'
   | 'GHN_TIKTOK'
+  | 'GHN_ALL'
   | 'NINJAVAN'
   | 'VIETTELPOST'
   | 'VNPOST'
@@ -88,6 +89,16 @@ export const CARRIER_CONFIG: Record<
     badgeBorder: 'border-cyan-200',
     iconColor: 'text-cyan-600',
     description: 'Mã vận đơn bắt đầu bằng VNGH (Giao Hàng Nhanh trên TikTok Shop)',
+  },
+  GHN_ALL: {
+    code: 'GHN_ALL',
+    name: 'Gộp GHN (GHN + TikTok)',
+    shortName: 'Gộp GHN',
+    badgeBg: 'bg-indigo-50',
+    badgeText: 'text-indigo-800',
+    badgeBorder: 'border-indigo-300',
+    iconColor: 'text-indigo-600',
+    description: 'Gộp toàn bộ đơn Giao Hàng Nhanh (gồm cả GHN TMĐT và GHN TikTok Shop VNGH...)',
   },
   NINJAVAN: {
     code: 'NINJAVAN',
@@ -400,15 +411,34 @@ export function layMaTrackingNo(text: string | null | undefined): string {
 export function locDonHang(
   orders: RawOrderRow[],
   pickingListFilter?: string,
-  carrierFilter?: CarrierCode | string
+  carrierFilter?: CarrierCode | CarrierCode[] | string
 ): RawOrderRow[] {
   return orders.filter(order => {
     if (pickingListFilter && pickingListFilter.trim() !== '') {
       if (order.pickingList !== pickingListFilter.trim()) return false;
     }
-    if (carrierFilter && carrierFilter !== 'ALL') {
-      const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
-      if (effCarrier !== carrierFilter) return false;
+    if (carrierFilter) {
+      if (Array.isArray(carrierFilter)) {
+        if (!carrierFilter.includes('ALL') && carrierFilter.length > 0) {
+          const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
+          const matchAny = carrierFilter.some(c => {
+            if (c === 'ALL') return true;
+            if (c === 'GHN_ALL') return effCarrier === 'GHN' || effCarrier === 'GHN_TIKTOK';
+            return effCarrier === c;
+          });
+          if (!matchAny) return false;
+        }
+      } else if (carrierFilter === 'GHN_ALL') {
+        const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
+        if (effCarrier !== 'GHN' && effCarrier !== 'GHN_TIKTOK') return false;
+      } else if (typeof carrierFilter === 'string' && carrierFilter.includes(',')) {
+        const list = carrierFilter.split(',').map(s => s.trim());
+        const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
+        if (!list.includes(effCarrier)) return false;
+      } else if (carrierFilter !== 'ALL') {
+        const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
+        if (effCarrier !== carrierFilter) return false;
+      }
     }
     return true;
   });

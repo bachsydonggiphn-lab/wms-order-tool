@@ -53,6 +53,7 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
       JT_CARGO: [],
       GHN: [],
       GHN_TIKTOK: [],
+      GHN_ALL: [],
       NINJAVAN: [],
       VIETTELPOST: [],
       VNPOST: [],
@@ -68,6 +69,8 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
         map.OTHER.push(o);
       }
     });
+
+    map.GHN_ALL = [...map.GHN, ...map.GHN_TIKTOK];
 
     return map;
   }, [baseOrders]);
@@ -148,6 +151,17 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
       activeText: 'text-cyan-800',
       pillBg: 'bg-cyan-50',
       pillText: 'text-cyan-800',
+    },
+    {
+      code: 'GHN_ALL',
+      label: '⚡ Gộp Cả GHN (GHN + TikTok)',
+      shortName: 'Gộp GHN',
+      prefixHint: 'GY + VNGH',
+      activeBorder: 'border-indigo-600 ring-2 ring-indigo-200',
+      activeBg: 'bg-indigo-600 text-white',
+      activeText: 'text-indigo-700',
+      pillBg: 'bg-indigo-50',
+      pillText: 'text-indigo-700',
     },
     {
       code: 'NINJAVAN',

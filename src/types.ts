@@ -10,6 +10,7 @@ export type CarrierCode =
   | 'JT_CARGO'
   | 'GHN'
   | 'GHN_TIKTOK'
+  | 'GHN_ALL'
   | 'NINJAVAN'
   | 'VIETTELPOST'
   | 'VNPOST'

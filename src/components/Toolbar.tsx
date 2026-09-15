@@ -81,6 +81,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     const list = orders.filter((o) => {
       if (selectedPickingList && o.pickingList !== selectedPickingList) return false;
       if (carrierCode === 'ALL') return true;
+      if (carrierCode === 'GHN_ALL') return o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK';
       return o.carrier === carrierCode;
     });
 
@@ -256,7 +257,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         stats[pl] = { totalInList: 0, carrierCount: 0 };
       }
       stats[pl].totalInList++;
-      if (selectedCarrier === 'ALL' || o.carrier === selectedCarrier) {
+      const isMatch =
+        selectedCarrier === 'ALL' ||
+        (selectedCarrier === 'GHN_ALL'
+          ? o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK'
+          : o.carrier === selectedCarrier);
+      if (isMatch) {
         stats[pl].carrierCount++;
       }
     });
@@ -311,7 +317,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const currentFilteredCount = useMemo(() => {
     return orders.filter((o) => {
       const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
-      const matchCarrier = selectedCarrier === 'ALL' || o.carrier === selectedCarrier;
+      const matchCarrier =
+        selectedCarrier === 'ALL' ||
+        (selectedCarrier === 'GHN_ALL'
+          ? o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK'
+          : o.carrier === selectedCarrier);
       return matchPl && matchCarrier;
     }).length;
   }, [orders, selectedPickingList, selectedCarrier]);
@@ -325,7 +335,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const handleCopyCurrentListCarrier = () => {
     const matched = orders.filter((o) => {
       const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
-      const matchCarrier = selectedCarrier === 'ALL' || o.carrier === selectedCarrier;
+      const matchCarrier =
+        selectedCarrier === 'ALL' ||
+        (selectedCarrier === 'GHN_ALL'
+          ? o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK'
+          : o.carrier === selectedCarrier);
       return matchPl && matchCarrier;
     });
     const orderNos = matched.map((o) => o.orderNo).filter(Boolean);
@@ -334,6 +348,42 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     const carrierName = selectedCarrier !== 'ALL' ? (CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier) : 'Tất cả';
     setQuickToastMessage(`Đã copy ${orderNos.length} đơn (${selectedPickingList || 'Tất cả list'} - ${carrierName})`);
     setTimeout(() => setQuickToastMessage(null), 2500);
+  };
+
+  // 7. Xử lý click chọn hãng: hỗ trợ gộp 2 hãng GHN và GHN TikTok khi click chọn cả hai
+  const handleCarrierClick = (code: CarrierCode) => {
+    if (code === 'GHN') {
+      if (selectedCarrier === 'GHN_TIKTOK') {
+        // Đang chọn GHN TikTok, bấm GHN -> GỘP CẢ HAI
+        setSelectedCarrier('GHN_ALL');
+      } else if (selectedCarrier === 'GHN_ALL') {
+        // Đang gộp cả hai, bấm GHN -> bỏ chọn GHN, giữ lại GHN TikTok
+        setSelectedCarrier('GHN_TIKTOK');
+      } else if (selectedCarrier === 'GHN') {
+        // Đang chọn GHN, bấm lại -> bỏ chọn về ALL
+        setSelectedCarrier('ALL');
+      } else {
+        setSelectedCarrier('GHN');
+      }
+    } else if (code === 'GHN_TIKTOK') {
+      if (selectedCarrier === 'GHN') {
+        // Đang chọn GHN, bấm GHN TikTok -> GỘP CẢ HAI
+        setSelectedCarrier('GHN_ALL');
+      } else if (selectedCarrier === 'GHN_ALL') {
+        // Đang gộp cả hai, bấm GHN TikTok -> bỏ chọn GHN TikTok, giữ lại GHN
+        setSelectedCarrier('GHN');
+      } else if (selectedCarrier === 'GHN_TIKTOK') {
+        // Đang chọn GHN TikTok, bấm lại -> bỏ chọn về ALL
+        setSelectedCarrier('ALL');
+      } else {
+        setSelectedCarrier('GHN_TIKTOK');
+      }
+    } else if (code === 'GHN_ALL') {
+      // Bấm nút gộp nhanh
+      setSelectedCarrier(selectedCarrier === 'GHN_ALL' ? 'ALL' : 'GHN_ALL');
+    } else {
+      setSelectedCarrier(selectedCarrier === code ? 'ALL' : code);
+    }
   };
 
   return (
@@ -470,59 +520,136 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <div className="flex items-center flex-wrap gap-2">
           {carrierOptions.map((opt) => {
             const count = carrierCounts[opt.code] || 0;
-            const isSelected = selectedCarrier === opt.code;
+            const isSelected =
+              opt.code === 'GHN'
+                ? selectedCarrier === 'GHN' || selectedCarrier === 'GHN_ALL'
+                : opt.code === 'GHN_TIKTOK'
+                ? selectedCarrier === 'GHN_TIKTOK' || selectedCarrier === 'GHN_ALL'
+                : selectedCarrier === opt.code;
             const isCopied = quickCopiedCarrier === opt.code;
+            const isMergedPart = selectedCarrier === 'GHN_ALL' && (opt.code === 'GHN' || opt.code === 'GHN_TIKTOK');
 
             return (
-              <div
-                key={opt.code}
-                className={`inline-flex items-center rounded-xl border transition-all ${
-                  isSelected ? opt.activeStyle : opt.colorStyle
-                }`}
-              >
-                {/* Nút lọc hãng */}
-                <button
-                  onClick={() => setSelectedCarrier(opt.code)}
-                  className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-xs font-semibold cursor-pointer"
+              <React.Fragment key={opt.code}>
+                <div
+                  className={`inline-flex items-center rounded-xl border transition-all ${
+                    isSelected ? opt.activeStyle : opt.colorStyle
+                  } ${isMergedPart ? 'ring-2 ring-blue-300' : ''}`}
                 >
-                  <span>{opt.label}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      isSelected
-                        ? 'bg-white/30 text-white'
-                        : 'bg-black/5 text-gray-700'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                  <span className="text-[10px] opacity-75 hidden xl:inline">
-                    ({opt.prefixHint})
-                  </span>
-                </button>
-
-                {/* Nút Copy Nhanh 1-Click trực tiếp trên từng Badge */}
-                {count > 0 && (
+                  {/* Nút lọc hãng (Click chọn gộp nếu click cả GHN và GHN TikTok) */}
                   <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleQuickCopyOrders(opt.code, opt.label);
-                    }}
-                    title={`Click để copy nhanh ${count} mã đơn của ${opt.label} (mỗi mã 1 dòng)`}
-                    className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
-                      isSelected
-                        ? 'hover:bg-white/20 text-white'
-                        : 'hover:bg-black/10 text-gray-600'
+                    onClick={() => handleCarrierClick(opt.code)}
+                    className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-xs font-semibold cursor-pointer"
+                    title={
+                      isMergedPart
+                        ? `Đang gộp cả GHN & GHN TikTok. Click để bỏ chọn ${opt.label}`
+                        : opt.code === 'GHN' && selectedCarrier === 'GHN_TIKTOK'
+                        ? 'Click để GỘP chung với GHN TikTok'
+                        : opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN'
+                        ? 'Click để GỘP chung với GHN'
+                        : `Lọc đơn ${opt.label}`
+                    }
+                  >
+                    {isMergedPart && <CheckCircle2 className="w-3.5 h-3.5 text-white animate-in zoom-in" />}
+                    <span>{opt.label}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                        isSelected
+                          ? 'bg-white/30 text-white'
+                          : 'bg-black/5 text-gray-700'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                    <span className="text-[10px] opacity-75 hidden xl:inline">
+                      ({opt.prefixHint})
+                    </span>
+                  </button>
+
+                  {/* Nút Copy Nhanh 1-Click trực tiếp trên từng Badge */}
+                  {count > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickCopyOrders(opt.code, opt.label);
+                      }}
+                      title={`Click để copy nhanh ${count} mã đơn của ${opt.label} (mỗi mã 1 dòng)`}
+                      className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'hover:bg-white/20 text-white'
+                          : 'hover:bg-black/10 text-gray-600'
+                      }`}
+                    >
+                      {isCopied ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Nút Gộp Cả GHN (GHN + GHN TikTok) hiển thị trực tiếp ngay sau GHN TikTok */}
+                {opt.code === 'GHN_TIKTOK' && (
+                  <div
+                    key="GHN_ALL_BTN"
+                    className={`inline-flex items-center rounded-xl border transition-all ${
+                      selectedCarrier === 'GHN_ALL'
+                        ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-300'
+                        : 'border-blue-300 text-blue-800 bg-blue-50/80 hover:bg-blue-100/90'
                     }`}
                   >
-                    {isCopied ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
+                    <button
+                      type="button"
+                      onClick={() => handleCarrierClick('GHN_ALL')}
+                      className="flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 text-xs font-bold cursor-pointer"
+                      title={
+                        selectedCarrier === 'GHN_ALL'
+                          ? 'Đang gộp GHN & GHN TikTok. Click để hủy gộp'
+                          : 'Click để gộp toàn bộ dữ liệu Giao Hàng Nhanh (GHN + GHN TikTok VNGH...)'
+                      }
+                    >
+                      <Zap className={`w-3.5 h-3.5 ${selectedCarrier === 'GHN_ALL' ? 'text-amber-300 fill-amber-300' : 'text-blue-600'}`} />
+                      <span>Gộp Cả GHN</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                          selectedCarrier === 'GHN_ALL'
+                            ? 'bg-white/30 text-white'
+                            : 'bg-blue-200/90 text-blue-900'
+                        }`}
+                      >
+                        {carrierCounts.GHN_ALL || 0}
+                      </span>
+                      <span className="text-[10px] opacity-85 hidden xl:inline">
+                        ({carrierCounts.GHN || 0}+{carrierCounts.GHN_TIKTOK || 0})
+                      </span>
+                    </button>
+
+                    {(carrierCounts.GHN_ALL || 0) > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickCopyOrders('GHN_ALL', 'Gộp GHN (GHN + TikTok)');
+                        }}
+                        title={`Click để copy nhanh toàn bộ ${(carrierCounts.GHN_ALL || 0)} mã đơn của GHN & GHN TikTok`}
+                        className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
+                          selectedCarrier === 'GHN_ALL'
+                            ? 'hover:bg-white/20 text-white'
+                            : 'hover:bg-blue-200 text-blue-700'
+                        }`}
+                      >
+                        {quickCopiedCarrier === 'GHN_ALL' ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
+                        )}
+                      </button>
                     )}
-                  </button>
+                  </div>
                 )}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>
@@ -531,16 +658,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Dynamic List & Carrier Breakdown Insights Bar (Thống kê chi tiết List & ĐVVC) */}
       {(selectedCarrier !== 'ALL' || selectedPickingList) && (
         <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-50/80 via-blue-50/50 to-white border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs animate-in fade-in slide-in-from-top-1 duration-150">
-          {/* Case A: User selected a Carrier (e.g. SPX or JNT) */}
+          {/* Case A: User selected a Carrier (e.g. SPX or JNT or GHN_ALL) */}
           {selectedCarrier !== 'ALL' && (
             <div className="flex items-center flex-wrap gap-2">
-              <span className="font-bold text-gray-800 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-indigo-600" />
-                <span>
-                  Hãng <b>{CARRIER_CONFIG[selectedCarrier]?.name || selectedCarrier}</b> ({carrierCounts[selectedCarrier] || 0} đơn)
-                  {listsWithCarrierOrders.length > 0 ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:` : ' (Không có trong list nào)'}
+              {selectedCarrier === 'GHN_ALL' ? (
+                <span className="font-bold text-gray-800 flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-blue-600 fill-blue-500" />
+                  <span>
+                    ⚡ Đang gộp 2 hãng: <b>Giao Hàng Nhanh</b> ({carrierCounts.GHN || 0} đơn) + <b>GHN TikTok</b> ({carrierCounts.GHN_TIKTOK || 0} đơn) = <b className="text-blue-700">{carrierCounts.GHN_ALL || 0} đơn</b>
+                    {listsWithCarrierOrders.length > 0 ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:` : ' (Không có trong list nào)'}
+                  </span>
                 </span>
-              </span>
+              ) : (
+                <span className="font-bold text-gray-800 flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-indigo-600" />
+                  <span>
+                    Hãng <b>{CARRIER_CONFIG[selectedCarrier]?.name || selectedCarrier}</b> ({carrierCounts[selectedCarrier] || 0} đơn)
+                    {listsWithCarrierOrders.length > 0 ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:` : ' (Không có trong list nào)'}
+                  </span>
+                </span>
+              )}
 
               {/* All Lists chip */}
               <button

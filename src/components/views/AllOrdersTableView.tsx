@@ -33,7 +33,11 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
       }
       if (selectedCarrier && selectedCarrier !== 'ALL') {
         const orderCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
-        if (orderCarrier !== selectedCarrier) {
+        if (selectedCarrier === 'GHN_ALL') {
+          if (orderCarrier !== 'GHN' && orderCarrier !== 'GHN_TIKTOK') {
+            return false;
+          }
+        } else if (orderCarrier !== selectedCarrier) {
           return false;
         }
       }
