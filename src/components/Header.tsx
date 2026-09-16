@@ -42,12 +42,12 @@ export const Header: React.FC<HeaderProps> = ({
                 <h1 className="text-base font-semibold tracking-tight text-gray-900">
                   Warehouse<span className="text-indigo-600">.matrix</span>
                 </h1>
-                <span className="text-[11px] font-medium text-gray-500 px-2.5 py-0.5 bg-gray-100 rounded-full border border-gray-200">
-                  Google Apps Script Engine
+                <span className="text-[11px] font-bold text-indigo-700 px-2.5 py-0.5 bg-indigo-50 rounded-full border border-indigo-200">
+                  v2.4 • Gộp GHN + TTVN Best
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
-                Trích xuất Order No, Picking List, gộp PCS, phân nhóm 13 khu vực & ĐVVC (JNT, SPX, GHN, GHN TikTok, VNPost, Khác)
+                Trích xuất Order No, Picking List, gộp PCS, phân nhóm 13 khu vực & ĐVVC (JNT, SPX, GHN, GHN TikTok, Best Express TTVN, VNPost...)
               </p>
             </div>
           </div>
