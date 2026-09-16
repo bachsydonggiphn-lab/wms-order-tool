@@ -138,7 +138,7 @@ export const CARRIER_CONFIG: Record<
     badgeText: 'text-sky-700',
     badgeBorder: 'border-sky-200',
     iconColor: 'text-sky-600',
-    description: 'Mã 12 chữ số bắt đầu bằng 61... hoặc tiền tố BEST...',
+    description: 'Mã bắt đầu bằng TTVN..., BEST..., hoặc 12 chữ số (61..., 81...)',
   },
   OTHER: {
     code: 'OTHER',
@@ -244,11 +244,13 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'NINJAVAN', carrierName: CARRIER_CONFIG.NINJAVAN.name };
   }
 
-  // 6. Best Express: Mã 12 chữ số bắt đầu bằng 61... hoặc tiền tố BEST...
+  // 6. Best Express: Mã bắt đầu bằng TTVN..., 12 chữ số bắt đầu bằng 61..., 81... hoặc tiền tố BEST...
   if (
+    tracking.startsWith('TTVN') ||
     tracking.startsWith('BEST') ||
     ((tracking.startsWith('61') || tracking.startsWith('81')) && tracking.length === 12 && /^\d+$/.test(tracking)) ||
-    raw.includes('BEST')
+    raw.includes('BEST') ||
+    raw.includes('TTVN')
   ) {
     return { carrier: 'BEST', carrierName: CARRIER_CONFIG.BEST.name };
   }
@@ -401,6 +403,13 @@ export function layMaTrackingNo(text: string | null | undefined): string {
   // 6. Tìm theo format LEXTH (Lazada Express)
   const matchLex = text.match(/\b(LEXTH[A-Za-z0-9_-]+)\b/i);
   if (matchLex && matchLex[1]) return matchLex[1].trim();
+
+  // 7. Tìm theo format Best Express (TTVN... / BEST...)
+  const matchTtvn = text.match(/\b(TTVN[A-Za-z0-9_-]+)\b/i);
+  if (matchTtvn && matchTtvn[1]) return matchTtvn[1].trim();
+
+  const matchBest = text.match(/\b(BEST[A-Za-z0-9_-]+)\b/i);
+  if (matchBest && matchBest[1]) return matchBest[1].trim();
 
   return '';
 }

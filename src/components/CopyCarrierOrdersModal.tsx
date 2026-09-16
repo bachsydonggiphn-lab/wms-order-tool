@@ -200,7 +200,7 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
       code: 'BEST',
       label: 'Best Express',
       shortName: 'Best',
-      prefixHint: '61..., BEST...',
+      prefixHint: 'TTVN, 61..., BEST',
       activeBorder: 'border-sky-600 ring-2 ring-sky-200',
       activeBg: 'bg-sky-600 text-white',
       activeText: 'text-sky-800',

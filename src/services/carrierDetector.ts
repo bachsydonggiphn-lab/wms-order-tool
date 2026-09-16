@@ -85,7 +85,7 @@ export const CARRIERS: Record<CarrierId, CarrierConfig> = {
     logoColor: '#0055A5',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
     badgeText: 'text-blue-600',
-    prefixHints: ['61', '81', 'BEST'],
+    prefixHints: ['TTVN', '61', '81', 'BEST'],
     trackingUrlPattern: 'https://best-inc.vn/track?bills={CODE}',
     website: 'https://best-inc.vn/'
   },
@@ -161,6 +161,7 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
   }
 
   if (
+    cleanCode.startsWith('TTVN') ||
     cleanCode.startsWith('BEST') ||
     ((cleanCode.startsWith('61') || cleanCode.startsWith('81')) && cleanCode.length === 12 && /^\d+$/.test(cleanCode))
   ) {
@@ -224,7 +225,7 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
     if (cleanChannel.includes('VNPOST') || cleanChannel.includes('EMS') || cleanChannel.includes('BUUDIEN')) {
       return 'vnpost';
     }
-    if (cleanChannel.includes('BEST')) {
+    if (cleanChannel.includes('BEST') || cleanChannel.includes('TTVN')) {
       return 'best';
     }
   }

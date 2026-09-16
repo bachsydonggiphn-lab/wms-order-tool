@@ -229,7 +229,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     {
       code: 'BEST',
       label: 'Best Express',
-      prefixHint: '61..., BEST...',
+      prefixHint: 'TTVN, 61..., BEST',
       colorStyle: 'border-sky-300 text-sky-800 bg-sky-50/50 hover:bg-sky-50',
       activeStyle: 'bg-sky-600 text-white border-sky-600 shadow-xs ring-2 ring-sky-200',
     },
