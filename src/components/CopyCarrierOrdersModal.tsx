@@ -75,6 +75,13 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
     return map;
   }, [baseOrders]);
 
+  // Tự động chuyển về ALL nếu hãng đang chọn không có đơn nào
+  React.useEffect(() => {
+    if (activeCarrier !== 'ALL' && (carrierMap[activeCarrier]?.length || 0) === 0) {
+      setActiveCarrier('ALL');
+    }
+  }, [carrierMap, activeCarrier]);
+
   const carrierListConfig: {
     code: CarrierCode;
     label: string;
@@ -363,6 +370,17 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
               {carrierListConfig.map((item) => {
                 const count = carrierMap[item.code]?.length || 0;
+
+                // Tự động ẩn hãng không có đơn hàng (0 đơn), chỉ hiện khi count >= 1. Riêng 'ALL' luôn hiển thị.
+                if (item.code !== 'ALL' && count === 0) {
+                  return null;
+                }
+
+                // Nút Gộp GHN chỉ hiện khi cả 2 hãng GHN và GHN TikTok đều có từ 1 đơn trở lên
+                if (item.code === 'GHN_ALL' && ((carrierMap.GHN?.length || 0) === 0 || (carrierMap.GHN_TIKTOK?.length || 0) === 0)) {
+                  return null;
+                }
+
                 const isSelected = activeCarrier === item.code;
 
                 return (

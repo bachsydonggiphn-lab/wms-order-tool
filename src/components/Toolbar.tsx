@@ -386,6 +386,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
+  // Tự động chuyển về 'ALL' nếu hãng đang chọn không có đơn hàng nào (0 đơn)
+  React.useEffect(() => {
+    if (orders.length > 0 && selectedCarrier !== 'ALL') {
+      const currentCount =
+        selectedCarrier === 'GHN_ALL'
+          ? (carrierCounts.GHN_ALL || 0)
+          : (carrierCounts[selectedCarrier] || 0);
+      if (currentCount === 0) {
+        setSelectedCarrier('ALL');
+      }
+    }
+  }, [carrierCounts, selectedCarrier, orders.length, setSelectedCarrier]);
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-xs mb-6 overflow-hidden">
       {/* Top Filter and Actions Row */}
@@ -520,6 +533,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <div className="flex items-center flex-wrap gap-2">
           {carrierOptions.map((opt) => {
             const count = carrierCounts[opt.code] || 0;
+
+            // Tự động nhận diện: chỉ hiện hãng có từ 1 đơn trở lên (count >= 1). Hãng không có đơn (0 đơn) thì ẩn đi.
+            // Riêng 'ALL' (Tất Cả ĐVVC) luôn luôn hiển thị để xem toàn bộ đơn.
+            if (opt.code !== 'ALL' && count === 0) {
+              return null;
+            }
+
             const isSelected =
               opt.code === 'GHN'
                 ? selectedCarrier === 'GHN' || selectedCarrier === 'GHN_ALL'
@@ -590,8 +610,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   )}
                 </div>
 
-                {/* Nút Gộp Cả GHN (GHN + GHN TikTok) hiển thị trực tiếp ngay sau GHN TikTok */}
-                {opt.code === 'GHN_TIKTOK' && (
+                {/* Nút Gộp Cả GHN: chỉ hiển thị khi CẢ 2 hãng GHN và GHN TikTok đều có từ 1 đơn trở lên */}
+                {opt.code === 'GHN_TIKTOK' && (carrierCounts.GHN || 0) > 0 && (carrierCounts.GHN_TIKTOK || 0) > 0 && (
                   <div
                     key="GHN_ALL_BTN"
                     className={`inline-flex items-center rounded-xl border transition-all ${
