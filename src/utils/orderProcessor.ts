@@ -443,7 +443,12 @@ export function locDonHang(
       } else if (typeof carrierFilter === 'string' && carrierFilter.includes(',')) {
         const list = carrierFilter.split(',').map(s => s.trim());
         const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
-        if (!list.includes(effCarrier)) return false;
+        const matchAny = list.some(c => {
+          if (c === 'ALL') return true;
+          if (c === 'GHN_ALL') return effCarrier === 'GHN' || effCarrier === 'GHN_TIKTOK';
+          return effCarrier === c;
+        });
+        if (!matchAny) return false;
       } else if (carrierFilter !== 'ALL') {
         const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
         if (effCarrier !== carrierFilter) return false;

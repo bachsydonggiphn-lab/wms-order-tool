@@ -10,6 +10,7 @@ import {
   FileText,
   Sparkles,
   ExternalLink,
+  Zap,
 } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
 import { CARRIER_CONFIG } from '../utils/orderProcessor';
@@ -74,13 +75,6 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
 
     return map;
   }, [baseOrders]);
-
-  // Tự động chuyển về ALL nếu hãng đang chọn không có đơn nào
-  React.useEffect(() => {
-    if (activeCarrier !== 'ALL' && (carrierMap[activeCarrier]?.length || 0) === 0) {
-      setActiveCarrier('ALL');
-    }
-  }, [carrierMap, activeCarrier]);
 
   const carrierListConfig: {
     code: CarrierCode;
@@ -227,10 +221,35 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
     },
   ];
 
-  // Active list of orders
+  // Active list of orders (Hỗ trợ cả gộp nhiều hãng ví dụ: 'SPX,BEST')
   const currentOrders = useMemo(() => {
+    if (!activeCarrier || activeCarrier === 'ALL') return carrierMap.ALL || [];
+    if (activeCarrier === 'GHN_ALL') return carrierMap.GHN_ALL || [];
+    if (activeCarrier.includes(',')) {
+      const parts = activeCarrier.split(',').map((s) => s.trim() as CarrierCode);
+      const collected: RawOrderRow[] = [];
+      const seen = new Set<string>();
+      parts.forEach((p) => {
+        const list = (carrierMap as any)[p] || [];
+        list.forEach((o: RawOrderRow) => {
+          const key = o.id || o.orderNo;
+          if (!seen.has(key)) {
+            seen.add(key);
+            collected.push(o);
+          }
+        });
+      });
+      return collected;
+    }
     return carrierMap[activeCarrier] || [];
   }, [carrierMap, activeCarrier]);
+
+  // Tự động chuyển về ALL nếu hãng hoặc nhóm hãng đang chọn không có đơn nào
+  React.useEffect(() => {
+    if (activeCarrier !== 'ALL' && currentOrders.length === 0) {
+      setActiveCarrier('ALL');
+    }
+  }, [currentOrders.length, activeCarrier]);
 
   // Build formatted text
   const formattedText = useMemo(() => {
@@ -419,6 +438,28 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
                   </button>
                 );
               })}
+
+              {/* Pill nhóm gộp tuỳ chỉnh khi mở modal từ thanh Toolbar đang gộp nhiều hãng */}
+              {activeCarrier.includes(',') && (
+                <button
+                  type="button"
+                  onClick={() => setActiveCarrier(activeCarrier)}
+                  className="flex flex-col items-start p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative border-indigo-600 ring-2 ring-indigo-200 bg-indigo-50/90 shadow-xs col-span-2 sm:col-span-1"
+                >
+                  <div className="flex items-center justify-between w-full gap-1">
+                    <span className="text-xs font-bold truncate text-indigo-700 flex items-center gap-1">
+                      <Zap className="w-3.5 h-3.5 text-indigo-600 fill-indigo-500 shrink-0" />
+                      <span>Gộp {activeCarrier.split(',').length} Hãng</span>
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-indigo-600 text-white shrink-0">
+                      {currentOrders.length}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-indigo-600/80 mt-1 truncate max-w-full">
+                    {activeCarrier.split(',').map((c) => CARRIER_CONFIG[c]?.shortName || c).join(' + ')}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
 

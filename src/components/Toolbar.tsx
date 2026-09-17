@@ -18,6 +18,8 @@ import {
   Copy,
   Check,
   Warehouse,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
 import { CARRIER_CONFIG } from '../utils/orderProcessor';
@@ -250,10 +252,87 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     },
   ];
 
-  // 1. Thống kê số đơn theo từng Picking List cho ĐVVC đang chọn và toàn bộ ĐVVC
+  // Helper lấy danh sách mã hãng đang được chọn
+  const getSelectedCarrierCodes = (val: string): CarrierCode[] => {
+    if (!val || val === 'ALL') return [];
+    if (val === 'GHN_ALL') return ['GHN', 'GHN_TIKTOK'];
+    return val.split(',').map((s) => s.trim() as CarrierCode);
+  };
+
+  // Helper kiểm tra 1 đơn hàng có khớp với bộ lọc ĐVVC hay không (hỗ trợ cả gộp nhiều hãng)
+  const isOrderMatchCarrier = (orderCarrier: string | undefined, filter: string): boolean => {
+    if (!filter || filter === 'ALL') return true;
+    if (filter === 'GHN_ALL') return orderCarrier === 'GHN' || orderCarrier === 'GHN_TIKTOK';
+    if (filter.includes(',')) {
+      const list = filter.split(',').map((s) => s.trim());
+      return list.some((c) => {
+        if (c === 'ALL') return true;
+        if (c === 'GHN_ALL') return orderCarrier === 'GHN' || orderCarrier === 'GHN_TIKTOK';
+        return orderCarrier === c;
+      });
+    }
+    return orderCarrier === filter;
+  };
+
+  // Cần gạt cho phép gộp nhiều ĐVVC (lưu vào localStorage)
+  const [isMultiCarrierMode, setIsMultiCarrierMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('WMS_MULTI_CARRIER_MODE') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleMultiCarrierMode = () => {
+    const next = !isMultiCarrierMode;
+    setIsMultiCarrierMode(next);
+    try {
+      localStorage.setItem('WMS_MULTI_CARRIER_MODE', String(next));
+    } catch {}
+
+    if (!next) {
+      // Khi gạt TẮT: Nếu đang gộp nhiều hãng, an toàn giữ lại hãng đầu tiên để người dùng không bị quên
+      const currentList = getSelectedCarrierCodes(selectedCarrier);
+      if (currentList.length > 1) {
+        setSelectedCarrier(currentList[0]);
+        setQuickToastMessage(`Đã TẮT gộp ĐVVC: Giữ lại ${CARRIER_CONFIG[currentList[0]]?.shortName || currentList[0]}`);
+      } else {
+        setQuickToastMessage('Đã TẮT chế độ gộp ĐVVC (Chế độ chọn 1 hãng an toàn)');
+      }
+      setTimeout(() => setQuickToastMessage(null), 2500);
+    } else {
+      setQuickToastMessage('Đã BẬT cần gạt gộp ĐVVC: Bạn có thể click chọn thêm hãng để gộp dữ liệu');
+      setTimeout(() => setQuickToastMessage(null), 2500);
+    }
+  };
+
+  // Danh sách các hãng đang active
+  const activeCarrierCodes = useMemo(() => {
+    return getSelectedCarrierCodes(selectedCarrier);
+  }, [selectedCarrier]);
+
+  // Tên hiển thị tóm tắt của các hãng đang chọn
+  const activeCarriersSummary = useMemo(() => {
+    if (selectedCarrier === 'ALL' || activeCarrierCodes.length === 0) return 'Tất cả ĐVVC';
+    if (selectedCarrier === 'GHN_ALL') return 'Gộp Cả GHN';
+    if (activeCarrierCodes.length === 1) {
+      return CARRIER_CONFIG[activeCarrierCodes[0]]?.shortName || activeCarrierCodes[0];
+    }
+    return activeCarrierCodes
+      .map((c) => CARRIER_CONFIG[c]?.shortName || c)
+      .join(' + ');
+  }, [selectedCarrier, activeCarrierCodes]);
+
+  // Tổng số đơn của nhóm hãng đang lọc hiện tại
+  const currentCarrierTotalOrders = useMemo(() => {
+    if (selectedCarrier === 'ALL') return orders.length;
+    if (selectedCarrier === 'GHN_ALL') return carrierCounts.GHN_ALL || 0;
+    return activeCarrierCodes.reduce((sum, c) => sum + (carrierCounts[c] || 0), 0);
+  }, [selectedCarrier, activeCarrierCodes, carrierCounts, orders.length]);
+
+  // 1. Thống kê đơn theo từng Picking List & ĐVVC
   const pickingListStats = useMemo(() => {
     const stats: Record<string, { totalInList: number; carrierCount: number }> = {};
-
     pickingLists.forEach((pl) => {
       stats[pl] = { totalInList: 0, carrierCount: 0 };
     });
@@ -265,11 +344,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         stats[pl] = { totalInList: 0, carrierCount: 0 };
       }
       stats[pl].totalInList++;
-      const isMatch =
-        selectedCarrier === 'ALL' ||
-        (selectedCarrier === 'GHN_ALL'
-          ? o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK'
-          : o.carrier === selectedCarrier);
+      const isMatch = isOrderMatchCarrier(o.carrier, selectedCarrier);
       if (isMatch) {
         stats[pl].carrierCount++;
       }
@@ -325,11 +400,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const currentFilteredCount = useMemo(() => {
     return orders.filter((o) => {
       const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
-      const matchCarrier =
-        selectedCarrier === 'ALL' ||
-        (selectedCarrier === 'GHN_ALL'
-          ? o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK'
-          : o.carrier === selectedCarrier);
+      const matchCarrier = isOrderMatchCarrier(o.carrier, selectedCarrier);
       return matchPl && matchCarrier;
     }).length;
   }, [orders, selectedPickingList, selectedCarrier]);
@@ -343,65 +414,76 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const handleCopyCurrentListCarrier = () => {
     const matched = orders.filter((o) => {
       const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
-      const matchCarrier =
-        selectedCarrier === 'ALL' ||
-        (selectedCarrier === 'GHN_ALL'
-          ? o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK'
-          : o.carrier === selectedCarrier);
+      const matchCarrier = isOrderMatchCarrier(o.carrier, selectedCarrier);
       return matchPl && matchCarrier;
     });
     const orderNos = matched.map((o) => o.orderNo).filter(Boolean);
     if (orderNos.length === 0) return;
     navigator.clipboard.writeText(orderNos.join('\n'));
-    const carrierName = selectedCarrier !== 'ALL' ? (CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier) : 'Tất cả';
-    setQuickToastMessage(`Đã copy ${orderNos.length} đơn (${selectedPickingList || 'Tất cả list'} - ${carrierName})`);
+    setQuickToastMessage(`Đã copy ${orderNos.length} đơn (${selectedPickingList || 'Tất cả list'} - ${activeCarriersSummary})`);
     setTimeout(() => setQuickToastMessage(null), 2500);
   };
 
-  // 7. Xử lý click chọn hãng: hỗ trợ gộp 2 hãng GHN và GHN TikTok khi click chọn cả hai
+  // 7. Xử lý click chọn hãng: có cần gạt an toàn, khi bật thì cho phép click chọn thêm bất kỳ hãng nào
   const handleCarrierClick = (code: CarrierCode) => {
-    if (code === 'GHN') {
-      if (selectedCarrier === 'GHN_TIKTOK') {
-        // Đang chọn GHN TikTok, bấm GHN -> GỘP CẢ HAI
-        setSelectedCarrier('GHN_ALL');
-      } else if (selectedCarrier === 'GHN_ALL') {
-        // Đang gộp cả hai, bấm GHN -> bỏ chọn GHN, giữ lại GHN TikTok
-        setSelectedCarrier('GHN_TIKTOK');
-      } else if (selectedCarrier === 'GHN') {
-        // Đang chọn GHN, bấm lại -> bỏ chọn về ALL
-        setSelectedCarrier('ALL');
+    if (code === 'ALL') {
+      setSelectedCarrier('ALL');
+      return;
+    }
+
+    if (!isMultiCarrierMode) {
+      // CHẾ ĐỘ AN TOÀN (Cần gạt TẮT): Người dùng chỉ chọn 1 hãng duy nhất, không bao giờ gộp nhầm
+      if (code === 'GHN_ALL') {
+        setSelectedCarrier(selectedCarrier === 'GHN_ALL' ? 'ALL' : 'GHN_ALL');
       } else {
-        setSelectedCarrier('GHN');
+        setSelectedCarrier(selectedCarrier === code ? 'ALL' : code);
       }
-    } else if (code === 'GHN_TIKTOK') {
-      if (selectedCarrier === 'GHN') {
-        // Đang chọn GHN, bấm GHN TikTok -> GỘP CẢ HAI
-        setSelectedCarrier('GHN_ALL');
-      } else if (selectedCarrier === 'GHN_ALL') {
-        // Đang gộp cả hai, bấm GHN TikTok -> bỏ chọn GHN TikTok, giữ lại GHN
-        setSelectedCarrier('GHN');
-      } else if (selectedCarrier === 'GHN_TIKTOK') {
-        // Đang chọn GHN TikTok, bấm lại -> bỏ chọn về ALL
-        setSelectedCarrier('ALL');
+      return;
+    }
+
+    // CHẾ ĐỘ GỘP (Cần gạt BẬT): Cho phép click chọn thêm ĐVVC bất kỳ
+    if (code === 'GHN_ALL') {
+      const currentList = getSelectedCarrierCodes(selectedCarrier);
+      const hasBoth = currentList.includes('GHN') && currentList.includes('GHN_TIKTOK');
+      let next: CarrierCode[];
+      if (hasBoth) {
+        next = currentList.filter((c) => c !== 'GHN' && c !== 'GHN_TIKTOK');
       } else {
-        setSelectedCarrier('GHN_TIKTOK');
+        const set = new Set([...currentList, 'GHN' as CarrierCode, 'GHN_TIKTOK' as CarrierCode]);
+        next = Array.from(set);
       }
-    } else if (code === 'GHN_ALL') {
-      // Bấm nút gộp nhanh
-      setSelectedCarrier(selectedCarrier === 'GHN_ALL' ? 'ALL' : 'GHN_ALL');
+      if (next.length === 0) setSelectedCarrier('ALL');
+      else if (next.length === 1) setSelectedCarrier(next[0]);
+      else setSelectedCarrier(next.join(',') as CarrierCode);
+      return;
+    }
+
+    // Toggle từng hãng đơn lẻ trong danh sách gộp
+    const currentList = getSelectedCarrierCodes(selectedCarrier);
+    let next: CarrierCode[];
+    if (currentList.includes(code)) {
+      // Đang có -> Bỏ chọn hãng này
+      next = currentList.filter((c) => c !== code);
     } else {
-      setSelectedCarrier(selectedCarrier === code ? 'ALL' : code);
+      // Chưa có -> Thêm hãng này vào nhóm gộp
+      next = [...currentList, code];
+    }
+
+    if (next.length === 0) {
+      setSelectedCarrier('ALL');
+    } else if (next.length === 1) {
+      setSelectedCarrier(next[0]);
+    } else {
+      setSelectedCarrier(next.join(',') as CarrierCode);
     }
   };
 
-  // Tự động chuyển về 'ALL' nếu hãng đang chọn không có đơn hàng nào (0 đơn)
+  // Tự động chuyển về 'ALL' nếu tất cả các hãng đang chọn đều không có đơn hàng nào (0 đơn)
   React.useEffect(() => {
     if (orders.length > 0 && selectedCarrier !== 'ALL') {
-      const currentCount =
-        selectedCarrier === 'GHN_ALL'
-          ? (carrierCounts.GHN_ALL || 0)
-          : (carrierCounts[selectedCarrier] || 0);
-      if (currentCount === 0) {
+      const activeList = getSelectedCarrierCodes(selectedCarrier);
+      const hasAnyOrders = activeList.some((c) => (carrierCounts[c] || 0) > 0);
+      if (!hasAnyOrders && activeList.length > 0) {
         setSelectedCarrier('ALL');
       }
     }
@@ -425,14 +507,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           >
             <option value="">
               {selectedCarrier !== 'ALL'
-                ? `-- Tất cả Picking Lists (${carrierCounts[selectedCarrier] || 0} đơn ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier}) --`
+                ? `-- Tất cả Picking Lists (${currentCarrierTotalOrders} đơn ${activeCarriersSummary}) --`
                 : `-- Tất cả Picking Lists (${orders.length} đơn) --`}
             </option>
             {sortedPickingLists.map((pl) => {
               const stat = pickingListStats[pl] || { totalInList: 0, carrierCount: 0 };
               const label =
                 selectedCarrier !== 'ALL'
-                  ? `${pl} ➔ ${stat.carrierCount} đơn ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier} (${stat.totalInList} tổng)`
+                  ? `${pl} ➔ ${stat.carrierCount} đơn ${activeCarriersSummary} (${stat.totalInList} tổng)`
                   : `${pl} ➔ ${stat.totalInList} đơn`;
               return (
                 <option key={pl} value={pl}>
@@ -525,6 +607,43 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <span>Copy Đơn Theo Hãng</span>
           </button>
 
+          {/* CẦN GẠT BẬT/TẮT GỘP ĐVVC (Tránh trường hợp người dùng quên đang gộp) */}
+          <div
+            onClick={handleToggleMultiCarrierMode}
+            className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer select-none shadow-2xs ${
+              isMultiCarrierMode
+                ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-indigo-600 shadow-indigo-500/20'
+                : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200'
+            }`}
+            title={
+              isMultiCarrierMode
+                ? 'Cần gạt gộp ĐVVC đang BẬT: Bạn có thể click chọn thêm nhiều hãng để gộp dữ liệu. Click để TẮT'
+                : 'Cần gạt gộp ĐVVC đang TẮT: Chế độ an toàn, chỉ chọn 1 hãng duy nhất tránh người dùng quên. Click để BẬT'
+            }
+          >
+            {/* Toggle Switch Pill */}
+            <div
+              className={`w-7 h-4 flex items-center rounded-full p-0.5 transition-colors ${
+                isMultiCarrierMode ? 'bg-white/35 justify-end' : 'bg-slate-300 justify-start'
+              }`}
+            >
+              <div className="w-3 h-3 rounded-full bg-white shadow-xs" />
+            </div>
+
+            <div className="flex items-center gap-1 text-xs font-black">
+              {isMultiCarrierMode ? (
+                <span className="flex items-center gap-1 text-white">
+                  <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                  <span>Gộp ĐVVC: BẬT</span>
+                </span>
+              ) : (
+                <span className="text-slate-600">
+                  <span>Gộp ĐVVC: TẮT</span>
+                </span>
+              )}
+            </div>
+          </div>
+
           {quickToastMessage && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 animate-in fade-in zoom-in-95 duration-150">
               <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -533,7 +652,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           )}
 
           <span className="text-[11px] text-gray-500 hidden xl:inline">
-            (Bấm icon 📋 trên từng hãng để copy nhanh mã đơn)
+            {isMultiCarrierMode ? '(Click chọn thêm nhiều hãng để gộp)' : '(Bấm icon 📋 trên từng hãng để copy nhanh)'}
           </span>
         </div>
 
@@ -549,13 +668,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             }
 
             const isSelected =
-              opt.code === 'GHN'
-                ? selectedCarrier === 'GHN' || selectedCarrier === 'GHN_ALL'
-                : opt.code === 'GHN_TIKTOK'
-                ? selectedCarrier === 'GHN_TIKTOK' || selectedCarrier === 'GHN_ALL'
-                : selectedCarrier === opt.code;
+              opt.code === 'ALL'
+                ? selectedCarrier === 'ALL' || !selectedCarrier || activeCarrierCodes.length === 0
+                : activeCarrierCodes.includes(opt.code) || (opt.code === 'GHN' && selectedCarrier === 'GHN_ALL') || (opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN_ALL');
             const isCopied = quickCopiedCarrier === opt.code;
-            const isMergedPart = selectedCarrier === 'GHN_ALL' && (opt.code === 'GHN' || opt.code === 'GHN_TIKTOK');
+            const isMergedPart = activeCarrierCodes.length > 1 && isSelected;
 
             return (
               <React.Fragment key={opt.code}>
@@ -686,10 +803,27 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Dynamic List & Carrier Breakdown Insights Bar (Thống kê chi tiết List & ĐVVC) */}
       {(selectedCarrier !== 'ALL' || selectedPickingList) && (
         <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-50/80 via-blue-50/50 to-white border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs animate-in fade-in slide-in-from-top-1 duration-150">
-          {/* Case A: User selected a Carrier (e.g. SPX or JNT or GHN_ALL) */}
+          {/* Case A: User selected a Carrier (e.g. SPX or JNT or GHN_ALL or multi-carrier merge) */}
           {selectedCarrier !== 'ALL' && (
             <div className="flex items-center flex-wrap gap-2">
-              {selectedCarrier === 'GHN_ALL' ? (
+              {activeCarrierCodes.length > 1 ? (
+                <span className="font-bold text-gray-800 flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-indigo-600 fill-indigo-500" />
+                  <span>
+                    ⚡ Đang gộp {activeCarrierCodes.length} hãng:{' '}
+                    {activeCarrierCodes.map((c, idx) => (
+                      <span key={c}>
+                        {idx > 0 && ' + '}
+                        <b>{CARRIER_CONFIG[c]?.name || c}</b> ({carrierCounts[c] || 0} đơn)
+                      </span>
+                    ))}{' '}
+                    = <b className="text-indigo-700">{currentCarrierTotalOrders} đơn</b>
+                    {listsWithCarrierOrders.length > 0
+                      ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:`
+                      : ' (Không có trong list nào)'}
+                  </span>
+                </span>
+              ) : selectedCarrier === 'GHN_ALL' ? (
                 <span className="font-bold text-gray-800 flex items-center gap-1.5">
                   <Zap className="w-4 h-4 text-blue-600 fill-blue-500" />
                   <span>
@@ -701,7 +835,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 <span className="font-bold text-gray-800 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-indigo-600" />
                   <span>
-                    Hãng <b>{CARRIER_CONFIG[selectedCarrier]?.name || selectedCarrier}</b> ({carrierCounts[selectedCarrier] || 0} đơn)
+                    Hãng <b>{CARRIER_CONFIG[activeCarrierCodes[0] || selectedCarrier]?.name || selectedCarrier}</b> ({currentCarrierTotalOrders} đơn)
                     {listsWithCarrierOrders.length > 0 ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:` : ' (Không có trong list nào)'}
                   </span>
                 </span>
@@ -718,7 +852,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 }`}
                 title="Xem toàn bộ các list của hãng này"
               >
-                Tất cả ({carrierCounts[selectedCarrier] || 0} đơn)
+                Tất cả ({currentCarrierTotalOrders} đơn)
               </button>
 
               {/* Clickable List Chips with direct counts */}
@@ -734,7 +868,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs ring-2 ring-indigo-200'
                         : 'bg-white text-gray-800 border-gray-200 hover:bg-indigo-50 hover:border-indigo-300'
                     }`}
-                    title={`Chọn ${it.name}: có ${it.count} đơn ${selectedCarrier} trên tổng ${it.totalInList} đơn`}
+                    title={`Chọn ${it.name}: có ${it.count} đơn ${activeCarriersSummary} trên tổng ${it.totalInList} đơn`}
                   >
                     <span>{it.name}:</span>
                     <span className={`font-bold ${isListSelected ? 'text-white' : 'text-indigo-600'}`}>
@@ -746,6 +880,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   </button>
                 );
               })}
+
+              {/* Nút Hủy Gộp nhanh khi đang gộp >= 2 hãng */}
+              {activeCarrierCodes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCarrier('ALL')}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 cursor-pointer transition-all shadow-2xs"
+                  title="Hủy gộp tất cả hãng, quay lại xem toàn bộ đơn"
+                >
+                  <X className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Hủy gộp</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -781,12 +928,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 type="button"
                 onClick={handleCopyCurrentListCarrier}
                 className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 rounded-lg shadow-2xs transition-colors cursor-pointer"
-                title={`Sao chép ${currentFilteredCount} mã đơn của List ${selectedPickingList} (${selectedCarrier})`}
+                title={`Sao chép ${currentFilteredCount} mã đơn của List ${selectedPickingList} (${activeCarriersSummary})`}
               >
                 <Copy className="w-3.5 h-3.5 text-indigo-600" />
                 <span>
                   Copy {currentFilteredCount} đơn ({selectedPickingList}
-                  {selectedCarrier !== 'ALL' ? ` - ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier}` : ''})
+                  {selectedCarrier !== 'ALL' ? ` - ${activeCarriersSummary}` : ''})
                 </span>
               </button>
             </div>

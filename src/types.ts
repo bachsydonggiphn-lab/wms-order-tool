@@ -15,7 +15,8 @@ export type CarrierCode =
   | 'VIETTELPOST'
   | 'VNPOST'
   | 'BEST'
-  | 'OTHER';
+  | 'OTHER'
+  | (string & {});
 
 export interface CarrierDetails {
   code: CarrierCode;
