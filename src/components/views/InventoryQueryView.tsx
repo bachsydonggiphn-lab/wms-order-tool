@@ -26,6 +26,16 @@ import {
 import { InventoryQueryResult, InventoryGroupSummary, WmsInventoryItem, SkuGroupsMap } from '../../types';
 import { loadWmsInventory, getCachedInventory, exportInventoryToExcel } from '../../services/inventoryService';
 import { playOrderAlertSound } from '../../utils/audioAlert';
+import { DEFAULT_AREA_ORDER } from '../../utils/skuData';
+
+function compareGroups(a: string, b: string): number {
+  const idxA = DEFAULT_AREA_ORDER.indexOf(a);
+  const idxB = DEFAULT_AREA_ORDER.indexOf(b);
+  if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+  if (idxA !== -1) return -1;
+  if (idxB !== -1) return 1;
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+}
 
 interface InventoryQueryViewProps {
   skuGroups: SkuGroupsMap;
@@ -71,9 +81,9 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
   const [copiedSku, setCopiedSku] = useState<string | null>(null);
   const [copiedGroup, setCopiedGroup] = useState<string | null>(null);
 
-  // Sorting for table mode
-  const [sortField, setSortField] = useState<SortField>('inUsed');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  // Sorting for table mode (Mặc định sắp xếp theo Mã SKU A-Z và số)
+  const [sortField, setSortField] = useState<SortField>('sku');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   // Refs for background interval to avoid stale closures
   const dataRef = useRef<InventoryQueryResult | null>(data);
@@ -290,20 +300,24 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
     const totalAvail = Object.values(map).reduce((sum, g) => sum + g.totalInUsed, 0);
     const list = Object.values(map).map((g) => {
       g.percentageOfTotal = totalAvail > 0 ? Math.round((g.totalInUsed / totalAvail) * 1000) / 10 : 0;
-      g.items.sort((a, b) => b.inUsed - a.inUsed);
+      // Sắp xếp các SKU con trong nhóm theo vần chữ cái & số tự nhiên (A-Z, 0-9)
+      g.items.sort((a, b) => a.sku.localeCompare(b.sku, undefined, { numeric: true, sensitivity: 'base' }));
       return g;
     });
 
-    return list.sort((a, b) => b.totalInUsed - a.totalInUsed);
+    // Sắp xếp các nhóm theo thứ tự chuẩn DEFAULT_AREA_ORDER hoặc vần chữ cái & số (YD-A, YD-B, YD-D, YD-G...)
+    return list.sort((a, b) => compareGroups(a.group, b.group));
   }, [filteredItems, data]);
 
-  // Sorted items for Table View
+  // Sorted items for Table View (sắp xếp tự nhiên theo chữ cái và số)
   const sortedTableItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
       let valA: any = a[sortField];
       let valB: any = b[sortField];
       if (typeof valA === 'string') {
-        return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        return sortOrder === 'asc'
+          ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+          : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
       }
       return sortOrder === 'asc' ? valA - valB : valB - valA;
     });
@@ -719,7 +733,7 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
                 Tất Cả ({data.totalSkus})
               </button>
 
-              {data.groups.map((g) => {
+              {[...data.groups].sort((a, b) => compareGroups(a.group, b.group)).map((g) => {
                 const isSelected = selectedGroup === g.group;
                 return (
                   <button
@@ -953,11 +967,34 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
       ) : (
         /* 4B. TABLE VIEW (Bảng Toàn Bộ) */
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
-            <span>Hiển thị {sortedTableItems.length} mã sản phẩm</span>
-            <span className="text-[11px] text-slate-400 font-normal">
-              Bấm vào tiêu đề cột để sắp xếp
-            </span>
+          <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-700">
+            <div className="flex items-center gap-2">
+              <span>Hiển thị {sortedTableItems.length} mã sản phẩm</span>
+              <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-extrabold">
+                Sắp xếp vần chữ cái & số (A → Z, 0 → 9)
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 font-semibold text-[11px]">Sắp xếp theo:</span>
+              <select
+                value={`${sortField}_${sortOrder}`}
+                onChange={(e) => {
+                  const [f, o] = e.target.value.split('_') as [SortField, SortOrder];
+                  setSortField(f);
+                  setSortOrder(o);
+                }}
+                className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer shadow-2xs"
+              >
+                <option value="sku_asc">🔤 Mã SKU (A → Z & Số) [Chuẩn]</option>
+                <option value="sku_desc">🔤 Mã SKU (Z → A)</option>
+                <option value="group_asc">🏷️ Nhóm SKU (A → Z)</option>
+                <option value="inUsed_desc">📦 Khả dụng (Nhiều → Ít)</option>
+                <option value="inUsed_asc">📦 Khả dụng (Ít → Nhiều)</option>
+                <option value="onWay_desc">🚚 Đang về (Nhiều → Ít)</option>
+                <option value="outbound_desc">⏳ Chờ xuất (Nhiều → Ít)</option>
+              </select>
+            </div>
           </div>
 
           <div className="overflow-x-auto max-h-[750px] overflow-y-auto">

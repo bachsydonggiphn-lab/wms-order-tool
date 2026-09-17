@@ -581,15 +581,22 @@ export async function fetchWmsInventory(
     g.items.push(item);
   });
 
-  // Tính phần trăm & sắp xếp SKU trong nhóm
+  // Tính phần trăm & sắp xếp SKU trong từng nhóm theo thứ tự chữ cái và số (A-Z, 0-9)
   const groups: InventoryGroupSummary[] = Object.values(groupMap).map((g) => {
     g.percentageOfTotal = totalInUsed > 0 ? Math.round((g.totalInUsed / totalInUsed) * 1000) / 10 : 0;
-    g.items.sort((a, b) => b.inUsed - a.inUsed);
+    // Sắp xếp SKU theo vần chữ cái và số tự nhiên
+    g.items.sort((a, b) => a.sku.localeCompare(b.sku, undefined, { numeric: true, sensitivity: 'base' }));
     return g;
   });
 
-  // Sắp xếp nhóm theo tổng tồn khả dụng giảm dần
-  groups.sort((a, b) => b.totalInUsed - a.totalInUsed);
+  // Sắp xếp danh sách nhóm theo thứ tự chuẩn DEFAULT_AREA_ORDER hoặc vần chữ cái & số
+  groups.sort((a, b) => {
+    const isYdA = a.group.startsWith('YD-');
+    const isYdB = b.group.startsWith('YD-');
+    if (isYdA && !isYdB) return -1;
+    if (!isYdA && isYdB) return 1;
+    return a.group.localeCompare(b.group, undefined, { numeric: true, sensitivity: 'base' });
+  });
 
   return {
     success: true,

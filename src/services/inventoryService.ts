@@ -85,10 +85,11 @@ export function exportInventoryToExcel(
   const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Tong_Hop_Nhom_SKU');
 
-  // 2. Sheet Chi Tiết Từng SKU
-  const filteredItems = selectedGroup === 'ALL'
-    ? result.items
-    : result.items.filter(it => it.group === selectedGroup);
+  // 2. Sheet Chi Tiết Từng SKU (sắp xếp theo vần chữ cái & số tự nhiên)
+  const filteredItems = (selectedGroup === 'ALL'
+    ? [...result.items]
+    : result.items.filter(it => it.group === selectedGroup))
+    .sort((a, b) => a.sku.localeCompare(b.sku, undefined, { numeric: true, sensitivity: 'base' }));
 
   const detailRows = filteredItems.map((item, idx) => ({
     'STT': idx + 1,
