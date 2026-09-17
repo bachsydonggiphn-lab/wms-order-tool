@@ -20,6 +20,7 @@ import { YogaClassificationView } from './components/views/YogaClassificationVie
 import { SinglePcsView } from './components/views/SinglePcsView';
 import { AllOrdersTableView } from './components/views/AllOrdersTableView';
 import { ShippedTrackingView } from './components/views/ShippedTrackingView';
+import { InventoryQueryView } from './components/views/InventoryQueryView';
 import { SkuSettingsView } from './components/views/SkuSettingsView';
 import { AppsScriptCodeView } from './components/views/AppsScriptCodeView';
 import { PrintPickingModal } from './components/PrintPickingModal';
@@ -338,6 +339,12 @@ export default function App() {
               selectedCarrier={selectedCarrier}
               searchTerm={searchTerm}
               onNavigateTab={setActiveTab}
+            />
+          )}
+
+          {activeTab === 'inventory_query' && (
+            <InventoryQueryView
+              skuGroups={skuGroups}
             />
           )}
 

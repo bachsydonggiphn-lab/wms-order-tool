@@ -4,9 +4,9 @@
  */
 
 import https from 'https';
-import { RawOrderRow, SkuGroupsMap } from '../types';
+import { RawOrderRow, SkuGroupsMap, WmsInventoryItem, InventoryGroupSummary, InventoryQueryResult } from '../types';
 import { DEFAULT_SKU_GROUPS } from '../utils/skuData';
-import { parseRawOrderRows } from '../utils/orderProcessor';
+import { parseRawOrderRows, layNhomTuSKU } from '../utils/orderProcessor';
 
 export interface WmsFetchOptions {
   username?: string;
@@ -424,6 +424,186 @@ export async function pollLatestWmsOrders(
     newOrders: newParsedRows,
     hasNew: newParsedRows.length > 0,
     latestOrderNo
+  };
+}
+
+export interface WmsInventoryFetchOptions {
+  username?: string;
+  password?: string;
+  warehouse?: string; // '7' = VN02 [Đồng Nai], '4' = VN01 [Hải Ngoại], '' = Tất cả
+  customerCode?: string;
+  productBarcode?: string;
+  pageSize?: number;
+  skuGroups?: SkuGroupsMap;
+}
+
+/**
+ * Kéo dữ liệu tồn kho từ YunWMS bằng API nội bộ POST /warehouse/inventory/list/page/{page}/pageSize/{pageSize}
+ * và tự động tổng hợp phân loại theo Nhóm mã SKU
+ */
+export async function fetchWmsInventory(
+  options: WmsInventoryFetchOptions = {}
+): Promise<InventoryQueryResult> {
+  const {
+    username = 'David',
+    password = '12345abc',
+    warehouse = '7', // VN02 Đồng Nai mặc định
+    customerCode = '',
+    productBarcode = '',
+    pageSize = 500,
+    skuGroups = DEFAULT_SKU_GROUPS
+  } = options;
+
+  let sessionCookie = await getWmsSessionCookie(username, password);
+
+  // Chuẩn bị tham số
+  const params: string[] = [];
+  if (warehouse) params.push(`warehouse_id=${encodeURIComponent(warehouse)}`);
+  if (customerCode) params.push(`customerCode=${encodeURIComponent(customerCode)}`);
+  if (productBarcode) params.push(`product_barcode=${encodeURIComponent(productBarcode)}`);
+  const postData = params.join('&');
+
+  const fetchPage = async (page: number, currentCookie: string) => {
+    const res = await httpsRequest({
+      hostname: 'czwh.wms.yunwms.com',
+      path: `/warehouse/inventory/list/page/${page}/pageSize/${pageSize}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Cookie': currentCookie,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://czwh.wms.yunwms.com/warehouse/inventory/list',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    }, postData);
+
+    let json: any = {};
+    try {
+      json = JSON.parse(res.body);
+    } catch (err) {
+      throw new Error(`Không phân tích được phản hồi JSON tồn kho WMS trang ${page}: ${res.body.slice(0, 150)}`);
+    }
+
+    if (json.state === 0 && (json.reLogin === 1 || (json.message && json.message.includes('登录')))) {
+      const freshCookie = await getWmsSessionCookie(username, password, true);
+      return fetchPage(page, freshCookie);
+    }
+
+    return json;
+  };
+
+  const page1Json = await fetchPage(1, sessionCookie);
+  const totalSkus = parseInt(String(page1Json.total || 0), 10);
+  const allRawItems: any[] = Array.isArray(page1Json.data) ? [...page1Json.data] : [];
+
+  const totalPages = Math.ceil(totalSkus / pageSize) || 1;
+  if (totalPages > 1) {
+    for (let p = 2; p <= totalPages; p++) {
+      const pJson = await fetchPage(p, sessionCookie);
+      if (Array.isArray(pJson.data)) {
+        allRawItems.push(...pJson.data);
+      }
+    }
+  }
+
+  // Parse từng sản phẩm
+  const items: WmsInventoryItem[] = allRawItems.map((raw) => {
+    const sku = (raw.product_barcode || '').trim();
+    const group = layNhomTuSKU(sku, skuGroups);
+    const whId = String(raw.warehouse_id || warehouse || '7');
+    const whName = whId === '7' ? 'VN02 [Đồng Nai]' : (whId === '4' ? 'VN01 [Hải Ngoại]' : `Kho ${whId}`);
+
+    return {
+      id: String(raw.pi_id || raw.product_id || sku || Math.random()),
+      sku,
+      group,
+      title: (raw.product_title || '').trim(),
+      productName: (raw.product_name || raw.product_title || '').trim(),
+      customerCode: raw.customer_code || 'YD',
+      warehouseId: whId,
+      warehouseName: whName,
+      inUsed: parseInt(String(raw.pi_in_used ?? 0), 10) || 0,
+      sellable: parseInt(String(raw.pi_sellable ?? 0), 10) || 0,
+      onWay: parseInt(String(raw.pi_onway ?? 0), 10) || 0,
+      pending: parseInt(String(raw.pi_pending ?? 0), 10) || 0,
+      outbound: parseInt(String(raw.pi_outbound ?? 0), 10) || 0,
+      unsellable: parseInt(String(raw.pi_unsellable ?? 0), 10) || 0,
+      unconfirmed: parseInt(String(raw.pi_unconfirmed ?? 0), 10) || 0,
+      shared: parseInt(String(raw.pi_shared ?? 0), 10) || 0,
+      warningQty: parseInt(String(raw.pi_warning_qty ?? 0), 10) || 0,
+      updateTime: raw.pi_update_time || '',
+      raw
+    };
+  });
+
+  // Tính toán tổng số & tổng hợp theo nhóm
+  let totalInUsed = 0;
+  let totalSellable = 0;
+  let totalOnWay = 0;
+  let totalPending = 0;
+  let totalOutbound = 0;
+  let totalUnsellable = 0;
+
+  const groupMap: Record<string, InventoryGroupSummary> = {};
+
+  items.forEach((item) => {
+    totalInUsed += item.inUsed;
+    totalSellable += item.sellable;
+    totalOnWay += item.onWay;
+    totalPending += item.pending;
+    totalOutbound += item.outbound;
+    totalUnsellable += item.unsellable;
+
+    if (!groupMap[item.group]) {
+      groupMap[item.group] = {
+        group: item.group,
+        skuCount: 0,
+        totalInUsed: 0,
+        totalSellable: 0,
+        totalOnWay: 0,
+        totalPending: 0,
+        totalOutbound: 0,
+        totalUnsellable: 0,
+        items: [],
+        percentageOfTotal: 0
+      };
+    }
+
+    const g = groupMap[item.group];
+    g.skuCount += 1;
+    g.totalInUsed += item.inUsed;
+    g.totalSellable += item.sellable;
+    g.totalOnWay += item.onWay;
+    g.totalPending += item.pending;
+    g.totalOutbound += item.outbound;
+    g.totalUnsellable += item.unsellable;
+    g.items.push(item);
+  });
+
+  // Tính phần trăm & sắp xếp SKU trong nhóm
+  const groups: InventoryGroupSummary[] = Object.values(groupMap).map((g) => {
+    g.percentageOfTotal = totalInUsed > 0 ? Math.round((g.totalInUsed / totalInUsed) * 1000) / 10 : 0;
+    g.items.sort((a, b) => b.inUsed - a.inUsed);
+    return g;
+  });
+
+  // Sắp xếp nhóm theo tổng tồn khả dụng giảm dần
+  groups.sort((a, b) => b.totalInUsed - a.totalInUsed);
+
+  return {
+    success: true,
+    totalSkus: items.length,
+    totalInUsed,
+    totalSellable,
+    totalOnWay,
+    totalPending,
+    totalOutbound,
+    totalUnsellable,
+    groups,
+    items,
+    fetchedAt: new Date().toLocaleString('vi-VN'),
+    warehouse: warehouse === '7' ? 'VN02 [Đồng Nai]' : (warehouse === '4' ? 'VN01 [Hải Ngoại]' : `Kho ${warehouse}`)
   };
 }
 

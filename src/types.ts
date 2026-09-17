@@ -206,3 +206,55 @@ export interface SkuPackingBreakdownResult {
   totalPcs: number;
 }
 
+// Kiểu dữ liệu Tồn Kho YunWMS (Inventory Query)
+export interface WmsInventoryItem {
+  id: string;
+  sku: string;
+  group: string;
+  title: string;
+  productName: string;
+  customerCode: string;
+  warehouseId: string;
+  warehouseName: string;
+  inUsed: number;        // Available (Tổng khả dụng thực tế)
+  sellable: number;      // Available for Sale (Có thể bán)
+  onWay: number;         // In Transit (Đang trên đường về)
+  pending: number;       // Pending Putaway (Chờ lên kệ)
+  outbound: number;      // Pending Outbound (Chờ xuất hàng)
+  unsellable: number;    // Defective Products (Hàng lỗi)
+  unconfirmed: number;   // Temporary Storage (Tạm giữ)
+  shared: number;        // Share Inventory
+  warningQty: number;    // Cảnh báo tồn
+  updateTime: string;    // Thời gian cập nhật WMS
+  raw?: any;
+}
+
+export interface InventoryGroupSummary {
+  group: string;
+  skuCount: number;
+  totalInUsed: number;
+  totalSellable: number;
+  totalOnWay: number;
+  totalPending: number;
+  totalOutbound: number;
+  totalUnsellable: number;
+  items: WmsInventoryItem[];
+  percentageOfTotal: number;
+}
+
+export interface InventoryQueryResult {
+  success: boolean;
+  totalSkus: number;
+  totalInUsed: number;
+  totalSellable: number;
+  totalOnWay: number;
+  totalPending: number;
+  totalOutbound: number;
+  totalUnsellable: number;
+  groups: InventoryGroupSummary[];
+  items: WmsInventoryItem[];
+  fetchedAt: string;
+  warehouse: string;
+  message?: string;
+}
+

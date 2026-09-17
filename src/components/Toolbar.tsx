@@ -17,6 +17,7 @@ import {
   Zap,
   Copy,
   Check,
+  Warehouse,
 } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
 import { CARRIER_CONFIG } from '../utils/orderProcessor';
@@ -24,13 +25,14 @@ import { CopyCarrierOrdersModal } from './CopyCarrierOrdersModal';
 
 export type ActiveTabType =
   | 'sku_pcs'
+  | 'inventory_query'
+  | 'shipped_tracking'
   | 'picking_detail'
   | 'area_group'
   | 'mix_analysis'
   | 'yoga_mat'
   | 'single_pcs'
   | 'all_table'
-  | 'shipped_tracking'
   | 'sku_settings'
   | 'apps_script';
 
@@ -106,6 +108,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       label: 'Tổng hợp SKU & Gộp PCS',
       icon: Layers,
       badge: 'Cột S:T & PCS',
+    },
+    {
+      id: 'inventory_query' as ActiveTabType,
+      label: 'Tra Cứu Tồn Kho WMS',
+      icon: Warehouse,
+      badge: 'Inventory Query',
     },
     {
       id: 'shipped_tracking' as ActiveTabType,

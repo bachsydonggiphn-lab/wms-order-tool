@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders } from '../services/wmsService';
+import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory } from '../services/wmsService';
 import { fetchGHNLive, fetchJNTLive, fetchJNTBatchLive, fetchSPXLive, fetchNinjaVanLive } from './trackingBackend';
 
 // Helper parse JSON body (tương thích cả Vite dev server lẫn Express body-parser)
@@ -196,7 +196,46 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
     return;
   }
 
-  // 5. Tracking API Proxy Routes
+  // 5. Endpoint Tra Cứu & Tổng Hợp Tồn Kho YunWMS (Inventory Query)
+  if (pathname === '/api/wms/inventory' && (req.method === 'POST' || req.method === 'GET')) {
+    const handleInventory = async () => {
+      let options: any = {};
+      if (req.method === 'POST') {
+        options = await parseJsonBody(req);
+      } else {
+        options = parsedUrl.query;
+      }
+
+      const warehouse = String(options.warehouse ?? '7'); // 7 = VN02 mặc định
+      const customerCode = String(options.customerCode || '');
+      const productBarcode = String(options.productBarcode || '');
+      const pageSize = Math.min(1000, Math.max(50, parseInt(String(options.pageSize || 500), 10)));
+      const username = String(options.username || 'David');
+      const password = String(options.password || '12345abc');
+
+      const result = await fetchWmsInventory({
+        warehouse,
+        customerCode,
+        productBarcode,
+        pageSize,
+        username,
+        password,
+        skuGroups: options.skuGroups
+      });
+
+      sendJson(res, 200, result);
+    };
+
+    handleInventory().catch((err) => {
+      sendJson(res, 500, {
+        success: false,
+        message: err?.message || 'Lỗi khi kéo tồn kho từ YunWMS'
+      });
+    });
+    return;
+  }
+
+  // 6. Tracking API Proxy Routes
   if (pathname === '/api/track/ghn' && req.method === 'POST') {
     parseJsonBody(req).then(async (body) => {
       const { orderCode, cellphone } = body;
