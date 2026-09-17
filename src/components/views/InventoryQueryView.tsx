@@ -118,11 +118,20 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
   isPollingRef.current = isPolling;
   const soundEnabledRef = useRef<boolean>(soundEnabled);
   soundEnabledRef.current = soundEnabled;
+  const skuGroupsRef = useRef<SkuGroupsMap>(skuGroups);
+  skuGroupsRef.current = skuGroups;
 
   // Initial load
   useEffect(() => {
     fetchData(selectedWarehouse);
   }, [selectedWarehouse]);
+
+  // Tự động phân loại lại thời gian thực ngay khi người dùng khai báo thêm SKU vào nhóm
+  useEffect(() => {
+    if (dataRef.current) {
+      fetchData(selectedWarehouse);
+    }
+  }, [skuGroups]);
 
   // Background Real-Time Polling Effect
   useEffect(() => {
@@ -147,7 +156,7 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
     try {
       const res = await loadWmsInventory({
         warehouse: warehouseRef.current,
-        skuGroups
+        skuGroups: skuGroupsRef.current
       });
 
       // So sánh dữ liệu cũ và mới để phát hiện biến động tồn kho
