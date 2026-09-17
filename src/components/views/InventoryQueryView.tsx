@@ -21,12 +21,15 @@ import {
   Volume2,
   VolumeX,
   Zap,
-  Activity
+  Activity,
+  Printer
 } from 'lucide-react';
 import { InventoryQueryResult, InventoryGroupSummary, WmsInventoryItem, SkuGroupsMap } from '../../types';
 import { loadWmsInventory, getCachedInventory, exportInventoryToExcel } from '../../services/inventoryService';
 import { playOrderAlertSound } from '../../utils/audioAlert';
 import { DEFAULT_AREA_ORDER } from '../../utils/skuData';
+import { InventoryPrintModal } from '../InventoryPrintModal';
+import { openInventoryPrintWindow } from '../../utils/inventoryPrint';
 
 function compareGroups(a: string, b: string): number {
   const idxA = DEFAULT_AREA_ORDER.indexOf(a);
@@ -84,6 +87,20 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
   // Sorting for table mode (Mặc định sắp xếp theo Mã SKU A-Z và số)
   const [sortField, setSortField] = useState<SortField>('sku');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  // Print Modal States
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
+  const [printModalInitialGroup, setPrintModalInitialGroup] = useState<string>('ALL');
+
+  const handleOpenPrintModal = () => {
+    setPrintModalInitialGroup(selectedGroup !== 'ALL' ? selectedGroup : 'ALL');
+    setIsPrintModalOpen(true);
+  };
+
+  const handleOpenPrintForGroup = (groupName: string) => {
+    setPrintModalInitialGroup(groupName);
+    setIsPrintModalOpen(true);
+  };
 
   // Refs for background interval to avoid stale closures
   const dataRef = useRef<InventoryQueryResult | null>(data);
@@ -403,6 +420,16 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" />
               <span>Xuất Excel (.xlsx)</span>
+            </button>
+
+            <button
+              onClick={handleOpenPrintModal}
+              disabled={!data || data.items.length === 0}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-800 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title="In danh sách SKU phân theo từng nhóm riêng hoặc in tổng hợp toàn bộ kho"
+            >
+              <Printer className="w-3.5 h-3.5 text-emerald-600" />
+              <span>In Danh Sách SKU</span>
             </button>
           </div>
         </div>
@@ -849,6 +876,18 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
                       <span>{isCopied ? 'Đã sao chép!' : 'Copy nhóm'}</span>
                     </button>
 
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenPrintForGroup(g.group);
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all"
+                      title={`In danh sách SKU của nhóm ${g.group}`}
+                    >
+                      <Printer className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>In nhóm</span>
+                    </button>
+
                     <div className="p-1 rounded-lg hover:bg-slate-200/60 text-slate-500">
                       {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </div>
@@ -976,6 +1015,16 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleOpenPrintModal}
+                disabled={!data || data.items.length === 0}
+                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all"
+                title="In danh sách SKU đang lọc"
+              >
+                <Printer className="w-3.5 h-3.5 text-emerald-600" />
+                <span>In Bảng Này</span>
+              </button>
+
               <span className="text-slate-500 font-semibold text-[11px]">Sắp xếp theo:</span>
               <select
                 value={`${sortField}_${sortOrder}`}
@@ -1155,6 +1204,14 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
           </div>
         </div>
       )}
+
+      {/* 5. Print Modal */}
+      <InventoryPrintModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        data={data}
+        initialGroup={printModalInitialGroup}
+      />
     </div>
   );
 };

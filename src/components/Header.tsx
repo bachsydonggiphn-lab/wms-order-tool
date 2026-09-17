@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
                   Warehouse<span className="text-indigo-600">.matrix</span>
                 </h1>
                 <span className="text-[11px] font-bold text-indigo-700 px-2.5 py-0.5 bg-indigo-50 rounded-full border border-indigo-200">
-                  v2.5 • Tra Cứu Tồn Kho YunWMS & Nhóm SKU
+                  v2.6 • In Danh Sách SKU Theo Nhóm & Tồn Kho WMS
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
