@@ -1,11 +1,18 @@
 import { InventoryQueryResult, InventoryGroupSummary, WmsInventoryItem } from '../types';
+import { DEFAULT_AREA_ORDER } from './skuData';
+
+export type PrintLayoutMode = 'DETAILED_TABLE' | 'COLUMN_MATRIX';
 
 export interface InventoryPrintOptions {
   scope: 'ALL' | 'SINGLE_GROUP' | 'SELECTED_GROUPS';
+  layoutMode?: PrintLayoutMode; // 'DETAILED_TABLE' (Bảng chi tiết tồn kho) | 'COLUMN_MATRIX' (Ma trận cột phân loại SKU giống Excel)
   selectedGroupName?: string;
   selectedGroupNames?: string[];
   includePhysicalCheckColumn?: boolean; // Cột ghi tay kiểm kê thực tế
   includeTransitColumns?: boolean; // Cột Đang về / Chờ xuất / Hàng lỗi
+  matrixIncludeQty?: boolean; // Hiển thị kèm số lượng tồn trong ô ma trận
+  orientation?: 'portrait' | 'landscape'; // Khổ giấy in dọc hay ngang
+  columnsPerPage?: number; // Số cột tối đa trên 1 bảng ma trận (mặc định 10-12)
   fontSize?: 'compact' | 'normal' | 'large';
   warehouseName?: string;
   sortBy?: 'sku' | 'inUsed' | 'sellable';
@@ -15,6 +22,10 @@ export function generateInventoryPrintHtml(
   data: InventoryQueryResult,
   options: InventoryPrintOptions
 ): string {
+  if (options.layoutMode === 'COLUMN_MATRIX') {
+    return generateSkuMatrixPrintHtml(data, options);
+  }
+
   const warehouse = options.warehouseName || (data.warehouse === '7' ? 'VN02 [Đồng Nai]' : data.warehouse === '4' ? 'VN01 [Hải Ngoại]' : `Kho #${data.warehouse || 'Tất cả'}`);
   const printTime = new Date().toLocaleString('vi-VN');
 
@@ -332,6 +343,260 @@ export function generateInventoryPrintHtml(
     </html>
   `;
 }
+
+export function generateSkuMatrixPrintHtml(
+  data: InventoryQueryResult,
+  options: InventoryPrintOptions
+): string {
+  const warehouse = options.warehouseName || (data.warehouse === '7' ? 'VN02 [Đồng Nai]' : data.warehouse === '4' ? 'VN01 [Hải Ngoại]' : `Kho #${data.warehouse || 'Tất cả'}`);
+  const printTime = new Date().toLocaleString('vi-VN');
+  const orientation = options.orientation || 'landscape'; // Mặc định in ngang để vừa nhiều cột
+  const includeQty = !!options.matrixIncludeQty;
+
+  // Lọc danh sách nhóm cần in
+  let targetGroups: InventoryGroupSummary[] = [];
+
+  if (options.scope === 'SINGLE_GROUP' && options.selectedGroupName) {
+    targetGroups = data.groups.filter(g => g.group === options.selectedGroupName);
+  } else if (options.scope === 'SELECTED_GROUPS' && options.selectedGroupNames && options.selectedGroupNames.length > 0) {
+    const set = new Set(options.selectedGroupNames);
+    targetGroups = data.groups.filter(g => set.has(g.group));
+  } else {
+    targetGroups = [...data.groups];
+  }
+
+  // Sắp xếp các nhóm theo thứ tự chuẩn
+  targetGroups.sort((a, b) => {
+    const idxA = DEFAULT_AREA_ORDER.indexOf(a.group);
+    const idxB = DEFAULT_AREA_ORDER.indexOf(b.group);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.group.localeCompare(b.group, undefined, { numeric: true, sensitivity: 'base' });
+  });
+
+  // Chuẩn bị danh sách SKU cho từng nhóm (đã sắp xếp A-Z & số)
+  interface ColumnData {
+    title: string;
+    subTitle?: string;
+    items: Array<{ sku: string; inUsed: number }>;
+  }
+
+  let matrixColumns: ColumnData[] = [];
+
+  // Nếu chỉ in 1 nhóm riêng lẻ: Tách nhóm này thành nhiều cột con (4-5 cột) để dàn đều trang in A4
+  if (options.scope === 'SINGLE_GROUP' && targetGroups.length === 1) {
+    const group = targetGroups[0];
+    const sortedItems = [...group.items].sort((a, b) =>
+      a.sku.localeCompare(b.sku, undefined, { numeric: true, sensitivity: 'base' })
+    );
+
+    const numCols = Math.min(5, Math.max(2, Math.ceil(sortedItems.length / 15)));
+    const itemsPerCol = Math.ceil(sortedItems.length / numCols);
+
+    for (let c = 0; c < numCols; c++) {
+      const colItems = sortedItems.slice(c * itemsPerCol, (c + 1) * itemsPerCol);
+      if (colItems.length > 0) {
+        matrixColumns.push({
+          title: `${group.group} (Cột ${c + 1})`,
+          subTitle: `${colItems.length} SKU`,
+          items: colItems
+        });
+      }
+    }
+  } else {
+    // In nhiều nhóm (như ảnh người dùng gửi): Mỗi nhóm là 1 cột
+    matrixColumns = targetGroups.map(g => {
+      const sortedItems = [...g.items].sort((a, b) =>
+        a.sku.localeCompare(b.sku, undefined, { numeric: true, sensitivity: 'base' })
+      );
+      return {
+        title: g.group,
+        subTitle: `${g.skuCount} SKU`,
+        items: sortedItems
+      };
+    });
+  }
+
+  // Tìm số hàng lớn nhất giữa các cột
+  const maxRows = Math.max(...matrixColumns.map(c => c.items.length), 0);
+  const totalSkus = targetGroups.reduce((s, g) => s + g.items.length, 0);
+  const totalInUsed = targetGroups.reduce((s, g) => s + g.totalInUsed, 0);
+
+  // Cỡ chữ theo cấu hình
+  const fontSizeConfig = {
+    compact: { cell: '10px', header: '11px', pad: '3px 4px' },
+    normal: { cell: '11px', header: '12px', pad: '4px 6px' },
+    large: { cell: '12px', header: '13px', pad: '6px 8px' }
+  }[options.fontSize || 'normal'];
+
+  // Render các hàng
+  let rowsHtml = '';
+  for (let r = 0; r < maxRows; r++) {
+    const isEven = r % 2 === 0;
+    rowsHtml += `<tr style="${isEven ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
+    for (let c = 0; c < matrixColumns.length; c++) {
+      const col = matrixColumns[c];
+      const item = col.items[r];
+      if (item) {
+        rowsHtml += `
+          <td style="border: 1px solid #cbd5e1; padding: ${fontSizeConfig.pad}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; font-size: ${fontSizeConfig.cell}; font-weight: 700; color: #0f172a; text-align: center; white-space: nowrap;">
+            ${escapeHtml(item.sku)}
+            ${includeQty ? `<span style="font-size: 9.5px; color: #047857; font-weight: normal; margin-left: 2px;">(${item.inUsed})</span>` : ''}
+          </td>
+        `;
+      } else {
+        rowsHtml += `
+          <td style="border: 1px solid #e2e8f0; background-color: #fafafa; padding: ${fontSizeConfig.pad};"></td>
+        `;
+      }
+    }
+    rowsHtml += '</tr>';
+  }
+
+  const isSingle = options.scope === 'SINGLE_GROUP';
+  const titleText = isSingle
+    ? `SƠ ĐỒ PHÂN LOẠI & SẮP XẾP SKU - NHÓM ${options.selectedGroupName}`
+    : `BẢNG MA TRẬN PHÂN LOẠI SKU THEO CÁC CỘT NHÓM HÀNG`;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="vi">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${titleText} - ${warehouse}</title>
+        <style>
+          * { box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            margin: 0;
+            padding: 14px;
+            line-height: 1.3;
+          }
+          @page {
+            size: A4 ${orientation};
+            margin: 6mm 6mm;
+          }
+          @media print {
+            body { padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+          }
+          .action-bar {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .btn-print {
+            background-color: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .btn-print:hover { background-color: #0369a1; }
+          .btn-close {
+            background-color: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+          }
+        </style>
+      </head>
+      <body>
+        <!-- Top Toolbar for quick print in popup -->
+        <div class="action-bar no-print">
+          <div>
+            <strong style="color: #0284c7; font-size: 13.5px;">📊 XEM TRƯỚC BẢNG MA TRẬN CỘT SKU (SƠ ĐỒ SẮP XẾP KHO)</strong>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+              Định dạng chuẩn A4 ${orientation === 'landscape' ? 'Ngang (Landscape)' : 'Dọc (Portrait)'}. Nhấn nút "In Ngay" hoặc phím tắt <b>Ctrl + P</b>.
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn-print" onclick="window.print()">🖨️ In Ngay (Print)</button>
+            <button class="btn-close" onclick="window.close()">Đóng</button>
+          </div>
+        </div>
+
+        <!-- Document Header -->
+        <div style="border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">
+              HỆ THỐNG KHO VẬN YUNWMS &bull; ${escapeHtml(warehouse)} &bull; SƠ ĐỒ KHO VÀ ĐẦU KỆ
+            </div>
+            <h1 style="margin: 2px 0 3px 0; font-size: 16px; font-weight: 900; color: #0f172a; text-transform: uppercase;">
+              ${titleText}
+            </h1>
+            <div style="font-size: 11px; color: #475569;">
+              📌 <b>Hướng dẫn sắp xếp hàng:</b> Các nhóm xếp từ trái qua phải. Trên kệ, xếp mã hàng theo thứ tự từ trên xuống dưới danh sách.
+            </div>
+          </div>
+
+          <div style="text-align: right; font-size: 11px; color: #64748b; line-height: 1.4;">
+            <div>Số nhóm: <strong style="color: #0f172a;">${matrixColumns.length}</strong> | Tổng SKU: <strong style="color: #0f172a;">${totalSkus}</strong></div>
+            <div>Tồn khả dụng: <strong style="color: #047857;">${totalInUsed.toLocaleString('vi-VN')} PCS</strong> &bull; In lúc: ${printTime}</div>
+          </div>
+        </div>
+
+        <!-- Multi-Column Matrix Table -->
+        <div style="width: 100%; overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #0284c7; table-layout: fixed;">
+            <thead>
+              <tr>
+                ${matrixColumns.map(col => `
+                  <th style="background-color: #0284c7; color: #ffffff; border: 1px solid #0369a1; padding: 6px 4px; font-size: ${fontSizeConfig.header}; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: 0.3px;">
+                    <div style="font-size: 12.5px;">${escapeHtml(col.title)}</div>
+                    ${col.subTitle ? `<div style="font-size: 9.5px; font-weight: normal; opacity: 0.9; margin-top: 1px;">(${col.subTitle})</div>` : ''}
+                  </th>
+                `).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #0284c7;">
+                ${matrixColumns.map(col => `
+                  <td style="border: 1px solid #cbd5e1; padding: 4px; font-size: 10px; color: #475569; text-align: center;">
+                    ${col.items.length} SKU
+                  </td>
+                `).join('')}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Footer Notes -->
+        <div style="margin-top: 14px; font-size: 10px; color: #64748b; display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+          <div>
+            <b>Lưu ý thủ kho:</b> Dán bảng này tại đầu kệ hoặc bảng tin kho để nhân viên nhặt hàng và xếp hàng kiểm soát vị trí chính xác.
+          </div>
+          <div>
+            YunWMS Inventory Matrix &bull; In lúc: ${printTime}
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 
 function escapeHtml(str: string): string {
   return (str || '')

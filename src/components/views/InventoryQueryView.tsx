@@ -91,14 +91,17 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
   // Print Modal States
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
   const [printModalInitialGroup, setPrintModalInitialGroup] = useState<string>('ALL');
+  const [printModalLayoutMode, setPrintModalLayoutMode] = useState<'COLUMN_MATRIX' | 'DETAILED_TABLE'>('COLUMN_MATRIX');
 
-  const handleOpenPrintModal = () => {
+  const handleOpenPrintModal = (layoutMode: 'COLUMN_MATRIX' | 'DETAILED_TABLE' = 'COLUMN_MATRIX') => {
     setPrintModalInitialGroup(selectedGroup !== 'ALL' ? selectedGroup : 'ALL');
+    setPrintModalLayoutMode(layoutMode);
     setIsPrintModalOpen(true);
   };
 
   const handleOpenPrintForGroup = (groupName: string) => {
     setPrintModalInitialGroup(groupName);
+    setPrintModalLayoutMode('COLUMN_MATRIX');
     setIsPrintModalOpen(true);
   };
 
@@ -423,13 +426,23 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
             </button>
 
             <button
-              onClick={handleOpenPrintModal}
+              onClick={() => handleOpenPrintModal('COLUMN_MATRIX')}
               disabled={!data || data.items.length === 0}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-800 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-              title="In danh sách SKU phân theo từng nhóm riêng hoặc in tổng hợp toàn bộ kho"
+              className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title="In sơ đồ ma trận các cột nhóm SKU (giống mẫu Excel) để dán kệ kho và sắp xếp hàng hóa theo thứ tự"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>📊 In Sơ Đồ Cột SKU (Dán Kệ)</span>
+            </button>
+
+            <button
+              onClick={() => handleOpenPrintModal('DETAILED_TABLE')}
+              disabled={!data || data.items.length === 0}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title="In bảng kê chi tiết tồn kho kèm cột kiểm kê ghi tay"
             >
               <Printer className="w-3.5 h-3.5 text-emerald-600" />
-              <span>In Danh Sách SKU</span>
+              <span>In Bảng Kê Tồn Kho</span>
             </button>
           </div>
         </div>
@@ -1016,7 +1029,7 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
 
             <div className="flex items-center gap-2">
               <button
-                onClick={handleOpenPrintModal}
+                onClick={() => handleOpenPrintModal('COLUMN_MATRIX')}
                 disabled={!data || data.items.length === 0}
                 className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all"
                 title="In danh sách SKU đang lọc"
@@ -1211,6 +1224,7 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
         onClose={() => setIsPrintModalOpen(false)}
         data={data}
         initialGroup={printModalInitialGroup}
+        initialLayoutMode={printModalLayoutMode}
       />
     </div>
   );
