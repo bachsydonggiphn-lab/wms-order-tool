@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Boxes,
   RefreshCw,
@@ -18,10 +18,14 @@ import {
   ListFilter,
   ShieldAlert,
   ArrowUpDown,
-  ExternalLink
+  Volume2,
+  VolumeX,
+  Zap,
+  Activity
 } from 'lucide-react';
 import { InventoryQueryResult, InventoryGroupSummary, WmsInventoryItem, SkuGroupsMap } from '../../types';
 import { loadWmsInventory, getCachedInventory, exportInventoryToExcel } from '../../services/inventoryService';
+import { playOrderAlertSound } from '../../utils/audioAlert';
 
 interface InventoryQueryViewProps {
   skuGroups: SkuGroupsMap;
@@ -32,10 +36,30 @@ type ViewMode = 'GROUPED' | 'TABLE';
 type SortField = 'inUsed' | 'sellable' | 'onWay' | 'outbound' | 'sku' | 'group';
 type SortOrder = 'asc' | 'desc';
 
+interface SkuDiffInfo {
+  diffInUsed: number;
+  diffSellable: number;
+  diffOnWay: number;
+  diffOutbound: number;
+}
+
 export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroups }) => {
   const [data, setData] = useState<InventoryQueryResult | null>(() => getCachedInventory());
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Real-Time Polling States
+  const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
+  const [refreshInterval, setRefreshInterval] = useState<number>(10); // 10s mặc định
+  const [countdown, setCountdown] = useState<number>(10);
+  const [isPolling, setIsPolling] = useState<boolean>(false);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
+  const [recentChanges, setRecentChanges] = useState<{
+    time: string;
+    changedCount: number;
+    details: Array<{ sku: string; diffInUsed: number }>;
+  } | null>(null);
+  const [changedSkuMap, setChangedSkuMap] = useState<Record<string, SkuDiffInfo>>({});
 
   // Filters & Controls
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>('7'); // 7 = VN02 [Đồng Nai]
@@ -51,10 +75,105 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
   const [sortField, setSortField] = useState<SortField>('inUsed');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
+  // Refs for background interval to avoid stale closures
+  const dataRef = useRef<InventoryQueryResult | null>(data);
+  dataRef.current = data;
+  const isAutoRefreshRef = useRef<boolean>(isAutoRefresh);
+  isAutoRefreshRef.current = isAutoRefresh;
+  const refreshIntervalRef = useRef<number>(refreshInterval);
+  refreshIntervalRef.current = refreshInterval;
+  const warehouseRef = useRef<string>(selectedWarehouse);
+  warehouseRef.current = selectedWarehouse;
+  const isPollingRef = useRef<boolean>(isPolling);
+  isPollingRef.current = isPolling;
+  const soundEnabledRef = useRef<boolean>(soundEnabled);
+  soundEnabledRef.current = soundEnabled;
+
   // Initial load
   useEffect(() => {
     fetchData(selectedWarehouse);
   }, [selectedWarehouse]);
+
+  // Background Real-Time Polling Effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!isAutoRefreshRef.current) return;
+
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          performSilentPoll();
+          return refreshIntervalRef.current;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const performSilentPoll = async () => {
+    if (isPollingRef.current) return;
+    setIsPolling(true);
+    try {
+      const res = await loadWmsInventory({
+        warehouse: warehouseRef.current,
+        skuGroups
+      });
+
+      // So sánh dữ liệu cũ và mới để phát hiện biến động tồn kho
+      const oldMap = new Map<string, WmsInventoryItem>();
+      if (dataRef.current?.items) {
+        dataRef.current.items.forEach(it => oldMap.set(it.sku, it));
+      }
+
+      const diffs: Array<{ sku: string; diffInUsed: number }> = [];
+      const newChangedMap: Record<string, SkuDiffInfo> = {};
+
+      if (oldMap.size > 0) {
+        res.items.forEach((newItem) => {
+          const old = oldMap.get(newItem.sku);
+          if (old) {
+            const diffInUsed = newItem.inUsed - old.inUsed;
+            const diffSellable = newItem.sellable - old.sellable;
+            const diffOnWay = newItem.onWay - old.onWay;
+            const diffOutbound = newItem.outbound - old.outbound;
+
+            if (diffInUsed !== 0 || diffSellable !== 0 || diffOnWay !== 0 || diffOutbound !== 0) {
+              diffs.push({ sku: newItem.sku, diffInUsed });
+              newChangedMap[newItem.sku] = {
+                diffInUsed,
+                diffSellable,
+                diffOnWay,
+                diffOutbound
+              };
+            }
+          }
+        });
+      }
+
+      setData(res);
+
+      if (diffs.length > 0) {
+        setRecentChanges({
+          time: new Date().toLocaleTimeString('vi-VN'),
+          changedCount: diffs.length,
+          details: diffs.slice(0, 5)
+        });
+        setChangedSkuMap(newChangedMap);
+        if (soundEnabledRef.current) {
+          playOrderAlertSound();
+        }
+        // Tự động tắt highlight sau 8 giây
+        setTimeout(() => {
+          setChangedSkuMap({});
+        }, 8000);
+      }
+    } catch (e) {
+      console.warn('Silent inventory poll error:', e);
+    } finally {
+      setIsPolling(false);
+    }
+  };
 
   const fetchData = async (warehouseId: string) => {
     setLoading(true);
@@ -141,7 +260,6 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
   // Grouped results based on filtered items
   const filteredGroups = useMemo(() => {
     if (!data?.groups) return [];
-    // Nhóm lại theo các item đã lọc
     const map: Record<string, InventoryGroupSummary> = {};
     filteredItems.forEach((item) => {
       if (!map[item.group]) {
@@ -207,7 +325,7 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
 
   return (
     <div className="space-y-5">
-      {/* 1. Header Card with Live Status & Controls */}
+      {/* 1. Header Card with Live Status & Real-Time Controls */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
@@ -253,15 +371,15 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
 
             <button
               onClick={() => fetchData(selectedWarehouse)}
-              disabled={loading}
+              disabled={loading || isPolling}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
-                loading
+                loading || isPolling
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20 active:scale-95'
               }`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              <span>{loading ? 'Đang đồng bộ...' : 'Làm mới WMS'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${loading || isPolling ? 'animate-spin' : ''}`} />
+              <span>{loading || isPolling ? 'Đang cập nhật...' : 'Làm mới WMS'}</span>
             </button>
 
             <button
@@ -273,6 +391,80 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
               <span>Xuất Excel (.xlsx)</span>
             </button>
           </div>
+        </div>
+
+        {/* Real-time Tracking Control Sub-bar */}
+        <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Auto-Refresh Toggle */}
+            <button
+              onClick={() => {
+                setIsAutoRefresh(prev => !prev);
+                setCountdown(refreshInterval);
+              }}
+              className={`px-3 py-1.5 rounded-xl font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
+                isAutoRefresh
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs active:scale-95'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${isAutoRefresh ? 'bg-white animate-ping' : 'bg-slate-400'}`}></span>
+              <span>{isAutoRefresh ? '⚡ AUTO REFRESH REAL-TIME: BẬT' : 'AUTO REFRESH: TẮT'}</span>
+            </button>
+
+            {/* Countdown / Polling Indicator */}
+            {isAutoRefresh && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg font-bold">
+                <RefreshCw className={`w-3.5 h-3.5 ${isPolling ? 'animate-spin text-emerald-600' : 'text-emerald-500'}`} />
+                <span>
+                  {isPolling ? 'Đang cập nhật tồn kho...' : `Tự làm mới sau: ${countdown}s`}
+                </span>
+              </div>
+            )}
+
+            {/* Cycle Selector */}
+            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 font-semibold text-slate-700">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span>Chu kỳ:</span>
+              <select
+                value={refreshInterval}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setRefreshInterval(val);
+                  setCountdown(val);
+                }}
+                className="bg-transparent font-bold text-slate-900 focus:outline-none cursor-pointer"
+              >
+                <option value="10">10s (Thời gian thực)</option>
+                <option value="15">15s</option>
+                <option value="30">30s</option>
+                <option value="60">60s (1 phút)</option>
+              </select>
+            </div>
+
+            {/* Sound Toggle */}
+            <button
+              onClick={() => setSoundEnabled(prev => !prev)}
+              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                soundEnabled
+                  ? 'bg-amber-50 border-amber-200 text-amber-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-600'
+              }`}
+              title={soundEnabled ? 'Chuông báo biến động tồn kho: Đang BẬT' : 'Chuông báo biến động tồn kho: Đang TẮT'}
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+          </div>
+
+          {/* Quick Realtime Update Alert */}
+          {recentChanges && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-100/90 border border-emerald-300 rounded-xl text-emerald-900 font-bold animate-pulse shadow-2xs">
+              <span className="text-amber-500 text-sm">⚡</span>
+              <span>
+                Vừa cập nhật lúc {recentChanges.time}: Có <strong>{recentChanges.changedCount} SKU</strong> biến động tồn kho!
+              </span>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -671,21 +863,37 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
                         {g.items.map((item, idx) => {
                           const isItemCopied = copiedSku === item.sku;
                           const isZero = item.inUsed <= 0;
+                          const diff = changedSkuMap[item.sku];
 
                           return (
                             <tr
                               key={item.id || item.sku}
-                              className={`hover:bg-emerald-50/30 transition-colors ${
-                                isZero ? 'bg-rose-50/30' : ''
+                              className={`transition-colors ${
+                                diff
+                                  ? 'bg-amber-100/60 ring-2 ring-amber-400'
+                                  : isZero
+                                  ? 'bg-rose-50/30'
+                                  : 'hover:bg-emerald-50/30'
                               }`}
                             >
                               <td className="py-2 px-4 text-center text-slate-400 font-semibold text-[11px]">
                                 {idx + 1}
                               </td>
                               <td className="py-2 px-4 font-mono font-bold text-slate-900">
-                                <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
-                                  {item.sku}
-                                </span>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                                    {item.sku}
+                                  </span>
+                                  {diff && diff.diffInUsed !== 0 && (
+                                    <span
+                                      className={`px-1.5 py-0.2 rounded text-[10px] font-black animate-bounce ${
+                                        diff.diffInUsed > 0 ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                                      }`}
+                                    >
+                                      {diff.diffInUsed > 0 ? `+${diff.diffInUsed}` : diff.diffInUsed}
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                               <td className="py-2 px-4 text-slate-700 max-w-md truncate" title={item.title}>
                                 {item.title || item.productName}
@@ -821,21 +1029,37 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
                 {sortedTableItems.map((item, idx) => {
                   const isItemCopied = copiedSku === item.sku;
                   const isZero = item.inUsed <= 0;
+                  const diff = changedSkuMap[item.sku];
 
                   return (
                     <tr
                       key={item.id || item.sku}
-                      className={`hover:bg-emerald-50/30 transition-colors ${
-                        isZero ? 'bg-rose-50/20' : ''
+                      className={`transition-colors ${
+                        diff
+                          ? 'bg-amber-100/60 ring-2 ring-amber-400'
+                          : isZero
+                          ? 'bg-rose-50/20'
+                          : 'hover:bg-emerald-50/30'
                       }`}
                     >
                       <td className="py-2.5 px-4 text-center text-slate-400 font-semibold text-[11px]">
                         {idx + 1}
                       </td>
                       <td className="py-2.5 px-4 font-mono font-bold text-slate-900">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
-                          {item.sku}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                            {item.sku}
+                          </span>
+                          {diff && diff.diffInUsed !== 0 && (
+                            <span
+                              className={`px-1.5 py-0.2 rounded text-[10px] font-black animate-bounce ${
+                                diff.diffInUsed > 0 ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                              }`}
+                            >
+                              {diff.diffInUsed > 0 ? `+${diff.diffInUsed}` : diff.diffInUsed}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-2.5 px-3 font-semibold text-emerald-800">
                         <span className="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
