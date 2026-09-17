@@ -1,6 +1,7 @@
 import { SkuGroupsMap } from '../types';
 
 export const DEFAULT_AREA_ORDER: string[] = [
+  'Thảm Yoga',
   'YD-A',
   'YD-B',
   'YD-D',
@@ -14,6 +15,7 @@ export const DEFAULT_AREA_ORDER: string[] = [
   'YD-SD',
   'YD-HMC',
   'YD-HMS',
+  'YD-BUBBLEWRAP',
 ];
 
 export const DEFAULT_SKU_GROUPS: SkuGroupsMap = {
@@ -21,10 +23,7 @@ export const DEFAULT_SKU_GROUPS: SkuGroupsMap = {
     'YD-A12-1', 'YD-A12-10', 'YD-A12-11', 'YD-A12-12', 'YD-A12-13',
     'YD-A12-2', 'YD-A12-3', 'YD-A12-4', 'YD-A12-5', 'YD-A12-6', 'YD-A12-9'
   ],
-  'YD-B': [
-    'YD-B8-1L', 'YD-B8-2L', 'YD-B8-4L', 'YD-B8-5L',
-    'YD-B9-1L', 'YD-B9-2L', 'YD-B9-4L', 'YD-B9-5L'
-  ],
+  'YD-B': [],
   'YD-D': [
     'YD-D107-1', 'YD-D107-2', 'YD-D107-3', 'YD-D107-4', 'YD-D107-5',
     'YD-D113-1', 'YD-D113-2', 'YD-D113-3',
@@ -144,7 +143,7 @@ export const DEFAULT_SKU_GROUPS: SkuGroupsMap = {
   ],
   'Thảm Yoga': [
     'YD-B8-1L', 'YD-B8-2L', 'YD-B8-4L', 'YD-B8-5L',
-    'YD-B9-1L', 'YD-B9-2L', 'YD-B9-4L', 'YD-B9-5L',
+    'YD-B9-1L', 'YD-B9-2L', 'YD-B9-3L', 'YD-B9-4L', 'YD-B9-5L',
     'YD-L28-1L', 'YD-L28-1LB', 'YD-L28-2L', 'YD-L28-2LB',
     'YD-L28-3L', 'YD-L28-3LB',
     'YD-L29-1L', 'YD-L29-1LB', 'YD-L29-2L', 'YD-L29-2LB',

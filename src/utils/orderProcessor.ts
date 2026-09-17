@@ -700,23 +700,34 @@ export function layNhomTuSKU(
   if (!sku) return 'KHAC';
   const cleanSku = sku.trim();
 
-  // 1. Kiểm tra chính xác trong danh sách SKU đã được gán vào nhóm
+  // 1. Kiểm tra Thảm Yoga TRƯỚC HẾT (Gộp cả 2 nhóm YD-B8/B9 và YD-L28/L29)
+  if (isYogaMatSku(cleanSku, skuGroups)) {
+    return 'Thảm Yoga';
+  }
+
+  // 2. YD-BUBBLEWRAP là màng xốp nổ bọc hàng (bao bì / vật liệu đóng gói), tách thành nhóm riêng
+  if (cleanSku.toUpperCase().startsWith('YD-BUBBLEWRAP')) {
+    return 'YD-BUBBLEWRAP';
+  }
+
+  // 3. Kiểm tra chính xác trong danh sách SKU đã được gán vào nhóm
   for (const [nhom, skus] of Object.entries(skuGroups)) {
+    if (nhom === 'Thảm Yoga') continue;
     if (Array.isArray(skus) && skus.includes(cleanSku)) {
       return nhom;
     }
   }
 
-  // 2. Thử so khớp các nhóm đã cấu hình (ưu tiên nhóm dài hơn trước để tránh nhầm lẫn)
+  // 4. Thử so khớp các nhóm đã cấu hình (ưu tiên nhóm dài hơn trước để tránh nhầm lẫn)
   const allKnownGroups = Object.keys(skuGroups).sort((a, b) => b.length - a.length);
   for (const nhom of allKnownGroups) {
     if (nhom === 'Thảm Yoga') continue;
-    if (cleanSku.startsWith(nhom + '-') || cleanSku.startsWith(nhom)) {
+    if (cleanSku.startsWith(nhom + '-') || (cleanSku.startsWith(nhom) && /^\d/.test(cleanSku.slice(nhom.length)))) {
       return nhom;
     }
   }
 
-  // 3. TỰ ĐỘNG BÓC TÁCH NHÓM ĐỘNG (Dynamic Auto-discovery: YD-A2, YD-AB, AA, BB, CC, YD-SD, v.v...)
+  // 5. TỰ ĐỘNG BÓC TÁCH NHÓM ĐỘNG (Dynamic Auto-discovery: YD-A2, YD-AB, AA, BB, CC, YD-SD, v.v...)
   return trichXuatTienToSKU(cleanSku);
 }
 
@@ -1295,7 +1306,7 @@ export function xuLyPhanTachTheoSKU(
 
 export const YOGA_MAT_SKU_LIST: string[] = [
   'YD-B8-1L', 'YD-B8-2L', 'YD-B8-4L', 'YD-B8-5L',
-  'YD-B9-1L', 'YD-B9-2L', 'YD-B9-4L', 'YD-B9-5L',
+  'YD-B9-1L', 'YD-B9-2L', 'YD-B9-3L', 'YD-B9-4L', 'YD-B9-5L',
   'YD-L28-1L', 'YD-L28-1LB', 'YD-L28-2L', 'YD-L28-2LB',
   'YD-L28-3L', 'YD-L28-3LB',
   'YD-L29-1L', 'YD-L29-1LB', 'YD-L29-2L', 'YD-L29-2LB',
@@ -1304,14 +1315,14 @@ export const YOGA_MAT_SKU_LIST: string[] = [
 export const YOGA_MAT_SKUS_SET = new Set(YOGA_MAT_SKU_LIST);
 
 /**
- * Kiểm tra xem 1 mã SKU có thuộc danh sách Thảm Yoga hay không
+ * Kiểm tra xem 1 mã SKU có thuộc danh sách Thảm Yoga hay không (Bao gồm cả nhóm YD-B8/B9 và YD-L28/L29)
  */
 export function isYogaMatSku(sku: string, skuGroups?: SkuGroupsMap): boolean {
   if (!sku) return false;
-  const clean = sku.trim();
+  const clean = sku.trim().toUpperCase();
   if (YOGA_MAT_SKUS_SET.has(clean)) return true;
   if (skuGroups && skuGroups['Thảm Yoga'] && skuGroups['Thảm Yoga'].includes(clean)) return true;
-  return false;
+  return clean.startsWith('YD-L28-') || clean.startsWith('YD-L29-') || clean.startsWith('YD-B8-') || clean.startsWith('YD-B9-');
 }
 
 /**
