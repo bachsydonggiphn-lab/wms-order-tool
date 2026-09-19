@@ -3,6 +3,33 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+// Polyfill an toàn cho Clipboard khi truy cập qua IP HTTP (không có HTTPS)
+if (typeof window !== 'undefined') {
+  if (!navigator.clipboard || !navigator.clipboard.writeText) {
+    (navigator as any).clipboard = {
+      writeText: async (text: string) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text || '';
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.warn('Fallback copy failed:', err);
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      },
+      readText: async () => '',
+    };
+  }
+}
+
 interface ErrorBoundaryProps {
   children: ReactNode;
 }

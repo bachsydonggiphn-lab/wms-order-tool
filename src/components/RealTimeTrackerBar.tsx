@@ -124,20 +124,19 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
 
-  // 1. Hàm tự động làm mới (Auto-Refresh): Xóa dữ liệu cũ & nạp lại dữ liệu mới nhất (hoặc cộng dồn)
-  const executeAutoRefresh = async () => {
+  // 1. Hàm tự động làm mới thông minh (Smart Polling): Quét siêu nhẹ kiểm tra đơn mới, triệt tiêu hoàn toàn giật lag
+  const executeAutoRefresh = async (forceFullReload: boolean = false) => {
     if (isPollingRef.current) return;
     isPollingRef.current = true;
     setIsPolling(true);
 
     const currentStatus = statusRef.current;
     const currentWarehouse = warehouseRef.current;
-    // Bật Replace Mode nếu người dùng chọn Xóa cũ & Kéo mới (áp dụng cho tất cả trạng thái)
     const isReplaceMode = autoReplaceRef.current;
 
     try {
-      if (isReplaceMode) {
-        // CHẾ ĐỘ XÓA DỮ LIỆU CŨ VÀ NẠP MỚI TOÀN BỘ (DỮ LIỆU THẬT 100%, KHÔNG CẮT XÉN 500 ĐƠN)
+      // Nếu người dùng bấm nút làm mới cưỡng bức (forceFullReload = true)
+      if (forceFullReload && isReplaceMode) {
         const res = await fetch('/api/wms/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,83 +144,112 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             warehouse: currentWarehouse,
             status: currentStatus,
             pageSize: 500,
-            maxPages: 0, // Kéo TOÀN BỘ tất cả các trang, không giới hạn 500 đơn hay cắt xén
+            maxPages: 0,
             username: 'David',
             password: '12345abc',
             skuGroups,
           }),
         });
-
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.orders)) {
-            const freshOrders: RawOrderRow[] = data.orders;
             setTotalInWms(data.totalOrders);
-            if (freshOrders.length > 0) {
-              setLatestOrderNo(freshOrders[0].orderNo);
-            }
-
-            const nowStr = new Date().toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            });
+            if (data.orders.length > 0) setLatestOrderNo(data.orders[0].orderNo);
+            const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             setLastCheckTime(nowStr);
-
-            const prevCount = ordersRef.current.length;
-            const newCount = freshOrders.length;
             const statusConfig = WMS_STATUS_CONFIG[currentStatus];
-
-            // Ghi đè: nạp dữ liệu thật 100% đầy đủ
             if (onReloadStatusOrders) {
-              onReloadStatusOrders(freshOrders, statusConfig.shortLabel);
+              onReloadStatusOrders(data.orders, statusConfig.shortLabel);
             } else {
-              onNewOrders(freshOrders);
-            }
-
-            if (newCount !== prevCount) {
-              if (soundEnabledRef.current) {
-                playOrderAlertSound();
-              }
-              setSessionNewCount(newCount);
+              onNewOrders(data.orders);
             }
           }
         }
-      } else {
-        // CHẾ ĐỘ CỘNG DỒN ĐƠN MỚI
-        const known = ordersRef.current
-          .map((o) => o.orderNo)
-          .filter(Boolean);
+        return;
+      }
 
-        const res = await fetch('/api/wms/poll-new', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            knownOrderNos: known,
-            warehouse: currentWarehouse,
-            status: currentStatus,
-            username: 'David',
-            password: '12345abc',
-            skuGroups,
-          }),
-        });
+      // QUY TRÌNH QUÉT THÔNG MINH (SMART DIFF POLLING - SIÊU NHẸ ~5KB):
+      const currentOrders = ordersRef.current;
+      const known = currentOrders.map((o) => o.orderNo).filter(Boolean);
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) {
-            setTotalInWms(data.totalOrders);
-            if (data.latestOrderNo) {
-              setLatestOrderNo(data.latestOrderNo);
-            }
+      const res = await fetch('/api/wms/poll-new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          knownOrderNos: known,
+          warehouse: currentWarehouse,
+          status: currentStatus,
+          username: 'David',
+          password: '12345abc',
+          skuGroups,
+        }),
+      });
 
-            const nowStr = new Date().toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setTotalInWms(data.totalOrders);
+          if (data.latestOrderNo) {
+            setLatestOrderNo(data.latestOrderNo);
+          }
+
+          const nowStr = new Date().toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+          setLastCheckTime(nowStr);
+
+          // Kiểm tra xem đơn hàng trên WMS có thực sự thay đổi hay không:
+          const topOrderNo = currentOrders[0]?.orderNo;
+          const isCountChanged = data.totalOrders !== currentOrders.length;
+          const isTopOrderChanged = Boolean(data.latestOrderNo && topOrderNo && data.latestOrderNo !== topOrderNo);
+          const hasNew = Boolean(data.hasNew && Array.isArray(data.newOrders) && data.newOrders.length > 0);
+
+          // NẾU KHÔNG CÓ ĐƠN MỚI NÀO & SỐ LƯỢNG KHÔNG ĐỔI -> KẾT THÚC NGAY, TUYỆT ĐỐI KHÔNG RE-RENDER GÂY LAG
+          if (!isCountChanged && !isTopOrderChanged && !hasNew) {
+            return;
+          }
+
+          // CÓ ĐƠN MỚI THẬT SỰ!
+          if (isReplaceMode) {
+            // Nạp lại dữ liệu đồng bộ chính xác khi phát hiện có biến động số lượng
+            const fullRes = await fetch('/api/wms/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                warehouse: currentWarehouse,
+                status: currentStatus,
+                pageSize: 500,
+                maxPages: 0,
+                username: 'David',
+                password: '12345abc',
+                skuGroups,
+              }),
             });
-            setLastCheckTime(nowStr);
 
-            if (data.hasNew && Array.isArray(data.newOrders) && data.newOrders.length > 0) {
+            if (fullRes.ok) {
+              const fullData = await fullRes.json();
+              if (fullData.success && Array.isArray(fullData.orders)) {
+                const freshOrders: RawOrderRow[] = fullData.orders;
+                const statusConfig = WMS_STATUS_CONFIG[currentStatus];
+                if (onReloadStatusOrders) {
+                  onReloadStatusOrders(freshOrders, statusConfig.shortLabel);
+                } else {
+                  onNewOrders(freshOrders);
+                }
+
+                if (soundEnabledRef.current) {
+                  playOrderAlertSound();
+                }
+
+                const diff = Math.abs(freshOrders.length - currentOrders.length);
+                setSessionNewCount((prev) => prev + (diff || 1));
+              }
+            }
+          } else {
+            // Chế độ cộng dồn:
+            if (hasNew) {
               const freshOrders: RawOrderRow[] = data.newOrders.map((o: RawOrderRow) => ({
                 ...o,
                 isRealTimeNew: true,
@@ -248,7 +276,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
         }
       }
     } catch (err) {
-      console.warn('Real-Time auto-refresh error:', err);
+      console.warn('Real-Time smart-polling error:', err);
     } finally {
       isPollingRef.current = false;
       setIsPolling(false);
@@ -544,7 +572,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
 
             {/* Nút Làm Mới & Xóa Cũ Ngay Lập Tức */}
             <button
-              onClick={executeAutoRefresh}
+              onClick={() => executeAutoRefresh(true)}
               disabled={isPolling || isSwitchingStatus}
               title="Làm mới & xóa dữ liệu cũ kéo đơn mới nhất ngay lập tức"
               className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg transition-colors cursor-pointer disabled:opacity-50"

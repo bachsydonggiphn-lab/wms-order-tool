@@ -117,12 +117,22 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Lưu orders vào LocalStorage
+  // Lưu orders vào LocalStorage không chặn main-thread (Debounce 1.2s)
+  const saveOrdersTimerRef = useRef<any>(null);
+  const saveOrdersToStorage = (data: RawOrderRow[]) => {
+    if (saveOrdersTimerRef.current) clearTimeout(saveOrdersTimerRef.current);
+    saveOrdersTimerRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY_ORDERS, JSON.stringify(data));
+      } catch (e) {
+        console.warn('LocalStorage save error (bộ nhớ đầy hoặc quota):', e);
+      }
+    }, 1200);
+  };
+
   const handleDataLoaded = (newOrders: RawOrderRow[]) => {
     setOrders(newOrders);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY_ORDERS, JSON.stringify(newOrders));
-    } catch (e) {}
+    saveOrdersToStorage(newOrders);
     try {
       confetti({
         particleCount: 40,
@@ -140,9 +150,7 @@ export default function App() {
       if (trulyNew.length === 0) return current;
 
       const merged = [...trulyNew, ...current];
-      try {
-        localStorage.setItem(LOCAL_STORAGE_KEY_ORDERS, JSON.stringify(merged));
-      } catch (e) {}
+      saveOrdersToStorage(merged);
       return merged;
     });
   };
@@ -150,9 +158,7 @@ export default function App() {
   // Thay thế toàn bộ đơn khi người dùng chọn "Chỉ cào trạng thái này" (VD: Shelved E11=5)
   const handleReloadStatusOrders = (freshOrders: RawOrderRow[]) => {
     setOrders(freshOrders);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY_ORDERS, JSON.stringify(freshOrders));
-    } catch (e) {}
+    saveOrdersToStorage(freshOrders);
   };
 
   const handleLoadSampleData = () => {
