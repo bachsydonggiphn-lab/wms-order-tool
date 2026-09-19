@@ -288,6 +288,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     setStatus(targetStatus);
     statusRef.current = targetStatus;
     setIsSwitchingStatus(true);
+    isPollingRef.current = true;
     setSessionNewCount(0);
     setLastDetectedOrders([]);
 
@@ -299,7 +300,6 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           warehouse: warehouseRef.current,
           status: targetStatus,
           pageSize: 500,
-          // Kéo TOÀN BỘ dữ liệu thật tất cả các trang, không giới hạn 500 hay cắt xén
           maxPages: 0,
           username: 'David',
           password: '12345abc',
@@ -335,13 +335,15 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
       console.error('Error switching status:', err);
     } finally {
       setIsSwitchingStatus(false);
+      isPollingRef.current = false;
+      setIsPolling(false);
       // Tự động bật Live Tracker và reset đếm ngược để tiếp tục làm mới liên tục
       setIsLive(true);
       setCountdown(intervalSec);
     }
   };
 
-  // 3. Vòng lặp đếm ngược và quét liên tục theo thời gian thực (Mỗi 10s)
+  // 3. Vòng lặp đếm ngược và quét liên tục theo thời gian thực
   useEffect(() => {
     if (!isLive) {
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
@@ -353,6 +355,11 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
 
     // Vòng lặp chạy mỗi 1 giây
     countdownIntervalRef.current = setInterval(() => {
+      // Nếu đang trong quá trình tải hoặc kiểm tra dữ liệu từ WMS, tạm dừng đếm ngược để tránh nghẽn luồng
+      if (isPollingRef.current) {
+        return;
+      }
+
       setCountdown((prev) => {
         if (prev <= 1) {
           executeAutoRefresh();

@@ -31,6 +31,7 @@ import { Package, FileSpreadsheet, PlusCircle, Sparkles, CloudDownload } from 'l
 
 const LOCAL_STORAGE_KEY_SKU = 'warehouse_sku_groups_v1';
 const LOCAL_STORAGE_KEY_ORDERS = 'warehouse_orders_v1';
+let globalSaveOrdersTimer: any = null;
 
 export default function App() {
   // 1. Quản lý danh mục SKU & Nhóm
@@ -118,10 +119,9 @@ export default function App() {
   };
 
   // Lưu orders vào LocalStorage không chặn main-thread (Debounce 1.2s)
-  const saveOrdersTimerRef = useRef<any>(null);
   const saveOrdersToStorage = (data: RawOrderRow[]) => {
-    if (saveOrdersTimerRef.current) clearTimeout(saveOrdersTimerRef.current);
-    saveOrdersTimerRef.current = setTimeout(() => {
+    if (globalSaveOrdersTimer) clearTimeout(globalSaveOrdersTimer);
+    globalSaveOrdersTimer = setTimeout(() => {
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY_ORDERS, JSON.stringify(data));
       } catch (e) {

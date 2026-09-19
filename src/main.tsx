@@ -4,29 +4,51 @@ import App from './App.tsx';
 import './index.css';
 
 // Polyfill an toàn cho Clipboard khi truy cập qua IP HTTP (không có HTTPS)
-if (typeof window !== 'undefined') {
-  if (!navigator.clipboard || !navigator.clipboard.writeText) {
-    (navigator as any).clipboard = {
-      writeText: async (text: string) => {
-        const textArea = document.createElement('textarea');
-        textArea.value = text || '';
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-          document.execCommand('copy');
-        } catch (err) {
-          console.warn('Fallback copy failed:', err);
-        } finally {
-          document.body.removeChild(textArea);
-        }
-      },
-      readText: async () => '',
-    };
+if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
+  const safeWriteText = async (text: string) => {
+    try {
+      if (window.isSecureContext && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+    } catch (e) {}
+
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text || '';
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      textArea.style.opacity = '0';
+      textArea.setAttribute('readonly', '');
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    } catch (err) {
+      console.warn('Fallback copy error:', err);
+    }
+  };
+
+  const safeClipboard = {
+    writeText: safeWriteText,
+    readText: async () => '',
+  };
+
+  try {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: safeClipboard,
+      configurable: true,
+      writable: true,
+    });
+  } catch (e) {
+    try {
+      Object.defineProperty(Navigator.prototype, 'clipboard', {
+        get: () => safeClipboard,
+        configurable: true,
+      });
+    } catch (e2) {}
   }
 }
 
