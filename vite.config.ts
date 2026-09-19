@@ -9,7 +9,16 @@ function wmsApiPlugin(): Plugin {
     name: 'vite-plugin-wms-api',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url && req.url.startsWith('/api/wms')) {
+        if (req.url && (req.url.startsWith('/api/wms') || req.url.startsWith('/api/track'))) {
+          handleWmsApi(req, res, next);
+        } else {
+          next();
+        }
+      });
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url && (req.url.startsWith('/api/wms') || req.url.startsWith('/api/track'))) {
           handleWmsApi(req, res, next);
         } else {
           next();
