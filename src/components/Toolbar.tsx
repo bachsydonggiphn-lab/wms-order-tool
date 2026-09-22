@@ -492,22 +492,23 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-xs mb-6 overflow-hidden">
       {/* Top Filter and Actions Row */}
-      <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Picking List Selector (Tương đương ô V1 trong Google Sheet) */}
+      <div className="p-3 sm:p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col gap-2.5">
+        {/* Picking List Selector */}
         <div className="flex items-center flex-wrap gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-white px-2.5 py-1.5 rounded-xl border border-gray-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-white px-2 sm:px-2.5 py-1.5 rounded-xl border border-gray-200 shadow-2xs shrink-0">
             <Filter className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Picking List (Ô V1):</span>
+            <span className="hidden sm:inline">Picking List (Ô V1):</span>
+            <span className="sm:hidden">List:</span>
           </div>
 
           <select
             value={selectedPickingList}
             onChange={(e) => setSelectedPickingList(e.target.value)}
-            className="text-xs font-medium bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer min-w-[240px]"
+            className="flex-1 min-w-[160px] text-xs font-medium bg-white border border-gray-200 rounded-xl px-2 sm:px-3 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer"
           >
             <option value="">
               {selectedCarrier !== 'ALL'
-                ? `-- Tất cả Picking Lists (${currentCarrierTotalOrders} đơn ${activeCarriersSummary}) --`
+                ? `-- Tất cả Lists (${currentCarrierTotalOrders} đơn ${activeCarriersSummary}) --`
                 : `-- Tất cả Picking Lists (${orders.length} đơn) --`}
             </option>
             {sortedPickingLists.map((pl) => {
@@ -527,70 +528,70 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           {selectedPickingList && (
             <button
               onClick={() => setSelectedPickingList('')}
-              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline px-1 cursor-pointer"
+              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline px-1 cursor-pointer shrink-0"
             >
-              Xem tất cả lists
+              Tất cả
             </button>
           )}
 
-          {/* Badge thông tin List & ĐVVC trực quan ngay tại ô chọn */}
           {selectedPickingList && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-bold shadow-2xs">
-              <span>📦 List {selectedPickingList}:</span>
+              <span>📦 {selectedPickingList}:</span>
               <span className="text-indigo-600">
                 {selectedCarrier !== 'ALL'
-                  ? `${currentFilteredCount} đơn ${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier} / ${totalInCurrentList} đơn list`
+                  ? `${currentFilteredCount} đơn / ${totalInCurrentList} tổng`
                   : `${totalInCurrentList} đơn`}
               </span>
             </span>
           )}
         </div>
 
-        {/* Search & Export Buttons */}
-        <div className="flex items-center flex-wrap gap-2">
-          {/* Quick Search */}
-          <div className="relative">
+        {/* Search & Export Buttons - full width search on mobile */}
+        <div className="flex items-center gap-2">
+          {/* Quick Search - flex-1 trên mobile */}
+          <div className="relative flex-1 sm:flex-none">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm mã đơn, SKU, Tracking..."
-              className="text-xs pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 sm:w-56 shadow-2xs"
+              placeholder="Tìm mã đơn, SKU..."
+              className="text-xs pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48 md:w-56 shadow-2xs"
             />
           </div>
 
-          {/* Export Excel Button */}
+          {/* Export Excel Button - icon only trên mobile nhỏ */}
           <button
             onClick={onExportExcel}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer"
-            title="Xuất file Excel đầy đủ các sheet và màu sắc chuẩn Google Sheets"
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
+            title="Xuất file Excel"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Xuất Excel (.xlsx)</span>
+            <span className="hidden sm:inline">Xuất Excel (.xlsx)</span>
           </button>
 
-          {/* Print Checklist Button */}
+          {/* Print Button */}
           <button
             onClick={onPrintPreview}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer"
-            title="In phiếu gom hàng cho kho (Hỗ trợ khổ tem nhiệt 100×150 mm & A4)"
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer shrink-0"
+            title="In phiếu gom hàng"
           >
             <Printer className="w-3.5 h-3.5 text-indigo-600" />
-            <span>In Phiếu</span>
-            <span className="text-[10px] px-1.5 py-0.2 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-200">
+            <span className="hidden sm:inline">In Phiếu</span>
+            <span className="hidden lg:inline text-[10px] px-1.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-200">
               100×150
             </span>
           </button>
         </div>
       </div>
 
-      {/* Row 2: Chọn Đơn Vị Vận Chuyển Để Đóng Gói (J&T: 862, Shopee: SPX, GHN: GY, Khác / Tất cả) */}
-      <div className="px-4 py-3 bg-indigo-50/40 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex items-center flex-wrap gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-white px-2.5 py-1.5 rounded-xl border border-indigo-200 shadow-2xs">
-            <Truck className="w-4 h-4 text-indigo-600" />
-            <span>Đóng Gói Theo ĐVVC:</span>
+      {/* Row 2: Chọn Đơn Vị Vận Chuyển */}
+      <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-indigo-50/40 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-2 sm:gap-3">
+        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-white px-2 sm:px-2.5 py-1.5 rounded-xl border border-indigo-200 shadow-2xs shrink-0">
+            <Truck className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="hidden sm:inline">Đóng Gói Theo ĐVVC:</span>
+            <span className="sm:hidden">ĐVVC:</span>
           </div>
 
           {/* Nút mở Modal Sao Chép Đơn Theo Hãng */}
@@ -941,8 +942,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       )}
 
-      {/* Main Tabs Navigation */}
-      <div className="flex items-center overflow-x-auto scrollbar-none p-2 gap-1 bg-white">
+      {/* Main Tabs Navigation - scroll ngang mượt trên mobile */}
+      <div className="flex items-center overflow-x-auto scrollbar-none p-1.5 sm:p-2 gap-0.5 sm:gap-1 bg-white border-t border-gray-100">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -951,17 +952,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                 isActive
                   ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
               <span>{tab.label}</span>
               {tab.badge && (
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
+                  className={`text-[10px] px-1.5 rounded-full font-medium hidden sm:inline ${
                     isActive
                       ? 'bg-white/20 text-white'
                       : 'bg-gray-100 text-gray-500'

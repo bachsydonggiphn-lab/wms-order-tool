@@ -14,7 +14,8 @@ import {
   Eye,
   HelpCircle,
   Table,
-  LayoutGrid
+  LayoutGrid,
+  Download
 } from 'lucide-react';
 import { InventoryQueryResult, InventoryGroupSummary } from '../types';
 import {
@@ -23,6 +24,7 @@ import {
   openInventoryPrintWindow
 } from '../utils/inventoryPrint';
 import { DEFAULT_AREA_ORDER } from '../utils/skuData';
+import { exportInventoryCustomExcel } from '../services/inventoryService';
 
 interface InventoryPrintModalProps {
   isOpen: boolean;
@@ -187,6 +189,22 @@ export const InventoryPrintModal: React.FC<InventoryPrintModalProps> = ({
     openInventoryPrintWindow(data, options);
   };
 
+  const handleExportExcel = () => {
+    const options: InventoryPrintOptions = {
+      scope,
+      layoutMode,
+      selectedGroupName: selectedGroup,
+      selectedGroupNames: Array.from(selectedGroupSet),
+      includePhysicalCheckColumn: includePhysicalCheck,
+      includeTransitColumns: includeTransit,
+      matrixIncludeQty,
+      orientation: matrixOrientation,
+      fontSize,
+      sortBy
+    };
+    exportInventoryCustomExcel(data, options);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-6xl max-h-[94vh] rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
@@ -212,6 +230,14 @@ export const InventoryPrintModal: React.FC<InventoryPrintModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportExcel}
+              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
+              title="Xuất file Excel (.xlsx) theo đúng tùy chọn và nhóm đã chọn"
+            >
+              <Download className="w-4 h-4" />
+              <span>Xuất Excel (.xlsx)</span>
+            </button>
             <button
               onClick={handlePrint}
               className="px-4.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all cursor-pointer active:scale-95"
@@ -730,7 +756,15 @@ export const InventoryPrintModal: React.FC<InventoryPrintModalProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                onClick={handleExportExcel}
+                className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all cursor-pointer active:scale-95"
+                title="Tải bảng tính Excel (.xlsx) theo đúng cấu hình và nhóm đã chọn"
+              >
+                <Download className="w-4 h-4" />
+                <span>Xuất File Excel (.xlsx)</span>
+              </button>
               <button
                 onClick={handlePrint}
                 className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all cursor-pointer active:scale-95"
@@ -755,6 +789,14 @@ export const InventoryPrintModal: React.FC<InventoryPrintModalProps> = ({
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
             >
               Đóng
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="px-4.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+              title="Xuất bảng tính Excel (.xlsx)"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Xuất Excel (.xlsx)</span>
             </button>
             <button
               onClick={handlePrint}
