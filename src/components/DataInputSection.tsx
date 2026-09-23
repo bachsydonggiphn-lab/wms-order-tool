@@ -11,7 +11,11 @@ import {
   Plus,
   Trash2,
   X,
-  RotateCcw
+  RotateCcw,
+  Settings,
+  Sliders,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { RawOrderRow, SkuGroupsMap } from '../types';
@@ -54,6 +58,7 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
   const [wmsLoading, setWmsLoading] = useState<boolean>(false);
   const [wmsProgressText, setWmsProgressText] = useState<string>('');
   const [wmsProgressPercent, setWmsProgressPercent] = useState<number>(0);
+  const [showWmsSettings, setShowWmsSettings] = useState<boolean>(false);
   
   // 3 Columns mode
   const [colCText, setColCText] = useState<string>(''); // Order No / Tracking No (Cột C)
@@ -490,7 +495,7 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
           {inputMode === 'wms_direct' && (
             <div className="space-y-4">
               <div className="p-4 bg-gradient-to-br from-indigo-50/80 to-blue-50/60 border border-indigo-200/90 rounded-2xl">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3.5">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
@@ -500,67 +505,102 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
                       Gọi API nội bộ <code className="px-1.5 py-0.5 bg-white rounded-md text-indigo-700 font-mono text-[11px] border border-indigo-100">POST /order/orders/list/page/1/pageSize/500</code> để lấy đơn tự động thay vì copy paste thủ công.
                     </p>
                   </div>
-                  {onOpenWmsModal && (
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    {/* Nút Cài đặt ẩn / hiện thông số */}
                     <button
-                      onClick={onOpenWmsModal}
-                      className="px-3 py-1.5 bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-xl shadow-2xs transition-all flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
+                      type="button"
+                      onClick={() => setShowWmsSettings(!showWmsSettings)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                        showWmsSettings
+                          ? 'bg-indigo-600 text-white shadow-indigo-500/20'
+                          : 'bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-200'
+                      }`}
+                      title="Ẩn / hiện cấu hình kho hàng, trạng thái đơn và tốc độ kéo"
                     >
-                      <span>Cấu hình nâng cao & Live Tracker ⚙️</span>
+                      <Settings className={`w-3.5 h-3.5 ${showWmsSettings ? 'rotate-90 transition-transform' : ''}`} />
+                      <span>Cài đặt thông số</span>
+                      {showWmsSettings ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     </button>
-                  )}
-                </div>
 
-                {/* Bộ lọc Kho & Trạng thái đơn */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Kho Hàng (E4):
-                    </label>
-                    <select
-                      value={wmsWarehouse}
-                      onChange={(e) => setWmsWarehouse(e.target.value)}
-                      disabled={wmsLoading}
-                      className="w-full text-xs font-semibold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 shadow-2xs"
-                    >
-                      <option value="7">VN02 [越南胡志明仓库 - Hồ Chí Minh] (Mặc định)</option>
-                      <option value="4">VN01 [VN01越南海外仓 - Hải Ngoại]</option>
-                      <option value="">Tất cả kho (All)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Trạng Thái Đơn (E11):
-                    </label>
-                    <select
-                      value={wmsStatus}
-                      onChange={(e) => setWmsStatus(e.target.value)}
-                      disabled={wmsLoading}
-                      className="w-full text-xs font-semibold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 shadow-2xs"
-                    >
-                      <option value="5">⭐ Shelved (E11 = 5) [Đã lên kệ / Đang nhặt hàng]</option>
-                      <option value="4">Submitted. (E11 = 4) [Chờ xử lý / Đã tạo]</option>
-                      <option value="8">Shipped (E11 = 8) [Đã xuất kho]</option>
-                      <option value="">Tất cả trạng thái</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Tốc Độ Kéo Đơn:
-                    </label>
-                    <select
-                      value={wmsPageSize}
-                      onChange={(e) => setWmsPageSize(Number(e.target.value))}
-                      disabled={wmsLoading}
-                      className="w-full text-xs font-semibold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 shadow-2xs"
-                    >
-                      <option value={300}>300 đơn / lần gọi (Nhanh)</option>
-                      <option value={500}>500 đơn / lần gọi (Tối ưu nhất)</option>
-                      <option value={1000}>1000 đơn / lần gọi (Cực đại)</option>
-                    </select>
+                    {onOpenWmsModal && (
+                      <button
+                        type="button"
+                        onClick={onOpenWmsModal}
+                        className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Mở bảng cấu hình nâng cao & Live Tracker"
+                      >
+                        <span>Live Tracker ⚙️</span>
+                      </button>
+                    )}
                   </div>
                 </div>
+
+                {/* Khung Cài Đặt (Ẩn mặc định, hiển thị khi bấm nút Cài đặt) */}
+                {showWmsSettings && (
+                  <div className="p-3.5 bg-white/95 border border-indigo-200/90 rounded-xl mb-4 animate-in fade-in slide-in-from-top-2 duration-200 shadow-2xs">
+                    <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-indigo-100/80">
+                      <span className="text-xs font-extrabold text-indigo-950 flex items-center gap-1.5">
+                        <Sliders className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Tùy chỉnh thông số API YunWMS</span>
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        Đang chọn: <b>{wmsWarehouse === '7' ? 'VN02 HCM' : wmsWarehouse === '4' ? 'VN01 Hải Ngoại' : 'Tất cả'}</b> • <b>{wmsStatus === '4' ? 'Submitted' : wmsStatus === '5' ? 'Shelved' : wmsStatus === '8' ? 'Shipped' : 'Tất cả'}</b>
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Kho Hàng (E4):
+                        </label>
+                        <select
+                          value={wmsWarehouse}
+                          onChange={(e) => setWmsWarehouse(e.target.value)}
+                          disabled={wmsLoading}
+                          className="w-full text-xs font-semibold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                        >
+                          <option value="7">VN02 [越南胡志明仓库 - Hồ Chí Minh] (Mặc định)</option>
+                          <option value="4">VN01 [VN01越南海外仓 - Hải Ngoại]</option>
+                          <option value="">Tất cả kho (All)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Trạng Thái Đơn (E11):
+                        </label>
+                        <select
+                          value={wmsStatus}
+                          onChange={(e) => setWmsStatus(e.target.value)}
+                          disabled={wmsLoading}
+                          className="w-full text-xs font-semibold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                        >
+                          <option value="5">⭐ Shelved (E11 = 5) [Đã lên kệ / Đang nhặt hàng]</option>
+                          <option value="4">Submitted. (E11 = 4) [Chờ xử lý / Đã tạo]</option>
+                          <option value="8">Shipped (E11 = 8) [Đã xuất kho]</option>
+                          <option value="">Tất cả trạng thái</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Tốc Độ Kéo Đơn:
+                        </label>
+                        <select
+                          value={wmsPageSize}
+                          onChange={(e) => setWmsPageSize(Number(e.target.value))}
+                          disabled={wmsLoading}
+                          className="w-full text-xs font-semibold bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                        >
+                          <option value={300}>300 đơn / lần gọi (Nhanh)</option>
+                          <option value={500}>500 đơn / lần gọi (Tối ưu nhất)</option>
+                          <option value={1000}>1000 đơn / lần gọi (Cực đại)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Progress bar */}
                 {wmsLoading && (
@@ -582,12 +622,12 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
                 )}
 
                 {/* Nút Kéo Đơn To */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                   <button
                     type="button"
                     onClick={handleWmsDirectFetch}
                     disabled={wmsLoading}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
                   >
                     {wmsLoading ? (
                       <>
@@ -597,10 +637,25 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
                     ) : (
                       <>
                         <span className="text-amber-300 text-sm">⚡</span>
-                        <span>KÉO TOÀN BỘ ĐƠN {wmsStatus === '4' ? 'SUBMITTED' : 'WMS'} NGAY (TỰ ĐỘNG)</span>
+                        <span>KÉO TOÀN BỘ ĐƠN {wmsStatus === '4' ? 'SUBMITTED' : wmsStatus === '5' ? 'SHELVED' : 'WMS'} NGAY (TỰ ĐỘNG)</span>
                       </>
                     )}
                   </button>
+
+                  {!showWmsSettings && (
+                    <button
+                      type="button"
+                      onClick={() => setShowWmsSettings(true)}
+                      className="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                      title="Bấm để mở cài đặt chọn kho và trạng thái"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Cài đặt kho & trạng thái</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 font-mono">
+                        {wmsWarehouse === '7' ? 'VN02' : 'VN01'} &bull; {wmsStatus === '4' ? 'Submitted' : 'Status:' + wmsStatus}
+                      </span>
+                    </button>
+                  )}
 
                   <span className="text-xs text-slate-500">
                     Tài khoản liên kết: <b className="text-slate-700 font-mono">David</b> • Xác thực mã hóa Base64 tự động
