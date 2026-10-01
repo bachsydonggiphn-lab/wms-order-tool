@@ -20,6 +20,7 @@ import {
   Warehouse,
   SlidersHorizontal,
   X,
+  Flame,
 } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
 import { CARRIER_CONFIG } from '../utils/orderProcessor';
@@ -27,6 +28,7 @@ import { CopyCarrierOrdersModal } from './CopyCarrierOrdersModal';
 
 export type ActiveTabType =
   | 'sku_pcs'
+  | 'hot_sku_slotting'
   | 'inventory_query'
   | 'shipped_tracking'
   | 'picking_detail'
@@ -110,6 +112,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       label: 'Tổng hợp SKU & Gộp PCS',
       icon: Layers,
       badge: 'Cột S:T & PCS',
+    },
+    {
+      id: 'hot_sku_slotting' as ActiveTabType,
+      label: 'Hàng Bán Chạy & Bố Trí Kho',
+      icon: Flame,
+      badge: 'ABC & Layout 2D',
     },
     {
       id: 'inventory_query' as ActiveTabType,

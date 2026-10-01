@@ -260,3 +260,10 @@ export function getJNTMultiTrackingUrl(codes: string[], phone: string = '8836'):
   const cleanPhone = phone ? phone.replace(/\D/g, '').slice(-4) : '8836';
   return `https://jtexpress.vn/vi/tracking?type=track&billcode=${encodeURIComponent(cleanCodes.join(','))}&cellphone=${encodeURIComponent(cleanPhone)}`;
 }
+
+export function matchesTrackingPrefixFilter(code: string, prefixes: string[]): boolean {
+  if (!prefixes || prefixes.length === 0) return true;
+  const upper = (code || '').trim().toUpperCase();
+  return prefixes.some(p => upper.startsWith(p.trim().toUpperCase()));
+}
+

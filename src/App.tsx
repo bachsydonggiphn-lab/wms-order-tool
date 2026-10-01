@@ -23,6 +23,7 @@ import { ShippedTrackingView } from './components/views/ShippedTrackingView';
 import { InventoryQueryView } from './components/views/InventoryQueryView';
 import { SkuSettingsView } from './components/views/SkuSettingsView';
 import { AppsScriptCodeView } from './components/views/AppsScriptCodeView';
+import { HotSkuSlottingView } from './components/views/HotSkuSlottingView';
 import { PrintPickingModal } from './components/PrintPickingModal';
 import { ClearDataModal } from './components/ClearDataModal';
 import { WmsSyncModal } from './components/WmsSyncModal';
@@ -348,9 +349,21 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'hot_sku_slotting' && (
+            <HotSkuSlottingView
+              skuGroups={skuGroups}
+              onNavigateToInventory={() => {
+                setActiveTab('inventory_query');
+              }}
+            />
+          )}
+
           {activeTab === 'inventory_query' && (
             <InventoryQueryView
               skuGroups={skuGroups}
+              onNavigateToSlotting={() => {
+                setActiveTab('hot_sku_slotting');
+              }}
             />
           )}
 

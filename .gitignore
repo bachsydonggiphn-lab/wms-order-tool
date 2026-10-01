@@ -7,3 +7,6 @@ coverage/
 .env*
 !.env.example
 tra-cứu-vận-đơn-hàng-loạt/
+data/*.sqlite*
+*.sqlite*
+shipped_analysis_result.json

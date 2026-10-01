@@ -22,7 +22,8 @@ import {
   VolumeX,
   Zap,
   Activity,
-  Printer
+  Printer,
+  Flame
 } from 'lucide-react';
 import { InventoryQueryResult, InventoryGroupSummary, WmsInventoryItem, SkuGroupsMap } from '../../types';
 import { loadWmsInventory, getCachedInventory, exportInventoryToExcel } from '../../services/inventoryService';
@@ -42,6 +43,7 @@ function compareGroups(a: string, b: string): number {
 
 interface InventoryQueryViewProps {
   skuGroups: SkuGroupsMap;
+  onNavigateToSlotting?: () => void;
 }
 
 type StockFilterType = 'ALL' | 'IN_STOCK' | 'OUT_OF_STOCK' | 'ON_WAY' | 'PENDING_OUTBOUND' | 'DEFECTIVE';
@@ -56,7 +58,10 @@ interface SkuDiffInfo {
   diffOutbound: number;
 }
 
-export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroups }) => {
+export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
+  skuGroups,
+  onNavigateToSlotting
+}) => {
   const [data, setData] = useState<InventoryQueryResult | null>(() => getCachedInventory());
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -424,6 +429,16 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({ skuGroup
               <RefreshCw className={`w-3.5 h-3.5 ${loading || isPolling ? 'animate-spin' : ''}`} />
               <span>{loading || isPolling ? 'Đang cập nhật...' : 'Làm mới WMS'}</span>
             </button>
+
+            {onNavigateToSlotting && (
+              <button
+                onClick={onNavigateToSlotting}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                <Flame className="w-3.5 h-3.5" />
+                <span>Phân Tích Bán Chạy & Kệ Kho</span>
+              </button>
+            )}
 
             <button
               onClick={handleExportExcel}

@@ -16,6 +16,9 @@ export interface WmsFetchOptions {
   pageSize?: number;  // 300 - 1000
   maxPages?: number;  // 0 = All pages
   skuGroups?: SkuGroupsMap;
+  dateFor?: string;
+  dateTo?: string;
+  searchDateType?: string;
 }
 
 export interface WmsRawOrderItem {
@@ -235,7 +238,10 @@ export async function fetchWmsOrders(
     status = '4',    // Submitted mặc định
     pageSize = 500,  // Kéo 500 đơn mỗi lần
     maxPages = 0,    // 0 = kéo toàn bộ các trang
-    skuGroups = DEFAULT_SKU_GROUPS
+    skuGroups = DEFAULT_SKU_GROUPS,
+    dateFor = '',
+    dateTo = '',
+    searchDateType = 'createDate'
   } = options;
 
   let sessionCookie = await getWmsSessionCookie(username, password);
@@ -244,6 +250,11 @@ export async function fetchWmsOrders(
   const params: string[] = [];
   if (warehouse) params.push(`E4=${encodeURIComponent(warehouse)}`);
   if (status) params.push(`E11=${encodeURIComponent(status)}`);
+  if (dateFor) {
+    params.push(`searchDateType=${encodeURIComponent(searchDateType)}`);
+    params.push(`dateFor=${encodeURIComponent(dateFor.includes(':') ? dateFor : `${dateFor} 00:00`)}`);
+    params.push(`dateTo=${encodeURIComponent(dateTo ? (dateTo.includes(':') ? dateTo : `${dateTo} 23:59`) : `${dateFor} 23:59`)}`);
+  }
   const postData = params.join('&');
 
   // Gọi trang 1 trước để xác định tổng số đơn hàng
@@ -441,6 +452,8 @@ export interface WmsInventoryFetchOptions {
  * Kéo dữ liệu tồn kho từ YunWMS bằng API nội bộ POST /warehouse/inventory/list/page/{page}/pageSize/{pageSize}
  * và tự động tổng hợp phân loại theo Nhóm mã SKU
  */
+let cachedInventoryResult: { result: InventoryQueryResult; expiresAt: number; warehouse: string } | null = null;
+
 export async function fetchWmsInventory(
   options: WmsInventoryFetchOptions = {}
 ): Promise<InventoryQueryResult> {
@@ -453,6 +466,18 @@ export async function fetchWmsInventory(
     pageSize = 500,
     skuGroups = DEFAULT_SKU_GROUPS
   } = options;
+
+  // Trả về cache bộ nhớ 3 phút nếu không có bộ lọc tìm kiếm cụ thể
+  const now = Date.now();
+  if (
+    !customerCode &&
+    !productBarcode &&
+    cachedInventoryResult &&
+    cachedInventoryResult.warehouse === warehouse &&
+    now < cachedInventoryResult.expiresAt
+  ) {
+    return cachedInventoryResult.result;
+  }
 
   let sessionCookie = await getWmsSessionCookie(username, password);
 
@@ -598,7 +623,7 @@ export async function fetchWmsInventory(
     return a.group.localeCompare(b.group, undefined, { numeric: true, sensitivity: 'base' });
   });
 
-  return {
+  const result: InventoryQueryResult = {
     success: true,
     totalSkus: items.length,
     totalInUsed,
@@ -612,5 +637,15 @@ export async function fetchWmsInventory(
     fetchedAt: new Date().toLocaleString('vi-VN'),
     warehouse: warehouse === '7' ? 'VN02 [Đồng Nai]' : (warehouse === '4' ? 'VN01 [Hải Ngoại]' : `Kho ${warehouse}`)
   };
+
+  if (!customerCode && !productBarcode) {
+    cachedInventoryResult = {
+      result,
+      expiresAt: Date.now() + 3 * 60 * 1000,
+      warehouse
+    };
+  }
+
+  return result;
 }
 
