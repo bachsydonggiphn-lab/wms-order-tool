@@ -482,90 +482,105 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
     });
   }, [groupSlottingMetrics, selectedSlottingGroup, slottingGroupAbcFilter, slottingGroupSearch]);
 
-  const handleExportGroupSlottingExcel = () => {
+  const handleExportGroupSlottingExcel = (onlyCurrentGroup = false) => {
     if (!groupSlottingMetrics || groupSlottingMetrics.length === 0) {
       alert('Không có dữ liệu bố trí theo nhóm để xuất');
       return;
     }
 
+    const groupsToExport = onlyCurrentGroup && selectedSlottingGroup !== 'ALL'
+      ? groupSlottingMetrics.filter(g => g.groupName === selectedSlottingGroup)
+      : groupSlottingMetrics;
+
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: Tổng Hợp Dãy Kệ Bố Trí Theo Nhóm
-    const summaryRows = groupSlottingMetrics.map((g, idx) => ({
-      'Thứ Tự Ưu Tiên': idx + 1,
+    // Sheet 1: Tổng Hợp Dãy Kệ Bố Trí Theo Nhóm (Xếp từ Bán Nhanh Nhất -> Bán Chậm Nhất)
+    const summaryRows = groupsToExport.map((g, idx) => ({
+      'Thứ Tự Ưu Tiên (Xếp Bán Nhanh -> Chậm)': idx + 1,
       'Nhóm Hàng Hóa': g.groupName,
-      'Dãy Kệ Đề Xuất': g.optimalAisleRecommendation.aisleCode,
-      'Vùng Ưu Tiên (Zone)': g.optimalAisleRecommendation.zoneTag,
-      'Khoảng Cách Tới Bàn Đóng Gói': g.optimalAisleRecommendation.distanceLabel,
-      'Khuyến Nghị Tầng Kệ': g.optimalAisleRecommendation.levelRecommendation,
+      'Dãy Kệ Quy Hoạch Đề Xuất': g.optimalAisleRecommendation.aisleCode,
+      'Phân Vùng Ưu Tiên (Zone)': g.optimalAisleRecommendation.zoneTag,
+      'Cự Ly Tới Bàn Đóng Gói': g.optimalAisleRecommendation.distanceLabel,
+      'Khuyến Nghị Phân Tầng Kệ': g.optimalAisleRecommendation.levelRecommendation,
       'Sản Lượng Bán (PCS)': g.totalSold,
-      'Tỉ Trọng Bán (%)': `${g.percentageOfWarehouseSold}%`,
+      'Tỉ Trọng Bán Toàn Kho (%)': `${g.percentageOfWarehouseSold}%`,
       'Tổng Số Mã SKU': g.skuCount,
-      'Số Mã Hạng A (Hot)': g.classACount,
-      'Số Mã Hạng B': g.classBCount,
-      'Số Mã Hạng C': g.classCCount,
-      'Tồn Kho Hiện Tại (PCS)': g.totalInUsed,
-      'Hàng Đang Về (On Way)': g.totalOnWay,
-      'Lý Do Bố Trí': g.optimalAisleRecommendation.reason
+      'Số Mã Hạng A (Hot - Nhặt Tức Thì)': g.classACount,
+      'Số Mã Hạng B (Bán Đều)': g.classBCount,
+      'Số Mã Hạng C (Bán Chậm)': g.classCCount,
+      'Tồn Kho Hiện Tại (In-Used)': g.totalInUsed,
+      'Hàng Đang Về (On-Way)': g.totalOnWay,
+      'Lý Do Quy Hoạch': g.optimalAisleRecommendation.reason
     }));
     const ws1 = XLSX.utils.json_to_sheet(summaryRows);
     ws1['!cols'] = [
-      { wch: 14 },
+      { wch: 22 },
       { wch: 18 },
       { wch: 35 },
       { wch: 18 },
       { wch: 25 },
-      { wch: 38 },
+      { wch: 42 },
       { wch: 18 },
-      { wch: 16 },
-      { wch: 16 },
-      { wch: 18 },
-      { wch: 16 },
+      { wch: 20 },
       { wch: 16 },
       { wch: 20 },
+      { wch: 18 },
+      { wch: 18 },
       { wch: 20 },
-      { wch: 50 }
+      { wch: 20 },
+      { wch: 55 }
     ];
-    XLSX.utils.book_append_sheet(wb, ws1, 'Bo_Tri_Day_Ke_Theo_Nhom');
+    XLSX.utils.book_append_sheet(wb, ws1, 'Tong_Hop_Nhanh_Den_Cham');
 
-    // Sheet 2: Chi Tiết Phân Bổ Từng SKU Trong Nhóm
+    // Sheet 2: Chi Tiết Phân Bổ Từng SKU Trong Nhóm (Xếp từ Bán Nhanh -> Bán Chậm)
     const skuRows: any[] = [];
-    groupSlottingMetrics.forEach(g => {
+    let skuCounter = 1;
+    groupsToExport.forEach((g, gIdx) => {
       g.items.forEach((it) => {
         skuRows.push({
+          'STT': skuCounter++,
+          'Thứ Hạng Nhóm (#1 Nhanh Nhất)': gIdx + 1,
           'Nhóm Hàng': g.groupName,
           'Dãy Kệ Nhóm': g.optimalAisleRecommendation.aisleCode,
+          'Phân Vùng Zone': g.optimalAisleRecommendation.zoneTag,
           'Hạng ABC': it.abcRank,
           'Mã SKU': it.sku,
           'Tên Sản Phẩm': it.productTitle || '-',
-          'Vị Trí Tầng Đề Xuất': it.abcRank === 'A' ? 'Tầng 1 - 2 (Ngang tầm ngực/thắt lưng - nhặt tức thì)' : it.abcRank === 'B' ? 'Tầng 3 (Tầm mắt - với chuẩn)' : 'Tầng 4 - 5 (Tầng cao nóc kệ / sát sàn)',
+          'Vị Trí Tầng Khuyến Nghị': it.abcRank === 'A' ? '⭐ Tầng 1 - 2 (Ngang tầm ngực/thắt lưng - nhặt tức thì)' : it.abcRank === 'B' ? 'Tầng 3 (Tầm mắt - với chuẩn)' : 'Tầng 4 - 5 (Tầng cao nóc kệ / sát sàn)',
           'Sản Lượng Bán (PCS)': it.totalSold,
-          'Số Đơn Hàng': it.orderCount,
+          'Số Đơn Hàng (Pick Hits)': it.orderCount,
           'Vận Tốc Bán (PCS/ngày)': it.velocityDaily,
           'Tồn Khả Dụng (In Used)': it.inUsed || 0,
           'Đang Về (On Way)': it.onWay || 0,
-          'Số Ngày Đủ Bán (DOS)': it.daysOfStock === 999 ? 'Dồi dào' : it.daysOfStock
+          'Số Ngày Đủ Bán (DOS)': it.daysOfStock === 999 ? 'Dồi dào' : (it.daysOfStock ?? '-'),
+          'Độ Phủ Hàng Về': it.daysOfSupplyIncoming !== null && it.daysOfSupplyIncoming !== undefined ? `${it.daysOfSupplyIncoming} ngày` : 'N/A'
         });
       });
     });
     const ws2 = XLSX.utils.json_to_sheet(skuRows);
     ws2['!cols'] = [
-      { wch: 16 },
-      { wch: 30 },
-      { wch: 12 },
-      { wch: 20 },
-      { wch: 35 },
-      { wch: 38 },
+      { wch: 8 },
       { wch: 18 },
+      { wch: 16 },
+      { wch: 32 },
       { wch: 14 },
+      { wch: 12 },
+      { wch: 22 },
+      { wch: 38 },
+      { wch: 45 },
+      { wch: 18 },
+      { wch: 18 },
       { wch: 20 },
       { wch: 20 },
+      { wch: 18 },
       { wch: 18 },
       { wch: 18 }
     ];
     XLSX.utils.book_append_sheet(wb, ws2, 'Chi_Tiet_SKU_Theo_Nhom');
 
-    const fileName = `Bo_Tri_Kho_Theo_Nhom_VN02_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const fileName = onlyCurrentGroup && selectedSlottingGroup !== 'ALL'
+      ? `Bao_Cao_Nhom_${selectedSlottingGroup}_Nhanh_Den_Cham_VN02_${new Date().toISOString().slice(0, 10)}.xlsx`
+      : `Bao_Cao_Nhom_Ban_Nhanh_Den_Cham_VN02_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
@@ -1852,23 +1867,24 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
                 </button>
               </div>
 
+              {/* Nút Xuất Excel Báo Cáo Nhóm (Xếp từ Bán Nhanh Đến Bán Chậm) */}
+              <button
+                onClick={() => handleExportGroupSlottingExcel(false)}
+                className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                title="Xuất file Excel báo cáo toàn bộ các nhóm hàng xếp thứ tự từ bán nhanh nhất đến bán chậm nhất"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Xuất Excel Nhóm (Nhanh &rarr; Chậm)</span>
+              </button>
+
               {/* Nút In Toàn Bộ Danh Sách Nhóm (Xếp từ Bán Nhanh Đến Bán Chậm) */}
               <button
                 onClick={() => handlePrintGroupSlottingReport(false)}
                 className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
-                title="In danh sách toàn bộ các nhóm hàng xếp thứ tự từ bán nhanh nhất đến bán chậm nhất"
+                title="In báo cáo toàn bộ các nhóm hàng xếp thứ tự từ bán nhanh nhất đến bán chậm nhất"
               >
                 <Printer className="w-3.5 h-3.5 text-amber-400" />
-                <span>In Báo Cáo Nhóm (Nhanh &rarr; Chậm)</span>
-              </button>
-
-              {/* Nút Xuất Excel Bố Trí Nhóm */}
-              <button
-                onClick={handleExportGroupSlottingExcel}
-                className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Xuất Excel Bố Trí Nhóm</span>
+                <span>In Báo Cáo (PDF / Giấy)</span>
               </button>
             </div>
           </div>
@@ -2325,6 +2341,16 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
                 <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-xl">
                   {displayedSlottingSkus.length} SKU
                 </span>
+
+                {/* Nút Xuất Excel nhanh theo bộ lọc */}
+                <button
+                  onClick={() => handleExportGroupSlottingExcel(selectedSlottingGroup !== 'ALL')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition-all shadow-sm"
+                  title="Xuất file Excel danh sách SKU nhóm này hoặc toàn bộ"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{selectedSlottingGroup !== 'ALL' ? `Xuất Excel ${selectedSlottingGroup}` : 'Xuất Excel'}</span>
+                </button>
 
                 {/* Nút In bảng danh sách SKU theo nhóm */}
                 <button
