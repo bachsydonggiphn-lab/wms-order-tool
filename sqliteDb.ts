@@ -771,7 +771,7 @@ export async function getShippedSyncMeta(): Promise<ShippedSyncMeta> {
       db.execute("SELECT key, value FROM wms_sync_meta"),
       db.execute("SELECT count(*) as cnt FROM wms_shipped_orders"),
       db.execute("SELECT count(*) as cnt FROM wms_shipped_order_items"),
-      db.execute("SELECT min(COALESCE(NULLIF(shipped_time, '0'), creation_time)) as min_date, max(COALESCE(NULLIF(shipped_time, '0'), creation_time)) as max_date FROM wms_shipped_orders WHERE (shipped_time IS NOT NULL AND shipped_time != '0') OR (creation_time IS NOT NULL AND creation_time != '')")
+      db.execute("SELECT min(CASE WHEN length(shipped_time) >= 8 THEN shipped_time ELSE creation_time END) as min_date, max(CASE WHEN length(shipped_time) >= 8 THEN shipped_time ELSE creation_time END) as max_date FROM wms_shipped_orders WHERE length(CASE WHEN length(shipped_time) >= 8 THEN shipped_time ELSE creation_time END) >= 8")
     ]);
 
     const metaMap: Record<string, string> = {};

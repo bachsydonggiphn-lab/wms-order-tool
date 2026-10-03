@@ -298,7 +298,7 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         }));
 
         let shippedTime = o.shippedTime || '';
-        if (!shippedTime || shippedTime === '0') {
+        if (!shippedTime || shippedTime.length < 8) {
           shippedTime = o.creationTime || '';
         }
 
