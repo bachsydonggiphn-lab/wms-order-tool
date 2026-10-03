@@ -569,6 +569,246 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
     XLSX.writeFile(wb, fileName);
   };
 
+  // In toàn bộ danh sách quy hoạch bố trí kho theo nhóm (Từ bán nhanh -> bán chậm)
+  const handlePrintGroupSlottingReport = (onlyCurrentGroup = false) => {
+    if (!groupSlottingMetrics || groupSlottingMetrics.length === 0) {
+      alert('Chưa có dữ liệu phân tích nhóm hàng để in');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Trình duyệt đang chặn cửa sổ pop-up. Vui lòng cho phép pop-up để mở bản in.');
+      return;
+    }
+
+    const groupsToPrint = onlyCurrentGroup && selectedSlottingGroup !== 'ALL'
+      ? groupSlottingMetrics.filter(g => g.groupName === selectedSlottingGroup)
+      : groupSlottingMetrics;
+
+    const totalSoldAll = analytics?.totalSoldVolume || 1;
+    const printDate = new Date().toLocaleString('vi-VN');
+
+    // Tạo HTML bảng tổng hợp thứ tự ưu tiên các dãy kệ (Từ bán nhanh đến bán chậm)
+    const summaryRowsHtml = groupsToPrint.map((g, idx) => {
+      const isZoneA = g.optimalAisleRecommendation.zoneTag === 'ZONE_A';
+      const isZoneB = g.optimalAisleRecommendation.zoneTag === 'ZONE_B';
+      const zoneBg = isZoneA ? '#fef3c7' : isZoneB ? '#e0f2fe' : '#f1f5f9';
+      const zoneColor = isZoneA ? '#92400e' : isZoneB ? '#075985' : '#475569';
+
+      return `
+        <tr style="border-bottom: 1px solid #e2e8f0; font-size: 11px;">
+          <td style="padding: 6px 8px; text-align: center; font-weight: bold;">${idx + 1}</td>
+          <td style="padding: 6px 8px; font-weight: bold; color: #0f172a;">${g.groupName}</td>
+          <td style="padding: 6px 8px;"><b>${g.optimalAisleRecommendation.aisleCode.split('(')[0].trim()}</b></td>
+          <td style="padding: 6px 8px; text-align: center;">
+            <span style="display:inline-block; padding: 2px 6px; border-radius: 4px; background: ${zoneBg}; color: ${zoneColor}; font-weight: bold; font-size: 10px;">
+              ${g.optimalAisleRecommendation.zoneTag}
+            </span>
+          </td>
+          <td style="padding: 6px 8px; text-align: center;">${g.optimalAisleRecommendation.distanceLabel}</td>
+          <td style="padding: 6px 8px; text-align: right; font-weight: bold;">${g.totalSold.toLocaleString()}</td>
+          <td style="padding: 6px 8px; text-align: right; font-weight: bold; color: #4338ca;">${g.percentageOfWarehouseSold}%</td>
+          <td style="padding: 6px 8px; text-align: center;"><b>${g.skuCount}</b> mã (A: ${g.classACount} | B: ${g.classBCount} | C: ${g.classCCount})</td>
+          <td style="padding: 6px 8px; font-size: 10px; color: #334155;">${g.optimalAisleRecommendation.levelRecommendation}</td>
+        </tr>
+      `;
+    }).join('');
+
+    // Tạo HTML chi tiết từng nhóm hàng xếp từ bán nhanh đến bán chậm
+    const groupDetailsHtml = groupsToPrint.map((g, idx) => {
+      const isZoneA = g.optimalAisleRecommendation.zoneTag === 'ZONE_A';
+      const isZoneB = g.optimalAisleRecommendation.zoneTag === 'ZONE_B';
+      const headerBg = isZoneA ? '#b45309' : isZoneB ? '#1d4ed8' : '#334155';
+
+      const skuRowsHtml = g.items.map((it, sIdx) => {
+        const isClassA = it.abcRank === 'A';
+        const isClassB = it.abcRank === 'B';
+        const rankBg = isClassA ? '#fee2e2' : isClassB ? '#dbeafe' : '#f1f5f9';
+        const rankColor = isClassA ? '#991b1b' : isClassB ? '#1e40af' : '#475569';
+        const tierText = isClassA
+          ? '⭐ Tầng 1 - 2 (Ngang tầm ngực/thắt lưng - nhặt tức thì)'
+          : isClassB
+          ? 'Tầng 3 (Tầm mắt - với chuẩn)'
+          : 'Tầng 4 - 5 (Tầng cao nóc kệ / sát sàn)';
+
+        return `
+          <tr style="border-bottom: 1px solid #f1f5f9; font-size: 11px;">
+            <td style="padding: 5px 6px; text-align: center; color: #64748b;">${sIdx + 1}</td>
+            <td style="padding: 5px 6px; font-family: monospace; font-weight: bold; color: #0f172a;">${it.sku}</td>
+            <td style="padding: 5px 6px; color: #334155;">${it.productTitle || '-'}</td>
+            <td style="padding: 5px 6px; text-align: center;">
+              <span style="display:inline-block; padding: 1px 5px; border-radius: 4px; background: ${rankBg}; color: ${rankColor}; font-weight: bold; font-size: 10px;">
+                Hạng ${it.abcRank}
+              </span>
+            </td>
+            <td style="padding: 5px 6px; font-size: 10.5px; font-weight: 500;">${tierText}</td>
+            <td style="padding: 5px 6px; text-align: right; font-weight: bold;">${it.totalSold.toLocaleString()}</td>
+            <td style="padding: 5px 6px; text-align: right;">${it.velocityDaily}</td>
+            <td style="padding: 5px 6px; text-align: right; font-weight: bold;">${(it.inUsed || 0).toLocaleString()}</td>
+            <td style="padding: 5px 6px; text-align: right; color: #059669; font-weight: bold;">${(it.onWay || 0).toLocaleString()}</td>
+            <td style="padding: 5px 6px; text-align: center;">${it.daysOfStock === 999 ? 'Dồi dào' : (it.daysOfStock ?? '-')}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div style="margin-top: 20px; page-break-inside: avoid; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;">
+          <div style="background-color: ${headerBg}; color: #ffffff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <span style="font-size: 14px; font-weight: bold;">#${idx + 1}. NHÓM: ${g.groupName}</span>
+              <span style="font-size: 12px; opacity: 0.9; margin-left: 8px;">[${g.optimalAisleRecommendation.aisleCode}]</span>
+            </div>
+            <div style="font-size: 12px; font-weight: 600;">
+              Sản lượng: <b>${g.totalSold.toLocaleString()} PCS</b> (${g.percentageOfWarehouseSold}% kho) &bull; ${g.skuCount} mã SKU &bull; ${g.optimalAisleRecommendation.zoneTag} (${g.optimalAisleRecommendation.distanceLabel})
+            </div>
+          </div>
+
+          <div style="background-color: #f8fafc; padding: 6px 12px; border-bottom: 1px solid #e2e8f0; font-size: 11px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+            <div><b>Quy tắc tầng kệ:</b> <span style="color:#b45309;">Tầng 1-2: ${g.classACount} mã Hạng A (Hot)</span> &bull; <span style="color:#1d4ed8;">Tầng 3: ${g.classBCount} mã Hạng B (Đều)</span> &bull; <span style="color:#475569;">Tầng 4-5: ${g.classCCount} mã Hạng C (Lưu trữ)</span></div>
+            <div>Tồn kho khả dụng: <b>${g.totalInUsed.toLocaleString()}</b> &bull; Đang về: <b style="color:#059669;">${g.totalOnWay.toLocaleString()}</b></div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="background-color: #f1f5f9; font-size: 10.5px; font-weight: bold; color: #475569; border-bottom: 1px solid #cbd5e1;">
+                <th style="padding: 5px 6px; width: 30px; text-align: center;">STT</th>
+                <th style="padding: 5px 6px; width: 100px;">Mã SKU</th>
+                <th style="padding: 5px 6px;">Tên Sản Phẩm</th>
+                <th style="padding: 5px 6px; width: 65px; text-align: center;">Hạng ABC</th>
+                <th style="padding: 5px 6px; width: 220px;">Vị Trí Tầng Khuyến Nghị</th>
+                <th style="padding: 5px 6px; width: 75px; text-align: right;">Bán (PCS)</th>
+                <th style="padding: 5px 6px; width: 65px; text-align: right;">Vận Tốc</th>
+                <th style="padding: 5px 6px; width: 65px; text-align: right;">Tồn Khả Dụng</th>
+                <th style="padding: 5px 6px; width: 65px; text-align: right;">Đang Về</th>
+                <th style="padding: 5px 6px; width: 60px; text-align: center;">DOS (Ngày)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${skuRowsHtml}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Bảng Quy Hoạch Bố Trí Kho Theo Nhóm Hàng (Xếp Từ Bán Nhanh Đến Bán Chậm)</title>
+          <meta charset="utf-8" />
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 8mm 10mm;
+            }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              color: #0f172a;
+              margin: 0;
+              padding: 12px;
+              background-color: #fff;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .header-bar {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              border-bottom: 2px solid #0f172a;
+              padding-bottom: 10px;
+              margin-bottom: 14px;
+            }
+            .title-area h1 {
+              font-size: 18px;
+              margin: 0 0 4px 0;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            .title-area p {
+              font-size: 11px;
+              color: #475569;
+              margin: 0;
+            }
+            .meta-info {
+              font-size: 11px;
+              text-align: right;
+              color: #334155;
+            }
+            .print-btn {
+              padding: 6px 16px;
+              background-color: #0f172a;
+              color: #fff;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: bold;
+              font-size: 12px;
+              margin-top: 6px;
+            }
+            .print-btn:hover {
+              background-color: #334155;
+            }
+            @media print {
+              .print-btn { display: none !important; }
+              body { padding: 0; }
+              .page-break { page-break-after: always; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-bar">
+            <div class="title-area">
+              <h1>KHO VN02 &mdash; BẢNG QUY HOẠCH BỐ TRÍ KHO THEO NHÓM HÀNG HÓA</h1>
+              <p>Danh sách sắp xếp từ <b>BÁN NHANH NHẤT (Zone A)</b> đến <b>BÁN CHẬM NHẤT (Zone C)</b> &bull; Phân bổ dãy kệ &amp; tầng kệ (Shelf Tiers 1-5)</p>
+            </div>
+            <div class="meta-info">
+              <div>Thời gian in: <b>${printDate}</b></div>
+              <div>Quy mô: <b>${groupsToPrint.length} nhóm</b> (${totalSoldAll.toLocaleString()} PCS xuất kho)</div>
+              <button class="print-btn" onclick="window.print()">🖨️ In Báo Cáo Này (Print)</button>
+            </div>
+          </div>
+
+          <!-- PHẦN 1: BẢNG TỔNG HỢP TẤT CẢ CÁC NHÓM HÀNG -->
+          <div style="margin-bottom: 18px;">
+            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; color: #1e293b;">
+              Phần 1: Bảng Tổng Hợp Thứ Tự Ưu Tiên Các Dãy Kệ (Từ Bán Nhanh &rarr; Bán Chậm)
+            </div>
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; text-align: left;">
+              <thead>
+                <tr style="background-color: #0f172a; color: #fff; font-size: 11px; text-transform: uppercase;">
+                  <th style="padding: 6px 8px; width: 35px; text-align: center;">#</th>
+                  <th style="padding: 6px 8px; width: 110px;">Nhóm Hàng</th>
+                  <th style="padding: 6px 8px; width: 140px;">Dãy Kệ Đề Xuất</th>
+                  <th style="padding: 6px 8px; width: 75px; text-align: center;">Phân Vùng</th>
+                  <th style="padding: 6px 8px; width: 100px; text-align: center;">Cự Ly Tới Đóng Gói</th>
+                  <th style="padding: 6px 8px; width: 80px; text-align: right;">Bán (PCS)</th>
+                  <th style="padding: 6px 8px; width: 65px; text-align: right;">Tỉ Trọng</th>
+                  <th style="padding: 6px 8px; width: 150px; text-align: center;">Cơ Cấu SKU (A/B/C)</th>
+                  <th style="padding: 6px 8px;">Khuyến Nghị Phân Tầng Kệ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${summaryRowsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PHẦN 2: CHI TIẾT DANH SÁCH SKU CỦA TỪNG NHÓM -->
+          <div style="margin-top: 24px;">
+            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; color: #1e293b;">
+              Phần 2: Danh Sách Chi Tiết Từng Nhóm &amp; SKU (Xếp Theo Thứ Tự Từ Bán Nhanh Đến Bán Chậm)
+            </div>
+            ${groupDetailsHtml}
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+  };
+
   // Bộ lọc mức độ khẩn cấp của task đổi kệ
   const [taskUrgencyFilter, setTaskUrgencyFilter] = useState<'ALL' | 'high' | 'medium' | 'low'>('ALL');
 
@@ -1612,6 +1852,16 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
                 </button>
               </div>
 
+              {/* Nút In Toàn Bộ Danh Sách Nhóm (Xếp từ Bán Nhanh Đến Bán Chậm) */}
+              <button
+                onClick={() => handlePrintGroupSlottingReport(false)}
+                className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                title="In danh sách toàn bộ các nhóm hàng xếp thứ tự từ bán nhanh nhất đến bán chậm nhất"
+              >
+                <Printer className="w-3.5 h-3.5 text-amber-400" />
+                <span>In Báo Cáo Nhóm (Nhanh &rarr; Chậm)</span>
+              </button>
+
               {/* Nút Xuất Excel Bố Trí Nhóm */}
               <button
                 onClick={handleExportGroupSlottingExcel}
@@ -2075,6 +2325,16 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
                 <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-xl">
                   {displayedSlottingSkus.length} SKU
                 </span>
+
+                {/* Nút In bảng danh sách SKU theo nhóm */}
+                <button
+                  onClick={() => handlePrintGroupSlottingReport(selectedSlottingGroup !== 'ALL')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition-all shadow-sm"
+                  title="In danh sách này ra giấy hoặc PDF"
+                >
+                  <Printer className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{selectedSlottingGroup !== 'ALL' ? `In Nhóm ${selectedSlottingGroup}` : 'In Toàn Bộ'}</span>
+                </button>
               </div>
             </div>
 
