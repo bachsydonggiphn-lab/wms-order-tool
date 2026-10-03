@@ -117,7 +117,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       id: 'hot_sku_slotting' as ActiveTabType,
       label: 'Hàng Bán Chạy & Bố Trí Kho',
       icon: Flame,
-      badge: 'ABC & Layout 2D',
+      badge: 'ABC, Layout 2D & Bố Trí Nhóm',
     },
     {
       id: 'inventory_query' as ActiveTabType,
