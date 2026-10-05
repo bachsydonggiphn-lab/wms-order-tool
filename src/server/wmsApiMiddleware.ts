@@ -1,12 +1,13 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory } from '../services/wmsService';
+import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, httpsRequest } from '../services/wmsService';
 import { fetchGHNLive, fetchJNTLive, fetchJNTBatchLive, fetchSPXLive, fetchNinjaVanLive } from './trackingBackend';
 import {
   getShippedSyncMeta,
   getShippedOrdersAnalytics,
   insertShippedOrdersBatch,
   updateShippedSyncMeta,
+  getSqliteDb,
   ShippedOrderInput
 } from '../../sqliteDb';
 import { layNhomTuSKU } from '../utils/orderProcessor';
@@ -252,7 +253,7 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
     return;
   }
 
-  // 5. Endpoint Kéo Bổ Sung Đơn Xuất Kho (Theo Ngày Hoặc Mới Nhất)
+  // 5. Endpoint Kéo Bổ Sung Đơn Xuất Kho (Theo Ngày Hoặc Mới Nhất - Streaming Incremental)
   if (pathname === '/api/wms/shipped/sync' && (req.method === 'POST' || req.method === 'GET')) {
     const handleShippedSync = async () => {
       let options: any = {};
@@ -275,54 +276,125 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         shipped_sync_status: 'running'
       });
 
-      // Lấy đơn từ YunWMS
-      const wmsRes = await fetchWmsOrders({
-        warehouse,
-        status: '8', // Shipped
-        pageSize,
-        maxPages,
-        username,
-        password,
-        dateFor,
-        dateTo,
-        searchDateType: 'createDate'
-      });
+      // Lấy phiên làm việc YunWMS
+      const cookie = await getWmsSessionCookie(username, password);
+      const db = getSqliteDb();
 
-      // Chuyển đổi và nạp vào SQLite
-      const ordersToInsert: ShippedOrderInput[] = wmsRes.orders.map(o => {
-        const items = (o.items || []).map(it => ({
-          sku: it.sku,
-          qty: it.qty,
-          productTitle: undefined,
-          groupName: layNhomTuSKU(it.sku, DEFAULT_SKU_GROUPS)
-        }));
+      // Nạp danh sách 25,000 order_no mới nhất để kiểm tra trùng tức thì O(1), không tốn RAM
+      const recentOrdersRes = await db.execute('SELECT order_no FROM wms_shipped_orders ORDER BY creation_time DESC LIMIT 25000');
+      const existingOrderNos = new Set(recentOrdersRes.rows.map(r => String(r.order_no)));
 
-        let shippedTime = o.shippedTime || '';
-        if (!shippedTime || shippedTime.length < 8) {
-          shippedTime = o.creationTime || '';
+      // Chuẩn bị query YunWMS
+      let postParams = `E4=${encodeURIComponent(warehouse)}&E11=8`;
+      if (dateFor) {
+        postParams += `&searchDateType=${encodeURIComponent(options.searchDateType || 'createDate')}&dateFor=${encodeURIComponent(dateFor)}`;
+        if (dateTo) {
+          postParams += `&dateTo=${encodeURIComponent(dateTo)}`;
+        }
+      }
+
+      let totalInsertedOrders = 0;
+      let totalInsertedItems = 0;
+      let consecutiveFullExistingPages = 0;
+      const targetMaxPages = maxPages > 0 ? maxPages : (dateFor ? 100 : 50);
+
+      for (let page = 1; page <= targetMaxPages; page++) {
+        const reqPath = `/order/orders/list/page/${page}/pageSize/${pageSize}`;
+        const response = await httpsRequest({
+          hostname: 'czwh.wms.yunwms.com',
+          path: reqPath,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Cookie': cookie,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://czwh.wms.yunwms.com/order/orders/list',
+            'Content-Length': Buffer.byteLength(postParams)
+          }
+        }, postParams);
+
+        let json: any = {};
+        try {
+          json = JSON.parse(response.body);
+        } catch (e) {
+          console.error(`[WMS Sync] Lỗi parse JSON trang ${page}:`, e);
+          break;
         }
 
-        return {
-          orderNo: o.orderNo,
-          trackingNo: o.trackingNo,
-          refNo: undefined,
-          channel: undefined,
-          customerCode: 'YD',
-          warehouseId: warehouse,
-          warehouseName: warehouse === '7' ? 'VN02 [Kho Hồ Chí Minh]' : `Kho ${warehouse}`,
-          carrier: o.carrier,
-          creationTime: o.creationTime,
-          shippedTime,
-          pickingList: o.pickingList,
-          totalQty: o.totalQty,
-          skuCount: items.length,
-          isSingleSku: o.isSingleSku,
-          statusE11: '8',
-          items
-        };
-      });
+        const rawOrders = json.data || [];
+        if (!Array.isArray(rawOrders) || rawOrders.length === 0) {
+          break;
+        }
 
-      const insertRes = await insertShippedOrdersBatch(ordersToInsert);
+        const pageOrdersToInsert: ShippedOrderInput[] = [];
+        for (const o of rawOrders) {
+          const orderNo = (o.E1 || o.E17 || '').trim();
+          if (!orderNo || existingOrderNos.has(orderNo)) {
+            continue;
+          }
+          existingOrderNos.add(orderNo);
+
+          const trackingNo = (o.tracking_number || '').trim();
+          const creationTime = (o.E14 || '').trim();
+          let shippedTime = (o.E15 || o.E16 || o.E18 || o.E20 || o.shipped_time || creationTime || '').trim();
+          if (!shippedTime || shippedTime.length < 8) {
+            shippedTime = creationTime;
+          }
+          const pickingList = (o.picking_code || '').trim();
+          const carrier = (o.E7 || o.carrier || '').trim();
+
+          const rawItems = Array.isArray(o.productList) ? o.productList : [];
+          const items = rawItems.map((it: any) => ({
+            sku: (it.product_barcode || it.sku || '').trim(),
+            qty: Math.max(1, parseInt(String(it.op_quantity || it.qty || 1), 10)),
+            productTitle: it.product_title || '',
+            groupName: layNhomTuSKU((it.product_barcode || it.sku || '').trim(), DEFAULT_SKU_GROUPS)
+          })).filter((it: any) => it.sku);
+
+          const totalQty = items.reduce((sum: number, it: any) => sum + it.qty, 0);
+          const skuCount = items.length;
+          const isSingleSku = (skuCount === 1 && totalQty === 1) ? 1 : (skuCount === 1 ? 1 : 0);
+
+          pageOrdersToInsert.push({
+            orderNo,
+            trackingNo,
+            refNo: undefined,
+            channel: undefined,
+            customerCode: 'YD',
+            warehouseId: warehouse,
+            warehouseName: warehouse === '7' ? 'VN02 [Kho Hồ Chí Minh]' : `Kho ${warehouse}`,
+            carrier,
+            creationTime,
+            shippedTime,
+            pickingList,
+            totalQty,
+            skuCount,
+            isSingleSku,
+            statusE11: '8',
+            items
+          });
+        }
+
+        if (pageOrdersToInsert.length > 0) {
+          const insertRes = await insertShippedOrdersBatch(pageOrdersToInsert);
+          totalInsertedOrders += insertRes.insertedOrders;
+          totalInsertedItems += insertRes.insertedItems;
+        }
+
+        // Tự động dừng thông minh khi quét tới các đơn cũ đã lưu trong SQL
+        if (!dateFor) {
+          if (pageOrdersToInsert.length === 0) {
+            consecutiveFullExistingPages++;
+            if (consecutiveFullExistingPages >= 2) {
+              console.log(`[WMS Sync] Đã gặp 2 trang toàn đơn cũ liên tiếp ở trang ${page}. Hoàn tất đồng bộ!`);
+              break;
+            }
+          } else {
+            consecutiveFullExistingPages = 0;
+          }
+        }
+      }
 
       const vnNow = new Intl.DateTimeFormat('en-GB', {
         timeZone: 'Asia/Ho_Chi_Minh',
@@ -335,24 +407,29 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         hour12: false
       }).format(new Date());
 
+      const countRes = await db.execute('SELECT count(*) as total FROM wms_shipped_orders');
+      const currentTotal = Number(countRes.rows[0]?.total || 0);
+
       await updateShippedSyncMeta({
         shipped_sync_status: 'idle',
-        last_shipped_sync_time: vnNow
+        last_shipped_sync_time: vnNow,
+        shipped_total_orders: String(currentTotal)
       });
 
       const updatedMeta = await getShippedSyncMeta();
 
       sendJson(res, 200, {
         success: true,
-        message: `Đã nạp ${insertRes.insertedOrders} đơn hàng (${insertRes.insertedItems} sản phẩm) vào SQL database.`,
-        insertedOrders: insertRes.insertedOrders,
-        insertedItems: insertRes.insertedItems,
-        totalWmsOrders: wmsRes.totalOrders,
+        message: `Đã nạp ${totalInsertedOrders} đơn mới (${totalInsertedItems} sản phẩm) vào SQL database.`,
+        insertedOrders: totalInsertedOrders,
+        insertedItems: totalInsertedItems,
+        totalWmsOrders: currentTotal,
         meta: updatedMeta
       });
     };
 
     handleShippedSync().catch(async (err) => {
+      console.error('[handleShippedSync Error]', err);
       await updateShippedSyncMeta({ shipped_sync_status: 'error' });
       sendJson(res, 500, {
         success: false,

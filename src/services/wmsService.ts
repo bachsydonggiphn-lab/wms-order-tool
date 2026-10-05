@@ -59,7 +59,7 @@ export interface WmsFetchResult {
 let cachedSessionCookie = '';
 let sessionExpiresAt = 0;
 
-function httpsRequest(options: https.RequestOptions, postData?: string): Promise<{ statusCode: number; headers: any; body: string }> {
+export function httpsRequest(options: https.RequestOptions, postData?: string): Promise<{ statusCode: number; headers: any; body: string }> {
   return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
       let data = '';
