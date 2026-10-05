@@ -840,7 +840,7 @@ export function clearAnalyticsCache() {
  * Phân tích Sản Phẩm Bán Chạy & Đề Xuất Vị Trí Kho (ABC Classification & Slotting)
  */
 export async function getShippedOrdersAnalytics(params: {
-  timeframe?: string; // '7d' | '30d' | '90d' | 'all' | 'custom'
+  timeframe?: string; // '3d' | '7d' | '30d' | '90d' | 'all' | 'custom'
   fromDate?: string;  // YYYY-MM-DD
   toDate?: string;    // YYYY-MM-DD
   group?: string;     // Lọc theo nhóm hàng (vd: 'YD-A', 'YD-D',...)
@@ -873,7 +873,11 @@ export async function getShippedOrdersAnalytics(params: {
     return { full: `${y}-${m}-${day}`, short: `${yy}-${m}-${day}` };
   };
 
-  if (timeframe === '7d') {
+  if (timeframe === '3d') {
+    daysInPeriod = 3;
+    const start = new Date(now.getTime() - 3 * oneDayMs);
+    effectiveStartDate = formatDatePrefix(start).short;
+  } else if (timeframe === '7d') {
     daysInPeriod = 7;
     const start = new Date(now.getTime() - 7 * oneDayMs);
     effectiveStartDate = formatDatePrefix(start).short;

@@ -64,7 +64,7 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
   const [slottingGroupViewMode, setSlottingGroupViewMode] = useState<'2d_aisles' | 'cards' | 'table'>('2d_aisles');
 
   // State quản lý bộ lọc
-  const [timeframe, setTimeframe] = useState<'7d' | '30d' | '90d' | 'all' | 'custom'>('30d');
+  const [timeframe, setTimeframe] = useState<'3d' | '7d' | '30d' | '90d' | 'all' | 'custom'>('30d');
   const [customFromDate, setCustomFromDate] = useState<string>('');
   const [customToDate, setCustomToDate] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>('ALL');
@@ -943,6 +943,7 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1">Khung Thời Gian:</span>
             {[
+              { id: '3d', label: '3 Ngày Gần Nhất' },
               { id: '7d', label: '7 Ngày Gần Nhất' },
               { id: '30d', label: '30 Ngày (Khuyên dùng)' },
               { id: '90d', label: '90 Ngày' },
