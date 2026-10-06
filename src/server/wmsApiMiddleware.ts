@@ -287,18 +287,17 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       // Chuẩn bị query YunWMS
       let postParams = `E4=${encodeURIComponent(warehouse)}&E11=8`;
       if (dateFor) {
-        postParams += `&searchDateType=${encodeURIComponent(options.searchDateType || 'createDate')}&dateFor=${encodeURIComponent(dateFor)}`;
-        if (dateTo) {
-          postParams += `&dateTo=${encodeURIComponent(dateTo)}`;
-        }
+        const cleanFrom = dateFor.includes(':') ? dateFor : `${dateFor} 00:00`;
+        const cleanTo = dateTo ? (dateTo.includes(':') ? dateTo : `${dateTo} 23:59`) : `${dateFor} 23:59`;
+        postParams += `&searchDateType=${encodeURIComponent(options.searchDateType || 'createDate')}&dateFor=${encodeURIComponent(cleanFrom)}&dateTo=${encodeURIComponent(cleanTo)}`;
       }
 
       let totalInsertedOrders = 0;
       let totalInsertedItems = 0;
       let consecutiveFullExistingPages = 0;
-      const targetMaxPages = maxPages > 0 ? maxPages : (dateFor ? 100 : 50);
+      let maxAllowedPages = maxPages > 0 ? maxPages : (dateFor ? 100 : 50);
 
-      for (let page = 1; page <= targetMaxPages; page++) {
+      for (let page = 1; page <= maxAllowedPages; page++) {
         const reqPath = `/order/orders/list/page/${page}/pageSize/${pageSize}`;
         const response = await httpsRequest({
           hostname: 'czwh.wms.yunwms.com',
@@ -320,6 +319,19 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         } catch (e) {
           console.error(`[WMS Sync] Lỗi parse JSON trang ${page}:`, e);
           break;
+        }
+
+        // Tự động tính đúng tổng số trang dựa trên json.total từ YunWMS
+        if (page === 1 && json.total) {
+          const totalRecords = parseInt(String(json.total || 0), 10);
+          if (totalRecords > 0) {
+            const calculatedPages = Math.ceil(totalRecords / pageSize);
+            if (maxPages <= 0) {
+              maxAllowedPages = calculatedPages;
+            } else {
+              maxAllowedPages = Math.min(maxPages, calculatedPages);
+            }
+          }
         }
 
         const rawOrders = json.data || [];
@@ -383,16 +395,14 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         }
 
         // Tự động dừng thông minh khi quét tới các đơn cũ đã lưu trong SQL
-        if (!dateFor) {
-          if (pageOrdersToInsert.length === 0) {
-            consecutiveFullExistingPages++;
-            if (consecutiveFullExistingPages >= 2) {
-              console.log(`[WMS Sync] Đã gặp 2 trang toàn đơn cũ liên tiếp ở trang ${page}. Hoàn tất đồng bộ!`);
-              break;
-            }
-          } else {
-            consecutiveFullExistingPages = 0;
+        if (pageOrdersToInsert.length === 0) {
+          consecutiveFullExistingPages++;
+          if (consecutiveFullExistingPages >= 2) {
+            console.log(`[WMS Sync] Đã gặp 2 trang toàn đơn cũ liên tiếp ở trang ${page}. Hoàn tất đồng bộ!`);
+            break;
           }
+        } else {
+          consecutiveFullExistingPages = 0;
         }
       }
 

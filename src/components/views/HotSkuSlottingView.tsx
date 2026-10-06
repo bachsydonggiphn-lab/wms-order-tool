@@ -193,9 +193,16 @@ export const HotSkuSlottingView: React.FC<HotSkuSlottingViewProps> = ({
         })
       });
 
-      const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.message || 'Lỗi khi đồng bộ đơn từ YunWMS');
+      let data: any = {};
+      const resText = await res.text();
+      try {
+        data = JSON.parse(resText);
+      } catch (e) {
+        throw new Error(res.status === 504 ? 'Yêu cầu xử lý quá thời gian (504 Gateway Timeout). Vui lòng thử lại.' : `Lỗi máy chủ (${res.status}): ${resText.slice(0, 100)}`);
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Lỗi khi đồng bộ đơn từ YunWMS (${res.status})`);
       }
 
       setSyncProgressMsg(`Hoàn tất! ${data.message}`);
