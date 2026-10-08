@@ -394,11 +394,12 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
           totalInsertedItems += insertRes.insertedItems;
         }
 
-        // Tự động dừng thông minh khi quét tới các đơn cũ đã lưu trong SQL
+        // Tự động dừng thông minh: quét tối thiểu 15 trang (khoảng 3 ngày gần nhất) để không sót đơn giao trễ,
+        // sau đó dừng nếu gặp 4 trang liên tiếp toàn bộ là đơn cũ đã có trong SQL
         if (pageOrdersToInsert.length === 0) {
           consecutiveFullExistingPages++;
-          if (consecutiveFullExistingPages >= 2) {
-            console.log(`[WMS Sync] Đã gặp 2 trang toàn đơn cũ liên tiếp ở trang ${page}. Hoàn tất đồng bộ!`);
+          if (page >= 15 && consecutiveFullExistingPages >= 4) {
+            console.log(`[WMS Sync] Đã gặp 4 trang toàn đơn cũ liên tiếp ở trang ${page}. Hoàn tất đồng bộ!`);
             break;
           }
         } else {
