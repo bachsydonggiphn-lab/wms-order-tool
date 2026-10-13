@@ -19,7 +19,7 @@ export const CARRIERS: Record<CarrierId, CarrierConfig> = {
     logoColor: '#EE4D2D',
     badgeBg: 'bg-red-50 text-red-700 border-red-200',
     badgeText: 'text-red-600',
-    prefixHints: ['SPXVN', 'SPX', 'VNSPX', 'SPE', 'VNSP'],
+    prefixHints: ['SPXVN', 'SPX', 'VNSPX', 'SPE', 'VNSP', 'VN26'],
     trackingUrlPattern: 'https://spx.vn/track?{CODE}',
     website: 'https://spx.vn/vi'
   },
@@ -135,7 +135,8 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
     cleanCode.startsWith('SPX') || 
     cleanCode.startsWith('VNSPX') || 
     cleanCode.startsWith('SPE') ||
-    cleanCode.startsWith('VNSP')
+    cleanCode.startsWith('VNSP') ||
+    cleanCode.startsWith('VN26')
   ) {
     return 'spx';
   }
@@ -242,7 +243,7 @@ export function getDirectTrackingUrl(carrier: CarrierId, code: string, phone: st
   if (!cleanCode) {
     return config.website || 'https://spx.vn/vi';
   }
-  if (carrier === 'spx' || cleanCode.startsWith('SPXVN') || cleanCode.startsWith('SPX')) {
+  if (carrier === 'spx' || cleanCode.startsWith('SPXVN') || cleanCode.startsWith('SPX') || cleanCode.startsWith('VN26')) {
     return `https://spx.vn/track?${encodeURIComponent(cleanCode)}`;
   }
   let url = config.trackingUrlPattern.replace('{CODE}', encodeURIComponent(cleanCode));

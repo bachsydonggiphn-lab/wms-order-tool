@@ -6,6 +6,8 @@ export interface OrderItem {
 export type CarrierCode =
   | 'ALL'
   | 'SPX'
+  | 'SPX_INSTANT'
+  | 'SPX_ALL'
   | 'JNT'
   | 'JT_CARGO'
   | 'GHN'

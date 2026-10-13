@@ -571,11 +571,14 @@ export async function trackSingleOrder(
   // 1. Shopee Express (SPX) tracking (Check First)
   if (
     carrier === 'spx' || 
+    carrier === ('spx_instant' as any) ||
+    carrier === ('SPX_INSTANT' as any) ||
     upperCode.startsWith('SPXVN') || 
     upperCode.startsWith('SPX') || 
     upperCode.startsWith('VNSPX') || 
     upperCode.startsWith('SPE') ||
-    upperCode.startsWith('VNSP')
+    upperCode.startsWith('VNSP') ||
+    upperCode.startsWith('VN26')
   ) {
     try {
       const apiRes = await safeFetchApi('/api/track/spx', { orderCode: cleanCode, force: forceRefresh });

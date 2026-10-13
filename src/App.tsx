@@ -198,6 +198,8 @@ export default function App() {
     const counts: Record<CarrierCode, number> = {
       ALL: 0,
       SPX: 0,
+      SPX_INSTANT: 0,
+      SPX_ALL: 0,
       JNT: 0,
       JT_CARGO: 0,
       GHN: 0,
@@ -224,6 +226,7 @@ export default function App() {
     });
 
     counts.GHN_ALL = counts.GHN + counts.GHN_TIKTOK;
+    counts.SPX_ALL = counts.SPX + counts.SPX_INSTANT;
 
     return counts;
   }, [orders, selectedPickingList]);

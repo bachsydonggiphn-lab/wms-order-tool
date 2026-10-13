@@ -37,6 +37,19 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
           if (orderCarrier !== 'GHN' && orderCarrier !== 'GHN_TIKTOK') {
             return false;
           }
+        } else if (selectedCarrier === 'SPX_ALL') {
+          if (orderCarrier !== 'SPX' && orderCarrier !== 'SPX_INSTANT') {
+            return false;
+          }
+        } else if (selectedCarrier.includes(',')) {
+          const list = selectedCarrier.split(',').map((s) => s.trim());
+          const match = list.some((c) => {
+            if (c === 'ALL') return true;
+            if (c === 'GHN_ALL') return orderCarrier === 'GHN' || orderCarrier === 'GHN_TIKTOK';
+            if (c === 'SPX_ALL') return orderCarrier === 'SPX' || orderCarrier === 'SPX_INSTANT';
+            return orderCarrier === c;
+          });
+          if (!match) return false;
         } else if (orderCarrier !== selectedCarrier) {
           return false;
         }
@@ -85,6 +98,14 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
           Shopee Express
+        </span>
+      );
+    }
+    if (c === 'SPX_INSTANT') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          SPX Hỏa Tốc
         </span>
       );
     }

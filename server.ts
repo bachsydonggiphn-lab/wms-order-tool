@@ -3596,7 +3596,8 @@ async function startServer() {
         upper.startsWith('SPX') || 
         upper.startsWith('VNSPX') || 
         upper.startsWith('SPE') ||
-        upper.startsWith('VNSP')
+        upper.startsWith('VNSP') ||
+        upper.startsWith('VN26')
       ) {
         resolvedCarrier = 'spx';
       } else if (

@@ -27,9 +27,12 @@ import { DEFAULT_AREA_ORDER, DEFAULT_SKU_GROUPS } from './skuData';
  * - Khác / Chưa xác định
  */
 export const CARRIER_CONFIG: Record<
+  | 'ALL'
   | 'JNT'
   | 'JT_CARGO'
   | 'SPX'
+  | 'SPX_INSTANT'
+  | 'SPX_ALL'
   | 'GHN'
   | 'GHN_TIKTOK'
   | 'GHN_ALL'
@@ -40,6 +43,16 @@ export const CARRIER_CONFIG: Record<
   | 'OTHER',
   CarrierDetails
 > = {
+  ALL: {
+    code: 'ALL',
+    name: 'Tất Cả ĐVVC',
+    shortName: 'Tất Cả',
+    badgeBg: 'bg-indigo-50',
+    badgeText: 'text-indigo-700',
+    badgeBorder: 'border-indigo-200',
+    iconColor: 'text-indigo-600',
+    description: 'Toàn bộ đơn hàng thuộc tất cả các đơn vị vận chuyển',
+  },
   SPX: {
     code: 'SPX',
     name: 'Shopee Express (SPX)',
@@ -49,6 +62,26 @@ export const CARRIER_CONFIG: Record<
     badgeBorder: 'border-orange-200',
     iconColor: 'text-orange-600',
     description: 'Mã vận đơn bắt đầu bằng SPX / SPXVN / SPE (Shopee Express)',
+  },
+  SPX_INSTANT: {
+    code: 'SPX_INSTANT',
+    name: 'SPX Hỏa Tốc (VN26...)',
+    shortName: 'SPX Hỏa Tốc',
+    badgeBg: 'bg-amber-50',
+    badgeText: 'text-amber-800',
+    badgeBorder: 'border-amber-300',
+    iconColor: 'text-amber-600',
+    description: 'Mã vận đơn bắt đầu bằng VN26 (Shopee Express Hỏa Tốc / SPX Instant)',
+  },
+  SPX_ALL: {
+    code: 'SPX_ALL',
+    name: 'Gộp SPX (SPX + Hỏa Tốc)',
+    shortName: 'Gộp SPX',
+    badgeBg: 'bg-orange-100',
+    badgeText: 'text-orange-900',
+    badgeBorder: 'border-orange-300',
+    iconColor: 'text-orange-600',
+    description: 'Gộp toàn bộ đơn Shopee Express (cả SPX tiêu chuẩn và SPX Hỏa Tốc VN26...)',
   },
   JNT: {
     code: 'JNT',
@@ -173,7 +206,23 @@ export function xacDinhDonViVanChuyen(
   const tracking = (trackingNo || '').trim().toUpperCase();
   const raw = (rawText || '').toUpperCase();
 
-  // 1. GHN TikTok: Mã bắt đầu bằng VNGH... (Giao Hàng Nhanh trên TikTok Shop)
+  // 1. SPX Hỏa Tốc (Shopee Express Instant): Mã bắt đầu bằng VN26... hoặc nhãn Hỏa Tốc / Instant
+  if (
+    tracking.startsWith('VN26') ||
+    raw.includes('VN26') ||
+    raw.includes('SPX HỎA TỐC') ||
+    raw.includes('SPX HOA TOC') ||
+    raw.includes('SHOPEE EXPRESS HỎA TỐC') ||
+    raw.includes('SHOPEE EXPRESS HOA TOC') ||
+    raw.includes('SPX INSTANT') ||
+    raw.includes('SHOPEE EXPRESS INSTANT') ||
+    (raw.includes('HỎA TỐC') && (raw.includes('SPX') || raw.includes('SHOPEE'))) ||
+    (raw.includes('HOA TOC') && (raw.includes('SPX') || raw.includes('SHOPEE')))
+  ) {
+    return { carrier: 'SPX_INSTANT', carrierName: CARRIER_CONFIG.SPX_INSTANT.name };
+  }
+
+  // 2. GHN TikTok: Mã bắt đầu bằng VNGH... (Giao Hàng Nhanh trên TikTok Shop)
   if (
     tracking.startsWith('VNGH') ||
     raw.includes('VNGH') ||
@@ -184,7 +233,7 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'GHN_TIKTOK', carrierName: CARRIER_CONFIG.GHN_TIKTOK.name };
   }
 
-  // 2. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE..., VNSP...
+  // 3. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE..., VNSP...
   if (
     tracking.startsWith('SPXVN') ||
     tracking.startsWith('SPX') ||
@@ -385,7 +434,11 @@ export function layMaTrackingNo(text: string | null | undefined): string {
   const matchJnt = text.match(/\b(862\d{7,}[A-Za-z0-9]*)\b/i);
   if (matchJnt && matchJnt[1]) return matchJnt[1].trim();
 
-  // 3. Tìm theo format mã vận đơn SPX (SPXVN...)
+  // 3. Tìm theo format mã vận đơn SPX Hỏa Tốc (VN26...)
+  const matchVn26 = text.match(/\b(VN26[A-Za-z0-9]{8,})\b/i);
+  if (matchVn26 && matchVn26[1]) return matchVn26[1].trim();
+
+  // 4. Tìm theo format mã vận đơn SPX (SPXVN...)
   const matchSpx = text.match(/\b(SPXVN\d{6,}[A-Za-z0-9]*)\b/i);
   if (matchSpx && matchSpx[1]) return matchSpx[1].trim();
 
@@ -433,6 +486,7 @@ export function locDonHang(
           const matchAny = carrierFilter.some(c => {
             if (c === 'ALL') return true;
             if (c === 'GHN_ALL') return effCarrier === 'GHN' || effCarrier === 'GHN_TIKTOK';
+            if (c === 'SPX_ALL') return effCarrier === 'SPX' || effCarrier === 'SPX_INSTANT';
             return effCarrier === c;
           });
           if (!matchAny) return false;
@@ -440,12 +494,16 @@ export function locDonHang(
       } else if (carrierFilter === 'GHN_ALL') {
         const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
         if (effCarrier !== 'GHN' && effCarrier !== 'GHN_TIKTOK') return false;
+      } else if (carrierFilter === 'SPX_ALL') {
+        const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
+        if (effCarrier !== 'SPX' && effCarrier !== 'SPX_INSTANT') return false;
       } else if (typeof carrierFilter === 'string' && carrierFilter.includes(',')) {
         const list = carrierFilter.split(',').map(s => s.trim());
         const effCarrier = xacDinhDonViVanChuyen(order.trackingNo, order.rawOrderText).carrier;
         const matchAny = list.some(c => {
           if (c === 'ALL') return true;
           if (c === 'GHN_ALL') return effCarrier === 'GHN' || effCarrier === 'GHN_TIKTOK';
+          if (c === 'SPX_ALL') return effCarrier === 'SPX' || effCarrier === 'SPX_INSTANT';
           return effCarrier === c;
         });
         if (!matchAny) return false;
@@ -463,7 +521,7 @@ const INVALID_SKU_WORDS = new Set([
   'logistics', 'product', 'general', 'multiple', 'items', 'order', 'picking',
   'type', 'refno', 'ref', 'reference', 'tracking', 'public', 'platform', 'return', 'mail', 'warehouse',
   'customer', 'code', 'status', 'date', 'operation', 'piece', 'count', 'details',
-  'more', 'one', 'vn02', 'lexth', 'spxvn', 'submitted.', 'vn', 'number', 'packages',
+  'more', 'one', 'vn02', 'vn26', 'lexth', 'spxvn', 'submitted.', 'vn', 'number', 'packages',
   'shelved', 'intercept', 'requested', 'delete', 'package'
 ]);
 
@@ -550,7 +608,7 @@ export function isValidSkuName(sku: string): boolean {
   if (/^YD-\d{4,8}-\d+$/i.test(clean)) return false;
 
   // 5. TUYỆT ĐỐI KHÔNG PHẢI MÃ REFNO HOẶC TRACKING / PICKING LIST DÀI
-  if (/^(SPXVN|PL72|LEXTH|GY8D|VN02|REFNO|PL\d{6,})/i.test(clean)) return false;
+  if (/^(SPXVN|PL72|LEXTH|GY8D|VN02|VN26|REFNO|PL\d{6,})/i.test(clean)) return false;
 
   // 6. Không phải số nguyên thuần túy
   if (/^\d+$/.test(clean)) return false;
@@ -2218,11 +2276,11 @@ export function taoDuLieuMau(skuGroups: SkuGroupsMap = DEFAULT_SKU_GROUPS): RawO
       pickingList: "PL72608160015",
     },
     {
-      rawOrder: "Order No.：YD-260816-0769\nRefNo.：260816FPH1BUB7\nTracking No. ：SPXVN063978374718\nPublic platform order number：YD-260816-0769\nPicking List No.：PL72608160005\nRecipient：K******h",
+      rawOrder: "Order No.：YD-260816-0769\nRefNo.：260816FPH1BUB7\nTracking No. ：VN266364132801L\nPublic platform order number：YD-260816-0769\nPicking List No.：PL72608160005\nRecipient：K******h",
       piece: "YD-H82-2*1",
       picking: "Picking List No.：PL72608160005",
       orderNo: "YD-260816-0769",
-      trackingNo: "SPXVN063978374718",
+      trackingNo: "VN266364132801L",
       pickingList: "PL72608160005",
     },
     {

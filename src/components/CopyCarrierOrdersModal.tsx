@@ -50,6 +50,8 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
     const map: Record<CarrierCode, RawOrderRow[]> = {
       ALL: baseOrders,
       SPX: [],
+      SPX_INSTANT: [],
+      SPX_ALL: [],
       JNT: [],
       JT_CARGO: [],
       GHN: [],
@@ -72,6 +74,7 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
     });
 
     map.GHN_ALL = [...map.GHN, ...map.GHN_TIKTOK];
+    map.SPX_ALL = [...map.SPX, ...map.SPX_INSTANT];
 
     return map;
   }, [baseOrders]);
@@ -105,6 +108,28 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
       prefixHint: 'SPX, SPXVN...',
       activeBorder: 'border-orange-500 ring-2 ring-orange-200',
       activeBg: 'bg-orange-500 text-white',
+      activeText: 'text-orange-700',
+      pillBg: 'bg-orange-50',
+      pillText: 'text-orange-700',
+    },
+    {
+      code: 'SPX_INSTANT',
+      label: 'SPX Hỏa Tốc',
+      shortName: 'SPX Hỏa Tốc',
+      prefixHint: 'Đầu VN26...',
+      activeBorder: 'border-amber-500 ring-2 ring-amber-200',
+      activeBg: 'bg-amber-600 text-white',
+      activeText: 'text-amber-800',
+      pillBg: 'bg-amber-50',
+      pillText: 'text-amber-800',
+    },
+    {
+      code: 'SPX_ALL',
+      label: '⚡ Gộp Cả SPX (SPX + Hỏa Tốc)',
+      shortName: 'Gộp SPX',
+      prefixHint: 'SPX + VN26',
+      activeBorder: 'border-orange-600 ring-2 ring-orange-200',
+      activeBg: 'bg-orange-600 text-white',
       activeText: 'text-orange-700',
       pillBg: 'bg-orange-50',
       pillText: 'text-orange-700',
@@ -225,6 +250,7 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
   const currentOrders = useMemo(() => {
     if (!activeCarrier || activeCarrier === 'ALL') return carrierMap.ALL || [];
     if (activeCarrier === 'GHN_ALL') return carrierMap.GHN_ALL || [];
+    if (activeCarrier === 'SPX_ALL') return carrierMap.SPX_ALL || [];
     if (activeCarrier.includes(',')) {
       const parts = activeCarrier.split(',').map((s) => s.trim() as CarrierCode);
       const collected: RawOrderRow[] = [];
@@ -397,6 +423,11 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
 
                 // Nút Gộp GHN chỉ hiện khi cả 2 hãng GHN và GHN TikTok đều có từ 1 đơn trở lên
                 if (item.code === 'GHN_ALL' && ((carrierMap.GHN?.length || 0) === 0 || (carrierMap.GHN_TIKTOK?.length || 0) === 0)) {
+                  return null;
+                }
+
+                // Nút Gộp SPX chỉ hiện khi cả 2 hãng SPX và SPX Hỏa Tốc đều có từ 1 đơn trở lên
+                if (item.code === 'SPX_ALL' && ((carrierMap.SPX?.length || 0) === 0 || (carrierMap.SPX_INSTANT?.length || 0) === 0)) {
                   return null;
                 }
 

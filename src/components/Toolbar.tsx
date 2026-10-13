@@ -88,6 +88,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       if (selectedPickingList && o.pickingList !== selectedPickingList) return false;
       if (carrierCode === 'ALL') return true;
       if (carrierCode === 'GHN_ALL') return o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK';
+      if (carrierCode === 'SPX_ALL') return o.carrier === 'SPX' || o.carrier === 'SPX_INSTANT';
       return o.carrier === carrierCode;
     });
 
@@ -196,6 +197,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       activeStyle: 'bg-orange-600 text-white border-orange-600 shadow-xs ring-2 ring-orange-200',
     },
     {
+      code: 'SPX_INSTANT',
+      label: 'SPX Hỏa Tốc',
+      prefixHint: 'VN26...',
+      colorStyle: 'border-amber-300 text-amber-800 bg-amber-50/50 hover:bg-amber-50',
+      activeStyle: 'bg-amber-600 text-white border-amber-600 shadow-xs ring-2 ring-amber-200',
+    },
+    {
       code: 'JNT',
       label: 'J&T Express',
       prefixHint: 'Đầu 8..., JT...',
@@ -264,6 +272,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const getSelectedCarrierCodes = (val: string): CarrierCode[] => {
     if (!val || val === 'ALL') return [];
     if (val === 'GHN_ALL') return ['GHN', 'GHN_TIKTOK'];
+    if (val === 'SPX_ALL') return ['SPX', 'SPX_INSTANT'];
     return val.split(',').map((s) => s.trim() as CarrierCode);
   };
 
@@ -271,11 +280,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const isOrderMatchCarrier = (orderCarrier: string | undefined, filter: string): boolean => {
     if (!filter || filter === 'ALL') return true;
     if (filter === 'GHN_ALL') return orderCarrier === 'GHN' || orderCarrier === 'GHN_TIKTOK';
+    if (filter === 'SPX_ALL') return orderCarrier === 'SPX' || orderCarrier === 'SPX_INSTANT';
     if (filter.includes(',')) {
       const list = filter.split(',').map((s) => s.trim());
       return list.some((c) => {
         if (c === 'ALL') return true;
         if (c === 'GHN_ALL') return orderCarrier === 'GHN' || orderCarrier === 'GHN_TIKTOK';
+        if (c === 'SPX_ALL') return orderCarrier === 'SPX' || orderCarrier === 'SPX_INSTANT';
         return orderCarrier === c;
       });
     }
@@ -323,6 +334,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const activeCarriersSummary = useMemo(() => {
     if (selectedCarrier === 'ALL' || activeCarrierCodes.length === 0) return 'Tất cả ĐVVC';
     if (selectedCarrier === 'GHN_ALL') return 'Gộp Cả GHN';
+    if (selectedCarrier === 'SPX_ALL') return 'Gộp Cả SPX';
     if (activeCarrierCodes.length === 1) {
       return CARRIER_CONFIG[activeCarrierCodes[0]]?.shortName || activeCarrierCodes[0];
     }
@@ -335,6 +347,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const currentCarrierTotalOrders = useMemo(() => {
     if (selectedCarrier === 'ALL') return orders.length;
     if (selectedCarrier === 'GHN_ALL') return carrierCounts.GHN_ALL || 0;
+    if (selectedCarrier === 'SPX_ALL') return carrierCounts.SPX_ALL || 0;
     return activeCarrierCodes.reduce((sum, c) => sum + (carrierCounts[c] || 0), 0);
   }, [selectedCarrier, activeCarrierCodes, carrierCounts, orders.length]);
 
@@ -443,6 +456,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       // CHẾ ĐỘ AN TOÀN (Cần gạt TẮT): Người dùng chỉ chọn 1 hãng duy nhất, không bao giờ gộp nhầm
       if (code === 'GHN_ALL') {
         setSelectedCarrier(selectedCarrier === 'GHN_ALL' ? 'ALL' : 'GHN_ALL');
+      } else if (code === 'SPX_ALL') {
+        setSelectedCarrier(selectedCarrier === 'SPX_ALL' ? 'ALL' : 'SPX_ALL');
       } else {
         setSelectedCarrier(selectedCarrier === code ? 'ALL' : code);
       }
@@ -458,6 +473,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         next = currentList.filter((c) => c !== 'GHN' && c !== 'GHN_TIKTOK');
       } else {
         const set = new Set([...currentList, 'GHN' as CarrierCode, 'GHN_TIKTOK' as CarrierCode]);
+        next = Array.from(set);
+      }
+      if (next.length === 0) setSelectedCarrier('ALL');
+      else if (next.length === 1) setSelectedCarrier(next[0]);
+      else setSelectedCarrier(next.join(',') as CarrierCode);
+      return;
+    }
+
+    if (code === 'SPX_ALL') {
+      const currentList = getSelectedCarrierCodes(selectedCarrier);
+      const hasBoth = currentList.includes('SPX') && currentList.includes('SPX_INSTANT');
+      let next: CarrierCode[];
+      if (hasBoth) {
+        next = currentList.filter((c) => c !== 'SPX' && c !== 'SPX_INSTANT');
+      } else {
+        const set = new Set([...currentList, 'SPX' as CarrierCode, 'SPX_INSTANT' as CarrierCode]);
         next = Array.from(set);
       }
       if (next.length === 0) setSelectedCarrier('ALL');
@@ -679,7 +710,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             const isSelected =
               opt.code === 'ALL'
                 ? selectedCarrier === 'ALL' || !selectedCarrier || activeCarrierCodes.length === 0
-                : activeCarrierCodes.includes(opt.code) || (opt.code === 'GHN' && selectedCarrier === 'GHN_ALL') || (opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN_ALL');
+                : activeCarrierCodes.includes(opt.code) ||
+                  (opt.code === 'GHN' && selectedCarrier === 'GHN_ALL') ||
+                  (opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN_ALL') ||
+                  (opt.code === 'SPX' && selectedCarrier === 'SPX_ALL') ||
+                  (opt.code === 'SPX_INSTANT' && selectedCarrier === 'SPX_ALL');
             const isCopied = quickCopiedCarrier === opt.code;
             const isMergedPart = activeCarrierCodes.length > 1 && isSelected;
 
@@ -690,17 +725,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     isSelected ? opt.activeStyle : opt.colorStyle
                   } ${isMergedPart ? 'ring-2 ring-blue-300' : ''}`}
                 >
-                  {/* Nút lọc hãng (Click chọn gộp nếu click cả GHN và GHN TikTok) */}
+                  {/* Nút lọc hãng (Click chọn gộp nếu click cả GHN/GHN TikTok hoặc SPX/SPX Hỏa Tốc) */}
                   <button
                     onClick={() => handleCarrierClick(opt.code)}
                     className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-xs font-semibold cursor-pointer"
                     title={
                       isMergedPart
-                        ? `Đang gộp cả GHN & GHN TikTok. Click để bỏ chọn ${opt.label}`
+                        ? `Đang gộp. Click để bỏ chọn ${opt.label}`
                         : opt.code === 'GHN' && selectedCarrier === 'GHN_TIKTOK'
                         ? 'Click để GỘP chung với GHN TikTok'
                         : opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN'
                         ? 'Click để GỘP chung với GHN'
+                        : opt.code === 'SPX' && selectedCarrier === 'SPX_INSTANT'
+                        ? 'Click để GỘP chung với SPX Hỏa Tốc'
+                        : opt.code === 'SPX_INSTANT' && selectedCarrier === 'SPX'
+                        ? 'Click để GỘP chung với Shopee Express'
                         : `Lọc đơn ${opt.label}`
                     }
                   >
@@ -743,6 +782,66 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     </button>
                   )}
                 </div>
+
+                {/* Nút Gộp Cả SPX: chỉ hiển thị khi CẢ 2 hãng SPX và SPX Hỏa Tốc đều có từ 1 đơn trở lên */}
+                {opt.code === 'SPX_INSTANT' && (carrierCounts.SPX || 0) > 0 && (carrierCounts.SPX_INSTANT || 0) > 0 && (
+                  <div
+                    key="SPX_ALL_BTN"
+                    className={`inline-flex items-center rounded-xl border transition-all ${
+                      selectedCarrier === 'SPX_ALL'
+                        ? 'bg-gradient-to-r from-orange-600 via-amber-600 to-red-600 text-white border-orange-600 shadow-xs ring-2 ring-orange-300'
+                        : 'border-orange-300 text-orange-800 bg-orange-50/80 hover:bg-orange-100/90'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleCarrierClick('SPX_ALL')}
+                      className="flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 text-xs font-bold cursor-pointer"
+                      title={
+                        selectedCarrier === 'SPX_ALL'
+                          ? 'Đang gộp SPX & SPX Hỏa Tốc. Click để hủy gộp'
+                          : 'Click để gộp toàn bộ dữ liệu Shopee Express (SPX + SPX Hỏa Tốc VN26...)'
+                      }
+                    >
+                      <Zap className={`w-3.5 h-3.5 ${selectedCarrier === 'SPX_ALL' ? 'text-amber-200 fill-amber-200' : 'text-orange-600'}`} />
+                      <span>Gộp Cả SPX</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                          selectedCarrier === 'SPX_ALL'
+                            ? 'bg-white/30 text-white'
+                            : 'bg-orange-200/90 text-orange-900'
+                        }`}
+                      >
+                        {carrierCounts.SPX_ALL || 0}
+                      </span>
+                      <span className="text-[10px] opacity-85 hidden xl:inline">
+                        ({carrierCounts.SPX || 0}+{carrierCounts.SPX_INSTANT || 0})
+                      </span>
+                    </button>
+
+                    {(carrierCounts.SPX_ALL || 0) > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickCopyOrders('SPX_ALL', 'Gộp SPX (SPX + Hỏa Tốc)');
+                        }}
+                        title={`Click để copy nhanh toàn bộ ${(carrierCounts.SPX_ALL || 0)} mã đơn của SPX & SPX Hỏa Tốc`}
+                        className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
+                          selectedCarrier === 'SPX_ALL'
+                            ? 'hover:bg-white/20 text-white'
+                            : 'hover:bg-orange-200 text-orange-700'
+                        }`}
+                      >
+                        {quickCopiedCarrier === 'SPX_ALL' ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Nút Gộp Cả GHN: chỉ hiển thị khi CẢ 2 hãng GHN và GHN TikTok đều có từ 1 đơn trở lên */}
                 {opt.code === 'GHN_TIKTOK' && (carrierCounts.GHN || 0) > 0 && (carrierCounts.GHN_TIKTOK || 0) > 0 && (
@@ -812,7 +911,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Dynamic List & Carrier Breakdown Insights Bar (Thống kê chi tiết List & ĐVVC) */}
       {(selectedCarrier !== 'ALL' || selectedPickingList) && (
         <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-50/80 via-blue-50/50 to-white border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs animate-in fade-in slide-in-from-top-1 duration-150">
-          {/* Case A: User selected a Carrier (e.g. SPX or JNT or GHN_ALL or multi-carrier merge) */}
+          {/* Case A: User selected a Carrier (e.g. SPX or JNT or GHN_ALL or SPX_ALL or multi-carrier merge) */}
           {selectedCarrier !== 'ALL' && (
             <div className="flex items-center flex-wrap gap-2">
               {activeCarrierCodes.length > 1 ? (
@@ -837,6 +936,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   <Zap className="w-4 h-4 text-blue-600 fill-blue-500" />
                   <span>
                     ⚡ Đang gộp 2 hãng: <b>Giao Hàng Nhanh</b> ({carrierCounts.GHN || 0} đơn) + <b>GHN TikTok</b> ({carrierCounts.GHN_TIKTOK || 0} đơn) = <b className="text-blue-700">{carrierCounts.GHN_ALL || 0} đơn</b>
+                    {listsWithCarrierOrders.length > 0 ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:` : ' (Không có trong list nào)'}
+                  </span>
+                </span>
+              ) : selectedCarrier === 'SPX_ALL' ? (
+                <span className="font-bold text-gray-800 flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-orange-600 fill-orange-500" />
+                  <span>
+                    ⚡ Đang gộp 2 hãng: <b>Shopee Express</b> ({carrierCounts.SPX || 0} đơn) + <b>SPX Hỏa Tốc</b> ({carrierCounts.SPX_INSTANT || 0} đơn) = <b className="text-orange-700">{carrierCounts.SPX_ALL || 0} đơn</b>
                     {listsWithCarrierOrders.length > 0 ? ` phân bổ trong ${listsWithCarrierOrders.length} Picking Lists:` : ' (Không có trong list nào)'}
                   </span>
                 </span>

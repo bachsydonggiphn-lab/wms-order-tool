@@ -282,7 +282,7 @@ function laSKUHopLe(sku) {
   if (clean.includes(':') || clean.includes('：') || clean.includes('\\t')) return false;
   if (/^\\d{3,}/.test(clean)) return false;
   if (/^YD-\\d{4,8}-\\d+$/i.test(clean)) return false;
-  if (/^(SPXVN|PL72|LEXTH|GY8D|VN02|PL\\d{6,})/i.test(clean)) return false;
+  if (/^(SPXVN|PL72|LEXTH|GY8D|VN02|VN26|PL\\d{6,})/i.test(clean)) return false;
   if (/^\\d+$/.test(clean)) return false;
   if (!/[A-Za-z]/.test(clean)) return false;
   return true;

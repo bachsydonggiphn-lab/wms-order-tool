@@ -113,6 +113,15 @@ export const PickingListDetailView: React.FC<PickingListDetailViewProps> = ({
         selectedCarrier === 'ALL' ||
         (selectedCarrier === 'GHN_ALL'
           ? (order.carrier === 'GHN' || order.carrier === 'GHN_TIKTOK')
+          : selectedCarrier === 'SPX_ALL'
+          ? (order.carrier === 'SPX' || order.carrier === 'SPX_INSTANT')
+          : selectedCarrier.includes(',')
+          ? selectedCarrier.split(',').map((s) => s.trim()).some((c) => {
+              if (c === 'ALL') return true;
+              if (c === 'GHN_ALL') return order.carrier === 'GHN' || order.carrier === 'GHN_TIKTOK';
+              if (c === 'SPX_ALL') return order.carrier === 'SPX' || order.carrier === 'SPX_INSTANT';
+              return order.carrier === c;
+            })
           : order.carrier === selectedCarrier);
       if (isCarrierMatch) {
         entry.carrierOrders.push(order);
