@@ -32,6 +32,7 @@ import { loadWmsInventory, getCachedInventory, exportInventoryToExcel } from '..
 import { playOrderAlertSound } from '../../utils/audioAlert';
 import { DEFAULT_AREA_ORDER } from '../../utils/skuData';
 import { InventoryPrintModal } from '../InventoryPrintModal';
+import { SingleSkuLabelModal } from '../SingleSkuLabelModal';
 import { openInventoryPrintWindow } from '../../utils/inventoryPrint';
 
 function compareGroups(a: string, b: string): number {
@@ -126,6 +127,15 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
     setPrintModalInitialGroup(groupName);
     setPrintModalLayoutMode('COLUMN_MATRIX');
     setIsPrintModalOpen(true);
+  };
+
+  // Single SKU Thermal Label Print States
+  const [selectedSkuForLabel, setSelectedSkuForLabel] = useState<WmsInventoryItem | null>(null);
+  const [isSkuLabelModalOpen, setIsSkuLabelModalOpen] = useState<boolean>(false);
+
+  const handleOpenSkuLabel = (item: WmsInventoryItem) => {
+    setSelectedSkuForLabel(item);
+    setIsSkuLabelModalOpen(true);
   };
 
   // Refs for background interval to avoid stale closures
@@ -853,6 +863,17 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
                               {item.onWay > 0 && <span className="text-amber-600 ml-1 font-bold">+{item.onWay} về</span>}
                             </span>
                           </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenSkuLabel(item);
+                            }}
+                            className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer shadow-2xs"
+                            title={`In tem nhãn SKU ${item.sku} (Máy in nhiệt)`}
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
                           <CornerDownLeft className={`w-3.5 h-3.5 ${isSelected ? 'text-emerald-600' : 'text-slate-300'}`} />
                         </div>
                       </div>
@@ -1151,7 +1172,7 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
                           <th className="py-2.5 px-3 text-right">Chờ Xuất</th>
                           <th className="py-2.5 px-3 text-right">Hàng Lỗi</th>
                           <th className="py-2.5 px-4 text-center w-28">Cập Nhật</th>
-                          <th className="py-2.5 px-3 text-center w-16">Thao tác</th>
+                          <th className="py-2.5 px-3 text-center w-20">Thao tác</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -1222,17 +1243,26 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
                                 {item.updateTime ? item.updateTime.slice(5) : '-'}
                               </td>
                               <td className="py-2 px-3 text-center">
-                                <button
-                                  onClick={() => handleCopySku(item.sku)}
-                                  className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
-                                  title="Sao chép mã SKU"
-                                >
-                                  {isItemCopied ? (
-                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                  ) : (
-                                    <Copy className="w-3.5 h-3.5" />
-                                  )}
-                                </button>
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    onClick={() => handleOpenSkuLabel(item)}
+                                    className="p-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer transition-colors shadow-2xs"
+                                    title={`In tem nhãn SKU ${item.sku} (Máy in nhiệt XP-D465B)`}
+                                  >
+                                    <Printer className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleCopySku(item.sku)}
+                                    className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
+                                    title="Sao chép mã SKU"
+                                  >
+                                    {isItemCopied ? (
+                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="w-3.5 h-3.5" />
+                                    )}
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -1350,7 +1380,7 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
                   </th>
                   <th className="py-3 px-3 text-right">Hàng Lỗi</th>
                   <th className="py-3 px-4 text-center w-28">Cập Nhật</th>
-                  <th className="py-3 px-3 text-center w-14">Copy</th>
+                  <th className="py-3 px-3 text-center w-20">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -1426,17 +1456,26 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
                         {item.updateTime ? item.updateTime.slice(5) : '-'}
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <button
-                          onClick={() => handleCopySku(item.sku)}
-                          className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
-                          title="Sao chép mã SKU"
-                        >
-                          {isItemCopied ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenSkuLabel(item)}
+                            className="p-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer transition-colors shadow-2xs"
+                            title={`In tem nhãn SKU ${item.sku} (Máy in nhiệt XP-D465B)`}
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleCopySku(item.sku)}
+                            className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
+                            title="Sao chép mã SKU"
+                          >
+                            {isItemCopied ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1454,6 +1493,16 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
         data={data}
         initialGroup={printModalInitialGroup}
         initialLayoutMode={printModalLayoutMode}
+      />
+
+      {/* 6. Single SKU Thermal Label Print Modal */}
+      <SingleSkuLabelModal
+        isOpen={isSkuLabelModalOpen}
+        onClose={() => {
+          setIsSkuLabelModalOpen(false);
+          setSelectedSkuForLabel(null);
+        }}
+        item={selectedSkuForLabel}
       />
     </div>
   );
