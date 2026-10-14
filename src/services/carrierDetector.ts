@@ -262,9 +262,41 @@ export function getJNTMultiTrackingUrl(codes: string[], phone: string = '8836'):
   return `https://jtexpress.vn/vi/tracking?type=track&billcode=${encodeURIComponent(cleanCodes.join(','))}&cellphone=${encodeURIComponent(cleanPhone)}`;
 }
 
-export function matchesTrackingPrefixFilter(code: string, prefixes: string[]): boolean {
-  if (!prefixes || prefixes.length === 0) return true;
+export interface TrackingPrefixFilterOptions {
+  carrierFilterMode?: string;
+  selectedCarriers?: string[];
+  customPrefixes?: string[];
+  only8623AndSpxvn?: boolean;
+}
+
+export function matchesTrackingPrefixFilter(
+  code: string,
+  prefixesOrOptions: string[] | TrackingPrefixFilterOptions
+): boolean {
+  if (!prefixesOrOptions) return true;
   const upper = (code || '').trim().toUpperCase();
-  return prefixes.some(p => upper.startsWith(p.trim().toUpperCase()));
+
+  if (Array.isArray(prefixesOrOptions)) {
+    if (prefixesOrOptions.length === 0) return true;
+    return prefixesOrOptions.some(p => upper.startsWith(p.trim().toUpperCase()));
+  }
+
+  const { carrierFilterMode, selectedCarriers, customPrefixes, only8623AndSpxvn } = prefixesOrOptions;
+  if (only8623AndSpxvn) {
+    return upper.startsWith('8623') || upper.startsWith('SPXVN') || upper.startsWith('VN26');
+  }
+  if (customPrefixes && customPrefixes.length > 0) {
+    if (customPrefixes.some(p => upper.startsWith(p.trim().toUpperCase()))) return true;
+  }
+  if (carrierFilterMode === 'spx_jt') {
+    return upper.startsWith('8') || upper.startsWith('SPX') || upper.startsWith('VN26') || upper.startsWith('JT');
+  }
+  if (selectedCarriers && selectedCarriers.length > 0) {
+    return selectedCarriers.some(c => {
+      const carrierConfig = CARRIERS[c as CarrierId];
+      return carrierConfig?.prefixHints.some(p => upper.startsWith(p.toUpperCase()));
+    });
+  }
+  return true;
 }
 

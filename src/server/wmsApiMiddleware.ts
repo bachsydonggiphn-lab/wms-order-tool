@@ -366,7 +366,7 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
 
           const totalQty = items.reduce((sum: number, it: any) => sum + it.qty, 0);
           const skuCount = items.length;
-          const isSingleSku = (skuCount === 1 && totalQty === 1) ? 1 : (skuCount === 1 ? 1 : 0);
+          const isSingleSku = Boolean(skuCount === 1);
 
           pageOrdersToInsert.push({
             orderNo,

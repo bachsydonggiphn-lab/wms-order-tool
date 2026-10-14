@@ -586,6 +586,7 @@ export interface HotSkuAnalysisItem {
   onWay?: number;
   inUsed?: number;
   daysOfInventory?: number | null;
+  daysOfStock?: number | null;
   stockoutWarning?: boolean;
   incomingWarning?: boolean;
 

@@ -1925,7 +1925,7 @@ interface BestCaptchaToken {
   expiresAt: number;
 }
 
-async function getBestCaptchaToken(): Promise<BestCaptchaToken> {
+async function getBestCaptchaToken(_forceRefresh?: boolean): Promise<BestCaptchaToken> {
   const appKey = 'ef49c150db25a98c410bae455cc3ec79';
   const captchaServerUrl = 'https://captcha-sg.800best.com/api';
 

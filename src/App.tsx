@@ -286,19 +286,39 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-5">
-        {/* Data Input Panel */}
-        <DataInputSection
-          onDataLoaded={handleDataLoaded}
-          onClearData={handleClearData}
-          onLoadSample={handleLoadSampleData}
-          onOpenWmsModal={() => setIsWmsModalOpen(true)}
-          skuGroups={skuGroups}
-          ordersCount={orders.length}
-          forceOpen={forceOpenInput}
+        {/* Toolbar & 3 Master Modules Navigation */}
+        <Toolbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          pickingLists={pickingLists}
+          selectedPickingList={selectedPickingList}
+          setSelectedPickingList={setSelectedPickingList}
+          selectedCarrier={selectedCarrier}
+          setSelectedCarrier={setSelectedCarrier}
+          carrierCounts={carrierCounts}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          onExportExcel={handleExportExcel}
+          onPrintPreview={() => setIsPrintModalOpen(true)}
+          totalOrders={orders.length}
+          orders={orders}
         />
 
-        {/* Empty state alert when no orders are loaded */}
-        {orders.length === 0 && (
+        {/* Data Input Panel - Chỉ hiển thị trong Phân hệ 1 (Vận Hành Đơn Hàng) */}
+        {activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && (
+          <DataInputSection
+            onDataLoaded={handleDataLoaded}
+            onClearData={handleClearData}
+            onLoadSample={handleLoadSampleData}
+            onOpenWmsModal={() => setIsWmsModalOpen(true)}
+            skuGroups={skuGroups}
+            ordersCount={orders.length}
+            forceOpen={forceOpenInput}
+          />
+        )}
+
+        {/* Empty state alert when no orders are loaded trong Phân hệ 1 */}
+        {activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && orders.length === 0 && (
           <div className="mb-6 p-6 bg-gradient-to-br from-indigo-50/90 to-amber-50/70 border border-indigo-200/80 rounded-3xl text-center shadow-xs">
             <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
               <Package className="w-6 h-6" />
@@ -334,24 +354,6 @@ export default function App() {
             </div>
           </div>
         )}
-
-        {/* Toolbar & Filter Bar */}
-        <Toolbar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          pickingLists={pickingLists}
-          selectedPickingList={selectedPickingList}
-          setSelectedPickingList={setSelectedPickingList}
-          selectedCarrier={selectedCarrier}
-          setSelectedCarrier={setSelectedCarrier}
-          carrierCounts={carrierCounts}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          onExportExcel={handleExportExcel}
-          onPrintPreview={() => setIsPrintModalOpen(true)}
-          totalOrders={orders.length}
-          orders={orders}
-        />
 
         {/* Active Tab View Rendering */}
         <div className="transition-all duration-200">
