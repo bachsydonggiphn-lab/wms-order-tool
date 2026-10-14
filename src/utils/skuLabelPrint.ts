@@ -1,5 +1,5 @@
 export interface SkuLabelPrintOptions {
-  paperSize?: '30x50' | '50x30' | '40x30' | '50x50' | '75x50' | '100x150';
+  paperSize?: '30x50' | '50x30' | '30x40' | '40x30' | '50x50' | '75x50' | '100x150';
   copies: number;
   showTitle?: boolean;
   showGroup?: boolean;
@@ -11,8 +11,9 @@ export const PAPER_SIZE_CONFIGS: Record<
   { label: string; widthMm: number; heightMm: number; orientation: 'portrait' | 'landscape' }
 > = {
   '30x50': { label: '30 × 50 mm (Khổ Dọc / Ngang - Xprinter)', widthMm: 30, heightMm: 50, orientation: 'portrait' },
+  '30x40': { label: '30 × 40 mm (Khổ Dọc)', widthMm: 30, heightMm: 40, orientation: 'portrait' },
+  '40x30': { label: '40 × 30 mm (Tem Nhỏ - Ngang)', widthMm: 40, heightMm: 30, orientation: 'landscape' },
   '50x30': { label: '50 × 30 mm (Khổ Ngang)', widthMm: 50, heightMm: 30, orientation: 'landscape' },
-  '40x30': { label: '40 × 30 mm (Tem Nhỏ)', widthMm: 40, heightMm: 30, orientation: 'landscape' },
   '50x50': { label: '50 × 50 mm (Khổ Vuông)', widthMm: 50, heightMm: 50, orientation: 'portrait' },
   '75x50': { label: '75 × 50 mm (Tem Trung)', widthMm: 75, heightMm: 50, orientation: 'landscape' },
   '100x150': { label: '100 × 150 mm (Khổ A6)', widthMm: 100, heightMm: 150, orientation: 'portrait' },
