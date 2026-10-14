@@ -127,78 +127,78 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
           </div>
+        </div>
 
-          {/* Action Buttons - Chỉ hiển thị khi đang trong phân hệ 1 (Vận Hành Đơn Hàng) */}
-          {isOrderOps && (
+        {/* Row 2: Stats Cards & Các Nút Thao Tác (Đồng Bộ, Dữ Liệu Mẫu, Xóa Đưa Xuống Dưới) - Chỉ hiển thị khi đang trong phân hệ 1 */}
+        {isOrderOps && (
+          <div className="flex items-center justify-between gap-2.5 mt-2.5 pt-2 border-t border-slate-100 flex-wrap">
+            {/* Left: Stats Cards */}
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-600 shrink-0"></div>
+                <div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">Đơn hàng</div>
+                  <div className="text-xs font-bold text-gray-900 leading-tight">{orders.length}</div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-600 shrink-0"></div>
+                <div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">SKU</div>
+                  <div className="text-xs font-bold text-gray-900 leading-tight">{totalSkus}</div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600 shrink-0"></div>
+                <div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">PCS</div>
+                  <div className="text-xs font-bold text-gray-900 leading-tight">{totalPcs}</div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 shrink-0"></div>
+                <div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">Lists</div>
+                  <div className="text-xs font-bold text-gray-900 leading-tight">{pickingLists.length}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Các nút thao tác đã đưa xuống dưới */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {onOpenWmsSync && (
                 <button
                   onClick={onOpenWmsSync}
                   title="Kết nối trực tiếp YunWMS để lấy đơn Submitted"
-                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs transition-all cursor-pointer"
                 >
                   <span className="text-amber-300">⚡</span>
-                  <span className="hidden sm:inline">Đồng Bộ YunWMS</span>
-                  <span className="sm:hidden">WMS</span>
+                  <span>Đồng Bộ YunWMS</span>
                 </button>
               )}
 
               <button
                 onClick={onLoadSample}
                 title="Tải dữ liệu mẫu"
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-colors shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-colors shadow-xs cursor-pointer"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="hidden sm:inline">Dữ liệu mẫu</span>
+                <span>Dữ liệu mẫu</span>
               </button>
 
               {orders.length > 0 && (
                 <button
                   onClick={onClear}
                   title="Xóa toàn bộ dữ liệu đơn hàng cũ"
-                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-colors cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-colors cursor-pointer shadow-2xs"
                 >
                   <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                  <span className="hidden sm:inline">Xóa</span>
+                  <span>Xóa</span>
                 </button>
               )}
-            </div>
-          )}
-        </div>
-
-        {/* Row 2: Stats Cards - Chỉ hiển thị khi đang trong phân hệ 1 (Vận Hành Đơn Hàng) */}
-        {isOrderOps && (
-          <div className="flex items-center gap-1.5 sm:gap-2.5 mt-2 flex-wrap">
-            <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2.5 shadow-2xs">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-600 shrink-0"></div>
-              <div>
-                <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">Đơn hàng</div>
-                <div className="text-xs font-bold text-gray-900 leading-tight">{orders.length}</div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2.5 shadow-2xs">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-600 shrink-0"></div>
-              <div>
-                <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">SKU</div>
-                <div className="text-xs font-bold text-gray-900 leading-tight">{totalSkus}</div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2.5 shadow-2xs">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600 shrink-0"></div>
-              <div>
-                <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">PCS</div>
-                <div className="text-xs font-bold text-gray-900 leading-tight">{totalPcs}</div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2.5 shadow-2xs">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 shrink-0"></div>
-              <div>
-                <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">Lists</div>
-                <div className="text-xs font-bold text-gray-900 leading-tight">{pickingLists.length}</div>
-              </div>
             </div>
           </div>
         )}
