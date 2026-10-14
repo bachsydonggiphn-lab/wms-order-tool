@@ -1,5 +1,8 @@
 export interface SkuLabelPrintOptions {
-  paperSize?: '30x50' | '50x30' | '30x40' | '40x30' | '50x50' | '75x50' | '100x150';
+  paperSize?: string;
+  customWidthMm?: number;
+  customHeightMm?: number;
+  orientation?: 'landscape' | 'portrait';
   copies: number;
   showTitle?: boolean;
   showGroup?: boolean;
@@ -10,14 +13,46 @@ export const PAPER_SIZE_CONFIGS: Record<
   string,
   { label: string; widthMm: number; heightMm: number; orientation: 'portrait' | 'landscape' }
 > = {
-  '30x50': { label: '30 × 50 mm (Khổ Dọc / Ngang - Xprinter)', widthMm: 30, heightMm: 50, orientation: 'portrait' },
+  '50x30': { label: '50 × 30 mm (Khổ Ngang - Chuẩn Xprinter XP-D465B)', widthMm: 50, heightMm: 30, orientation: 'landscape' },
+  '40x30': { label: '40 × 30 mm (Khổ Ngang)', widthMm: 40, heightMm: 30, orientation: 'landscape' },
   '30x40': { label: '30 × 40 mm (Khổ Dọc)', widthMm: 30, heightMm: 40, orientation: 'portrait' },
-  '40x30': { label: '40 × 30 mm (Tem Nhỏ - Ngang)', widthMm: 40, heightMm: 30, orientation: 'landscape' },
-  '50x30': { label: '50 × 30 mm (Khổ Ngang)', widthMm: 50, heightMm: 30, orientation: 'landscape' },
+  '30x50': { label: '30 × 50 mm (Khổ Dọc)', widthMm: 30, heightMm: 50, orientation: 'portrait' },
   '50x50': { label: '50 × 50 mm (Khổ Vuông)', widthMm: 50, heightMm: 50, orientation: 'portrait' },
   '75x50': { label: '75 × 50 mm (Tem Trung)', widthMm: 75, heightMm: 50, orientation: 'landscape' },
   '100x150': { label: '100 × 150 mm (Khổ A6)', widthMm: 100, heightMm: 150, orientation: 'portrait' },
+  'custom': { label: 'Tùy Chỉnh Kích Thước (Rộng × Cao mm)', widthMm: 50, heightMm: 30, orientation: 'landscape' },
 };
+
+export function resolvePaperDimensions(options: SkuLabelPrintOptions): {
+  widthMm: number;
+  heightMm: number;
+  orientation: 'landscape' | 'portrait';
+} {
+  let widthMm = 50;
+  let heightMm = 30;
+
+  if (options.customWidthMm && options.customHeightMm && options.customWidthMm > 0 && options.customHeightMm > 0) {
+    widthMm = options.customWidthMm;
+    heightMm = options.customHeightMm;
+  } else if (options.paperSize && PAPER_SIZE_CONFIGS[options.paperSize]) {
+    widthMm = PAPER_SIZE_CONFIGS[options.paperSize].widthMm;
+    heightMm = PAPER_SIZE_CONFIGS[options.paperSize].heightMm;
+  }
+
+  // Tự động xoay nếu người dùng chọn rõ orientation
+  if (options.orientation === 'landscape' && widthMm < heightMm) {
+    const tmp = widthMm;
+    widthMm = heightMm;
+    heightMm = tmp;
+  } else if (options.orientation === 'portrait' && widthMm > heightMm) {
+    const tmp = widthMm;
+    widthMm = heightMm;
+    heightMm = tmp;
+  }
+
+  const orientation = widthMm >= heightMm ? 'landscape' : 'portrait';
+  return { widthMm, heightMm, orientation };
+}
 
 export function generateSkuLabelHtml(
   item: { sku: string; title?: string; group?: string },
@@ -25,8 +60,13 @@ export function generateSkuLabelHtml(
   options: SkuLabelPrintOptions
 ): string {
   const copies = Math.max(1, options.copies || 1);
+  const { widthMm, heightMm, orientation } = resolvePaperDimensions(options);
 
-  // Tạo nội dung tem nhãn - KHÔNG CÓ BẤT KỲ TOOLBAR HAY TEXT THỪA NÀO
+  // Tính toán kích thước font và QR code theo kích thước milimet thực tế
+  const qrMaxHeightMm = Math.round(heightMm * (options.showTitle || options.showGroup ? 0.62 : 0.72));
+  const qrMaxWidthMm = Math.round(widthMm * 0.88);
+  const skuFontSizePt = Math.min(15, Math.max(8.5, Math.round(heightMm * 0.36)));
+
   const singleLabelHtml = `
     <div class="label-page">
       <div class="label-content">
@@ -57,8 +97,8 @@ export function generateSkuLabelHtml(
   <title>Tem SKU - ${escapeHtml(item.sku)}</title>
   <style>
     @page {
-      size: auto;
-      margin: 0;
+      size: ${widthMm}mm ${heightMm}mm;
+      margin: 0mm;
     }
     *, *::before, *::after {
       box-sizing: border-box;
@@ -66,8 +106,8 @@ export function generateSkuLabelHtml(
       padding: 0;
     }
     html, body {
-      width: 100%;
-      height: 100%;
+      width: ${widthMm}mm;
+      height: ${heightMm}mm;
       margin: 0 !important;
       padding: 0 !important;
       background: #ffffff;
@@ -79,10 +119,10 @@ export function generateSkuLabelHtml(
     }
 
     .label-page {
-      width: 100vw;
-      height: 100vh;
-      max-width: 100vw;
-      max-height: 100vh;
+      width: ${widthMm}mm;
+      height: ${heightMm}mm;
+      max-width: ${widthMm}mm;
+      max-height: ${heightMm}mm;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -91,10 +131,11 @@ export function generateSkuLabelHtml(
       break-after: page;
       page-break-inside: avoid;
       break-inside: avoid;
-      padding: 2mm 2mm;
+      padding: 1mm 1.5mm;
       overflow: hidden;
-      margin: 0;
+      margin: 0 auto;
       background: #ffffff;
+      box-sizing: border-box;
     }
 
     .label-page:last-child {
@@ -119,25 +160,25 @@ export function generateSkuLabelHtml(
       justify-content: center;
       width: 100%;
       flex: 1 1 auto;
-      max-height: 74vh;
+      max-height: ${qrMaxHeightMm}mm;
       overflow: hidden;
     }
 
     .qr-container svg {
       width: auto;
       height: 100%;
-      max-width: 90vw;
+      max-width: ${qrMaxWidthMm}mm;
       max-height: 100%;
       display: block;
       shape-rendering: crispEdges;
     }
 
     .sku-text {
-      font-size: clamp(14px, 5.2vw, 22px);
+      font-size: ${skuFontSizePt}pt;
       font-weight: 900;
-      letter-spacing: 0.6px;
-      line-height: 1.15;
-      margin-top: 1.5mm;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+      margin-top: 0.6mm;
       color: #000000;
       word-break: break-word;
       text-transform: uppercase;
@@ -145,48 +186,50 @@ export function generateSkuLabelHtml(
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 96vw;
+      max-width: ${Math.round(widthMm * 0.96)}mm;
     }
 
     .group-text {
-      font-size: 8pt;
+      font-size: 7.5pt;
       font-weight: 700;
       color: #333333;
-      margin-top: 0.5mm;
-      line-height: 1.1;
-      max-width: 95vw;
+      margin-top: 0.4mm;
+      line-height: 1.05;
+      max-width: ${Math.round(widthMm * 0.95)}mm;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .title-text {
-      font-size: 7pt;
+      font-size: 6.5pt;
       color: #444444;
-      line-height: 1.1;
-      margin-top: 0.5mm;
-      max-height: 4.5mm;
+      line-height: 1.05;
+      margin-top: 0.4mm;
+      max-height: 3.8mm;
       overflow: hidden;
-      max-width: 95vw;
+      max-width: ${Math.round(widthMm * 0.95)}mm;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
 
     @media print {
       html, body {
-        width: 100vw !important;
-        height: 100vh !important;
+        width: ${widthMm}mm !important;
+        height: ${heightMm}mm !important;
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden !important;
       }
       .label-page {
-        width: 100vw !important;
-        height: 100vh !important;
-        max-width: 100vw !important;
-        max-height: 100vh !important;
+        width: ${widthMm}mm !important;
+        height: ${heightMm}mm !important;
+        max-width: ${widthMm}mm !important;
+        max-height: ${heightMm}mm !important;
         border: none !important;
         box-shadow: none !important;
+        margin: 0 !important;
+        padding: 1mm 1.5mm !important;
       }
     }
   </style>
@@ -199,7 +242,7 @@ export function generateSkuLabelHtml(
     window.addEventListener('load', function() {
       setTimeout(function() {
         window.print();
-      }, 250);
+      }, 200);
     });
   </script>
 </body>
@@ -287,4 +330,3 @@ export function openSkuLabelPrintWindow(
   }
   return true;
 }
-
