@@ -131,9 +131,21 @@ export default function App() {
     }, 1200);
   };
 
+  const normalizeOrdersCarrier = (rawList: RawOrderRow[]): RawOrderRow[] => {
+    return rawList.map((o) => {
+      const cInfo = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText);
+      return {
+        ...o,
+        carrier: cInfo.carrier,
+        carrierName: cInfo.carrierName,
+      };
+    });
+  };
+
   const handleDataLoaded = (newOrders: RawOrderRow[]) => {
-    setOrders(newOrders);
-    saveOrdersToStorage(newOrders);
+    const normalized = normalizeOrdersCarrier(newOrders);
+    setOrders(normalized);
+    saveOrdersToStorage(normalized);
     try {
       confetti({
         particleCount: 40,
@@ -145,9 +157,10 @@ export default function App() {
 
   // Xử lý đơn mới bắt được từ Live WMS Real-Time Tracker
   const handleNewRealTimeOrders = (freshOrders: RawOrderRow[]) => {
+    const normalizedFresh = normalizeOrdersCarrier(freshOrders);
     setOrders((current) => {
       const existingIds = new Set(current.map((o) => o.orderNo));
-      const trulyNew = freshOrders.filter((o) => !existingIds.has(o.orderNo));
+      const trulyNew = normalizedFresh.filter((o) => !existingIds.has(o.orderNo));
       if (trulyNew.length === 0) return current;
 
       const merged = [...trulyNew, ...current];
@@ -158,8 +171,9 @@ export default function App() {
 
   // Thay thế toàn bộ đơn khi người dùng chọn "Chỉ cào trạng thái này" (VD: Shelved E11=5)
   const handleReloadStatusOrders = (freshOrders: RawOrderRow[]) => {
-    setOrders(freshOrders);
-    saveOrdersToStorage(freshOrders);
+    const normalized = normalizeOrdersCarrier(freshOrders);
+    setOrders(normalized);
+    saveOrdersToStorage(normalized);
   };
 
   const handleLoadSampleData = () => {

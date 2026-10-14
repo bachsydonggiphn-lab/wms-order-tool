@@ -13,7 +13,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
-import { CARRIER_CONFIG } from '../utils/orderProcessor';
+import { CARRIER_CONFIG, xacDinhDonViVanChuyen } from '../utils/orderProcessor';
 
 interface CopyCarrierOrdersModalProps {
   isOpen: boolean;
@@ -65,7 +65,7 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
     };
 
     baseOrders.forEach((o) => {
-      const c = o.carrier || 'OTHER';
+      const c = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText).carrier || o.carrier || 'OTHER';
       if (map[c]) {
         map[c].push(o);
       } else {

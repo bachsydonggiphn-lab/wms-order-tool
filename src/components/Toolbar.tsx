@@ -23,7 +23,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
-import { CARRIER_CONFIG } from '../utils/orderProcessor';
+import { CARRIER_CONFIG, xacDinhDonViVanChuyen } from '../utils/orderProcessor';
 import { CopyCarrierOrdersModal } from './CopyCarrierOrdersModal';
 
 export type ActiveTabType =
@@ -78,30 +78,57 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const [quickCopiedCarrier, setQuickCopiedCarrier] = useState<CarrierCode | null>(null);
   const [quickToastMessage, setQuickToastMessage] = useState<string | null>(null);
 
+  // Helper lấy hãng thực tế chuẩn hóa từ dữ liệu đơn hàng
+  const getOrderCarrier = (o: RawOrderRow): CarrierCode => {
+    return xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText).carrier || o.carrier || 'OTHER';
+  };
+
   const handleQuickCopyOrders = (carrierCode: CarrierCode, carrierLabel: string) => {
     if (!orders || orders.length === 0) {
       alert('Không có dữ liệu đơn hàng để sao chép.');
       return;
     }
 
-    const list = orders.filter((o) => {
-      if (selectedPickingList && o.pickingList !== selectedPickingList) return false;
+    // 1. Lọc đơn trong Picking List hiện tại nếu đang chọn
+    let list = orders.filter((o) => {
+      if (selectedPickingList && (o.pickingList || '').trim() !== selectedPickingList.trim()) return false;
+      const c = getOrderCarrier(o);
       if (carrierCode === 'ALL') return true;
-      if (carrierCode === 'GHN_ALL') return o.carrier === 'GHN' || o.carrier === 'GHN_TIKTOK';
-      if (carrierCode === 'SPX_ALL') return o.carrier === 'SPX' || o.carrier === 'SPX_INSTANT';
-      return o.carrier === carrierCode;
+      if (carrierCode === 'GHN_ALL') return c === 'GHN' || c === 'GHN_TIKTOK';
+      if (carrierCode === 'SPX_ALL') return c === 'SPX' || c === 'SPX_INSTANT';
+      return c === carrierCode;
     });
+
+    // 2. Nếu trong Picking List hiện tại không có, nhưng trong toàn bộ đơn hàng lại có:
+    let isFromAllLists = false;
+    if (list.length === 0 && selectedPickingList) {
+      const allList = orders.filter((o) => {
+        const c = getOrderCarrier(o);
+        if (carrierCode === 'ALL') return true;
+        if (carrierCode === 'GHN_ALL') return c === 'GHN' || c === 'GHN_TIKTOK';
+        if (carrierCode === 'SPX_ALL') return c === 'SPX' || c === 'SPX_INSTANT';
+        return c === carrierCode;
+      });
+      if (allList.length > 0) {
+        list = allList;
+        isFromAllLists = true;
+      }
+    }
 
     if (list.length === 0) {
       alert(`Không có đơn hàng nào cho hãng ${carrierLabel}!`);
       return;
     }
 
-    const text = list.map((o) => o.orderNo).filter(Boolean).join('\n');
+    const text = list.map((o) => o.orderNo || o.trackingNo).filter(Boolean).join('\n');
     navigator.clipboard.writeText(text);
 
     setQuickCopiedCarrier(carrierCode);
-    setQuickToastMessage(`Đã copy ${list.length} mã đơn ${carrierLabel}`);
+    setQuickToastMessage(
+      isFromAllLists
+        ? `Đã copy ${list.length} mã đơn ${carrierLabel} (Toàn bộ kho)`
+        : `Đã copy ${list.length} mã đơn ${carrierLabel}`
+    );
     setTimeout(() => {
       setQuickCopiedCarrier(null);
       setQuickToastMessage(null);
@@ -277,8 +304,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   // Helper kiểm tra 1 đơn hàng có khớp với bộ lọc ĐVVC hay không (hỗ trợ cả gộp nhiều hãng)
-  const isOrderMatchCarrier = (orderCarrier: string | undefined, filter: string): boolean => {
+  const isOrderMatchCarrier = (order: RawOrderRow | string | undefined, filter: string): boolean => {
     if (!filter || filter === 'ALL') return true;
+    const orderCarrier = typeof order === 'object' && order !== null ? getOrderCarrier(order) : (order || 'OTHER');
     if (filter === 'GHN_ALL') return orderCarrier === 'GHN' || orderCarrier === 'GHN_TIKTOK';
     if (filter === 'SPX_ALL') return orderCarrier === 'SPX' || orderCarrier === 'SPX_INSTANT';
     if (filter.includes(',')) {
@@ -365,7 +393,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         stats[pl] = { totalInList: 0, carrierCount: 0 };
       }
       stats[pl].totalInList++;
-      const isMatch = isOrderMatchCarrier(o.carrier, selectedCarrier);
+      const isMatch = isOrderMatchCarrier(o, selectedCarrier);
       if (isMatch) {
         stats[pl].carrierCount++;
       }
@@ -404,7 +432,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     const counts: Record<string, number> = {};
     orders.forEach((o) => {
       if ((o.pickingList || '').trim() === selectedPickingList) {
-        const c = o.carrier || 'OTHER';
+        const c = getOrderCarrier(o);
         counts[c] = (counts[c] || 0) + 1;
       }
     });
@@ -421,7 +449,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const currentFilteredCount = useMemo(() => {
     return orders.filter((o) => {
       const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
-      const matchCarrier = isOrderMatchCarrier(o.carrier, selectedCarrier);
+      const matchCarrier = isOrderMatchCarrier(o, selectedCarrier);
       return matchPl && matchCarrier;
     }).length;
   }, [orders, selectedPickingList, selectedCarrier]);
@@ -435,10 +463,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const handleCopyCurrentListCarrier = () => {
     const matched = orders.filter((o) => {
       const matchPl = !selectedPickingList || (o.pickingList || '').trim() === selectedPickingList;
-      const matchCarrier = isOrderMatchCarrier(o.carrier, selectedCarrier);
+      const matchCarrier = isOrderMatchCarrier(o, selectedCarrier);
       return matchPl && matchCarrier;
     });
-    const orderNos = matched.map((o) => o.orderNo).filter(Boolean);
+    const orderNos = matched.map((o) => o.orderNo || o.trackingNo).filter(Boolean);
     if (orderNos.length === 0) return;
     navigator.clipboard.writeText(orderNos.join('\n'));
     setQuickToastMessage(`Đã copy ${orderNos.length} đơn (${selectedPickingList || 'Tất cả list'} - ${activeCarriersSummary})`);
