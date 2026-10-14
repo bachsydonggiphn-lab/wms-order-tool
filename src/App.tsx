@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { RawOrderRow, SkuGroupsMap, CarrierCode } from './types';
 import { DEFAULT_SKU_GROUPS, DEFAULT_AREA_ORDER } from './utils/skuData';
@@ -101,8 +101,21 @@ export default function App() {
     });
   }, []);
 
-  // 3. Quản lý bộ lọc & View & Modals
-  const [activeTab, setActiveTab] = useState<ActiveTabType>('sku_pcs');
+  // 3. Quản lý bộ lọc & View & Modals (Tối ưu Keep-Alive chuyển tab siêu tốc, không giật lag)
+  const [activeTab, setActiveTabRaw] = useState<ActiveTabType>('sku_pcs');
+  const [visitedTabs, setVisitedTabs] = useState<Set<ActiveTabType>>(() => new Set<ActiveTabType>(['sku_pcs']));
+
+  const setActiveTab = useCallback((tab: ActiveTabType) => {
+    React.startTransition(() => {
+      setActiveTabRaw(tab);
+      setVisitedTabs((prev) => {
+        if (prev.has(tab)) return prev;
+        const next = new Set(prev);
+        next.add(tab);
+        return next;
+      });
+    });
+  }, []);
   const [selectedPickingList, setSelectedPickingList] = useState<string>('');
   const [selectedCarrier, setSelectedCarrier] = useState<CarrierCode>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -304,8 +317,8 @@ export default function App() {
           orders={orders}
         />
 
-        {/* Data Input Panel - Chỉ hiển thị trong Phân hệ 1 (Vận Hành Đơn Hàng) */}
-        {activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && (
+        {/* Data Input Panel - Giữ mounted, chỉ ẩn khi sang phân hệ 2 và 3 để không phải unmount */}
+        <div className={activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' ? 'block' : 'hidden'}>
           <DataInputSection
             onDataLoaded={handleDataLoaded}
             onClearData={handleClearData}
@@ -315,157 +328,183 @@ export default function App() {
             ordersCount={orders.length}
             forceOpen={forceOpenInput}
           />
-        )}
 
-        {/* Empty state alert when no orders are loaded trong Phân hệ 1 */}
-        {activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && orders.length === 0 && (
-          <div className="mb-6 p-6 bg-gradient-to-br from-indigo-50/90 to-amber-50/70 border border-indigo-200/80 rounded-3xl text-center shadow-xs">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
-              <Package className="w-6 h-6" />
+          {/* Empty state alert when no orders are loaded trong Phân hệ 1 */}
+          {orders.length === 0 && (
+            <div className="mb-6 p-6 bg-gradient-to-br from-indigo-50/90 to-amber-50/70 border border-indigo-200/80 rounded-3xl text-center shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <Package className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900 mb-1">
+                Chưa Có Dữ Liệu Đơn Hàng Nào Trong Hệ Thống
+              </h3>
+              <p className="text-xs text-gray-600 max-w-lg mx-auto mb-4 leading-relaxed">
+                Bạn có thể bấm <b>Kéo Đơn Trực Tiếp YunWMS</b> để lấy đơn trạng thái <b>Submitted</b> từ kho VN02 tự động bằng API, hoặc sao chép bảng dữ liệu dán vào khung phía trên.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                <button
+                  onClick={() => setIsWmsModalOpen(true)}
+                  className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="text-amber-300 text-sm">⚡</span>
+                  <span>Kéo Đơn Trực Tiếp YunWMS (API)</span>
+                </button>
+                <button
+                  onClick={() => setForceOpenInput((prev) => !prev)}
+                  className="px-4 py-2 bg-white hover:bg-gray-50 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Mở Khung Nhập & Dán Dữ Liệu</span>
+                </button>
+                <button
+                  onClick={handleLoadSampleData}
+                  className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+                  <span>Dữ Liệu Mẫu (22 đơn)</span>
+                </button>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-gray-900 mb-1">
-              Chưa Có Dữ Liệu Đơn Hàng Nào Trong Hệ Thống
-            </h3>
-            <p className="text-xs text-gray-600 max-w-lg mx-auto mb-4 leading-relaxed">
-              Bạn có thể bấm <b>Kéo Đơn Trực Tiếp YunWMS</b> để lấy đơn trạng thái <b>Submitted</b> từ kho VN02 tự động bằng API, hoặc sao chép bảng dữ liệu dán vào khung phía trên.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              <button
-                onClick={() => setIsWmsModalOpen(true)}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <span className="text-amber-300 text-sm">⚡</span>
-                <span>Kéo Đơn Trực Tiếp YunWMS (API)</span>
-              </button>
-              <button
-                onClick={() => setForceOpenInput((prev) => !prev)}
-                className="px-4 py-2 bg-white hover:bg-gray-50 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Mở Khung Nhập & Dán Dữ Liệu</span>
-              </button>
-              <button
-                onClick={handleLoadSampleData}
-                className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
-                <span>Dữ Liệu Mẫu (22 đơn)</span>
-              </button>
+          )}
+        </div>
+
+        {/* Active Tab View Rendering with Keep-Alive Cache (Chuyển tab tức thì 0ms, không lag, không mất trạng thái) */}
+        <div className="w-full">
+          {visitedTabs.has('sku_pcs') && (
+            <div className={activeTab === 'sku_pcs' ? 'block' : 'hidden'}>
+              <SkuAndPcsView
+                orders={orders}
+                skuGroups={skuGroups}
+                selectedPickingList={selectedPickingList}
+                selectedCarrier={selectedCarrier}
+                searchTerm={searchTerm}
+                onNavigateTab={setActiveTab}
+              />
             </div>
-          </div>
-        )}
-
-        {/* Active Tab View Rendering */}
-        <div className="transition-all duration-200">
-          {activeTab === 'sku_pcs' && (
-            <SkuAndPcsView
-              orders={orders}
-              skuGroups={skuGroups}
-              selectedPickingList={selectedPickingList}
-              selectedCarrier={selectedCarrier}
-              searchTerm={searchTerm}
-              onNavigateTab={setActiveTab}
-            />
           )}
 
-          {activeTab === 'hot_sku_slotting' && (
-            <HotSkuSlottingView
-              skuGroups={skuGroups}
-              onNavigateToInventory={() => {
-                setActiveTab('inventory_query');
-              }}
-            />
+          {visitedTabs.has('hot_sku_slotting') && (
+            <div className={activeTab === 'hot_sku_slotting' ? 'block' : 'hidden'}>
+              <HotSkuSlottingView
+                skuGroups={skuGroups}
+                onNavigateToInventory={() => {
+                  setActiveTab('inventory_query');
+                }}
+              />
+            </div>
           )}
 
-          {activeTab === 'inventory_query' && (
-            <InventoryQueryView
-              skuGroups={skuGroups}
-              onNavigateToSlotting={() => {
-                setActiveTab('hot_sku_slotting');
-              }}
-            />
+          {visitedTabs.has('inventory_query') && (
+            <div className={activeTab === 'inventory_query' ? 'block' : 'hidden'}>
+              <InventoryQueryView
+                skuGroups={skuGroups}
+                onNavigateToSlotting={() => {
+                  setActiveTab('hot_sku_slotting');
+                }}
+              />
+            </div>
           )}
 
-          {activeTab === 'picking_detail' && (
-            <PickingListDetailView
-              orders={orders}
-              skuGroups={skuGroups}
-              selectedPickingList={selectedPickingList}
-              onSelectPickingList={setSelectedPickingList}
-              searchTerm={searchTerm}
-              selectedCarrier={selectedCarrier}
-              onSelectCarrier={setSelectedCarrier}
-              onOpenPrintModal={(pl) => {
-                if (pl) setSelectedPickingList(pl);
-                setIsPrintModalOpen(true);
-              }}
-            />
+          {visitedTabs.has('picking_detail') && (
+            <div className={activeTab === 'picking_detail' ? 'block' : 'hidden'}>
+              <PickingListDetailView
+                orders={orders}
+                skuGroups={skuGroups}
+                selectedPickingList={selectedPickingList}
+                onSelectPickingList={setSelectedPickingList}
+                searchTerm={searchTerm}
+                selectedCarrier={selectedCarrier}
+                onSelectCarrier={setSelectedCarrier}
+                onOpenPrintModal={(pl) => {
+                  if (pl) setSelectedPickingList(pl);
+                  setIsPrintModalOpen(true);
+                }}
+              />
+            </div>
           )}
 
-          {activeTab === 'area_group' && (
-            <AreaGroupingView
-              orders={orders}
-              skuGroups={skuGroups}
-              selectedPickingList={selectedPickingList}
-              selectedCarrier={selectedCarrier}
-              searchTerm={searchTerm}
-            />
+          {visitedTabs.has('area_group') && (
+            <div className={activeTab === 'area_group' ? 'block' : 'hidden'}>
+              <AreaGroupingView
+                orders={orders}
+                skuGroups={skuGroups}
+                selectedPickingList={selectedPickingList}
+                selectedCarrier={selectedCarrier}
+                searchTerm={searchTerm}
+              />
+            </div>
           )}
 
-          {activeTab === 'mix_analysis' && (
-            <MixOrderAnalysisView
-              orders={orders}
-              skuGroups={skuGroups}
-              selectedPickingList={selectedPickingList}
-              selectedCarrier={selectedCarrier}
-            />
+          {visitedTabs.has('mix_analysis') && (
+            <div className={activeTab === 'mix_analysis' ? 'block' : 'hidden'}>
+              <MixOrderAnalysisView
+                orders={orders}
+                skuGroups={skuGroups}
+                selectedPickingList={selectedPickingList}
+                selectedCarrier={selectedCarrier}
+              />
+            </div>
           )}
 
-          {activeTab === 'yoga_mat' && (
-            <YogaClassificationView
-              orders={orders}
-              skuGroups={skuGroups}
-              selectedPickingList={selectedPickingList}
-              selectedCarrier={selectedCarrier}
-              searchTerm={searchTerm}
-            />
+          {visitedTabs.has('yoga_mat') && (
+            <div className={activeTab === 'yoga_mat' ? 'block' : 'hidden'}>
+              <YogaClassificationView
+                orders={orders}
+                skuGroups={skuGroups}
+                selectedPickingList={selectedPickingList}
+                selectedCarrier={selectedCarrier}
+                searchTerm={searchTerm}
+              />
+            </div>
           )}
 
-          {activeTab === 'single_pcs' && (
-            <SinglePcsView
-              orders={orders}
-              skuGroups={skuGroups}
-              selectedPickingList={selectedPickingList}
-              selectedCarrier={selectedCarrier}
-              searchTerm={searchTerm}
-            />
+          {visitedTabs.has('single_pcs') && (
+            <div className={activeTab === 'single_pcs' ? 'block' : 'hidden'}>
+              <SinglePcsView
+                orders={orders}
+                skuGroups={skuGroups}
+                selectedPickingList={selectedPickingList}
+                selectedCarrier={selectedCarrier}
+                searchTerm={searchTerm}
+              />
+            </div>
           )}
 
-          {activeTab === 'shipped_tracking' && (
-            <ShippedTrackingView
-              skuGroups={skuGroups}
-            />
+          {visitedTabs.has('shipped_tracking') && (
+            <div className={activeTab === 'shipped_tracking' ? 'block' : 'hidden'}>
+              <ShippedTrackingView
+                skuGroups={skuGroups}
+              />
+            </div>
           )}
 
-          {activeTab === 'all_table' && (
-            <AllOrdersTableView
-              orders={orders}
-              skuGroups={skuGroups}
-              selectedPickingList={selectedPickingList}
-              selectedCarrier={selectedCarrier}
-              onSelectCarrier={setSelectedCarrier}
-              searchTerm={searchTerm}
-            />
+          {visitedTabs.has('all_table') && (
+            <div className={activeTab === 'all_table' ? 'block' : 'hidden'}>
+              <AllOrdersTableView
+                orders={orders}
+                skuGroups={skuGroups}
+                selectedPickingList={selectedPickingList}
+                selectedCarrier={selectedCarrier}
+                onSelectCarrier={setSelectedCarrier}
+                searchTerm={searchTerm}
+              />
+            </div>
           )}
 
-          {activeTab === 'sku_settings' && (
-            <SkuSettingsView
-              skuGroups={skuGroups}
-              onUpdateSkuGroups={handleUpdateSkuGroups}
-            />
+          {visitedTabs.has('sku_settings') && (
+            <div className={activeTab === 'sku_settings' ? 'block' : 'hidden'}>
+              <SkuSettingsView
+                skuGroups={skuGroups}
+                onUpdateSkuGroups={handleUpdateSkuGroups}
+              />
+            </div>
           )}
 
-          {activeTab === 'apps_script' && <AppsScriptCodeView />}
+          {visitedTabs.has('apps_script') && (
+            <div className={activeTab === 'apps_script' ? 'block' : 'hidden'}>
+              <AppsScriptCodeView />
+            </div>
+          )}
         </div>
       </main>
 
