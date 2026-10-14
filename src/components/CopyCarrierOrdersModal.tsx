@@ -23,7 +23,7 @@ interface CopyCarrierOrdersModalProps {
   initialCarrier?: CarrierCode;
 }
 
-type CopyFieldType = 'orderNo' | 'trackingNo' | 'both' | 'detailed';
+type CopyFieldType = 'orderNo' | 'trackingNo' | 'tracking_prefix' | 'both' | 'detailed';
 type SeparatorType = 'newline' | 'comma' | 'semicolon' | 'space';
 
 export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
@@ -304,6 +304,13 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
         .join(sepChar);
     }
 
+    if (copyField === 'tracking_prefix') {
+      return currentOrders
+        .map((o) => (o.trackingNo ? `Tracking No. ：${o.trackingNo}` : `Tracking No. ：${o.orderNo}`))
+        .filter(Boolean)
+        .join(sepChar);
+    }
+
     if (copyField === 'both') {
       return currentOrders
         .map((o) => `${o.orderNo}\t${o.trackingNo || ''}`)
@@ -531,6 +538,19 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
                   >
                     <span>Mã Tracking (Vận Đơn)</span>
                     {copyField === 'trackingNo' && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCopyField('tracking_prefix')}
+                    className={`px-3 py-2 text-xs font-semibold rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                      copyField === 'tracking_prefix'
+                        ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold'
+                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>Tracking No. ：(Có tiền tố)</span>
+                    {copyField === 'tracking_prefix' && <Check className="w-3.5 h-3.5 text-blue-600" />}
                   </button>
 
                   <button

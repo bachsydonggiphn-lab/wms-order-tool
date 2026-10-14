@@ -57,8 +57,8 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [skuSortMode, setSkuSortMode] = useState<'name' | 'qty'>('name');
 
-  // Chế độ hiển thị trong các cột PCS: 'sku' (Phân loại theo SKU), 'order_no' (Mã đơn thô), 'tracking_no' (Mã vận đơn)
-  const [columnViewMode, setColumnViewMode] = useState<'sku' | 'order_no' | 'tracking_no'>('sku');
+  // Chế độ hiển thị trong các cột PCS: 'sku' (Phân loại theo SKU), 'order_no' (Mã đơn thô), 'tracking_no' (Mã vận đơn thuần), 'tracking_prefix' (Mã vận đơn kèm "Tracking No. ：")
+  const [columnViewMode, setColumnViewMode] = useState<'sku' | 'order_no' | 'tracking_no' | 'tracking_prefix'>('sku');
 
   // Bộ lọc khoảng số lượng đơn hàng của SKU: 'all' | 'lt5' | '5-9' | '10-19' | '20' | 'ge5' | 'lt9' | 'custom'
   const [minOrderThreshold, setMinOrderThreshold] = useState<'all' | 'lt5' | '5-9' | '10-19' | '20' | 'ge5' | 'lt9' | 'custom'>('all');
@@ -245,9 +245,25 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
     setTimeout(() => setCopiedKey(null), 2500);
   };
 
-  // Copy toàn bộ cột PCS (theo chế độ Order No hoặc Tracking No)
+  // Copy toàn bộ cột PCS (theo chế độ Order No, Tracking No hoặc Tracking No. ：)
   const handleCopyColumn = (title: string, list: string[]) => {
     if (!list || list.length === 0) return;
+    if (columnViewMode === 'tracking_prefix') {
+      const trackingNos = list
+        .map((orderNo) => {
+          const t = orderMap.get(orderNo)?.trackingNo?.trim();
+          return t ? `Tracking No. ：${t}` : `Tracking No. ：${orderNo}`;
+        })
+        .filter(Boolean);
+      if (trackingNos.length > 0) {
+        navigator.clipboard.writeText(trackingNos.join('\n'));
+      } else {
+        navigator.clipboard.writeText(list.join('\n'));
+      }
+      setCopiedKey(title);
+      setTimeout(() => setCopiedKey(null), 2000);
+      return;
+    }
     if (columnViewMode === 'tracking_no') {
       const trackingNos = list
         .map((orderNo) => orderMap.get(orderNo)?.trackingNo?.trim() || '')
@@ -542,10 +558,10 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
               </h3>
             </div>
 
-            {/* Switcher: Phân loại theo SKU vs Mã Đơn Thuần vs Mã Vận Đơn */}
+            {/* Switcher: Phân loại theo SKU vs Mã Đơn Thuần vs Mã Vận Đơn vs Tracking No. ： */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 font-medium hidden sm:inline">Hiển thị trong cột:</span>
-              <div className="flex items-center p-0.5 bg-gray-200/80 rounded-xl border border-gray-200">
+              <div className="flex items-center p-0.5 bg-gray-200/80 rounded-xl border border-gray-200 flex-wrap sm:flex-nowrap">
                 <button
                   onClick={() => setColumnViewMode('sku')}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -577,10 +593,22 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                       ? 'bg-white text-indigo-700 shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  title="Hiển thị danh sách mã vận đơn (Tracking No.)"
+                  title="Hiển thị danh sách mã vận đơn thuần (chỉ mã)"
                 >
                   <Truck className="w-3.5 h-3.5 text-indigo-500" />
                   <span>Danh Sách Mã Vận Đơn (Tracking No.)</span>
+                </button>
+                <button
+                  onClick={() => setColumnViewMode('tracking_prefix')}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    columnViewMode === 'tracking_prefix'
+                      ? 'bg-white text-blue-700 shadow-2xs font-bold ring-1 ring-blue-300'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Hiển thị danh sách kèm tiền tố 'Tracking No. ：' (Định dạng chuẩn WMS)"
+                >
+                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Tracking No. ：</span>
                 </button>
               </div>
             </div>
@@ -891,7 +919,9 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                             handleCopyColumn(headerTitle, ordersList);
                           }}
                           title={
-                            columnViewMode === 'tracking_no'
+                            columnViewMode === 'tracking_prefix'
+                              ? `Sao chép toàn bộ ${ordersList.length} dòng dạng "Tracking No. ：..." của cột ${headerTitle}`
+                              : columnViewMode === 'tracking_no'
                               ? `Sao chép toàn bộ ${ordersList.length} mã vận đơn (Tracking No.) của cột ${headerTitle}`
                               : `Sao chép toàn bộ ${ordersList.length} mã đơn của cột ${headerTitle}`
                           }
@@ -1189,14 +1219,19 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                             <span>Mở Bảng Phân Tách SKU</span>
                           </button>
                         </div>
-                      ) : columnViewMode === 'tracking_no' ? (
-                        /* Content: Mode C - Raw Tracking Nos (Mã vận đơn) */
+                      ) : columnViewMode === 'tracking_no' || columnViewMode === 'tracking_prefix' ? (
+                        /* Content: Mode C & D - Raw Tracking Nos (Mã vận đơn thuần hoặc Kèm tiền tố Tracking No. ：) */
                         <div className="p-2.5 space-y-1 max-h-[500px] overflow-y-auto font-mono">
                           {ordersList.map((orderNo, idx) => {
                             const order = orderMap.get(orderNo);
                             const trackingNo = order?.trackingNo?.trim() || '';
-                            const displayText = trackingNo || '(Chưa có mã VĐ)';
-                            const copyText = trackingNo || orderNo;
+                            const isPrefix = columnViewMode === 'tracking_prefix';
+                            const displayText = trackingNo
+                              ? (isPrefix ? `Tracking No. ：${trackingNo}` : trackingNo)
+                              : (isPrefix ? `Tracking No. ：(Chưa có mã)` : '(Chưa có mã VĐ)');
+                            const copyText = trackingNo
+                              ? (isPrefix ? `Tracking No. ：${trackingNo}` : trackingNo)
+                              : (isPrefix ? `Tracking No. ：${orderNo}` : orderNo);
 
                             return (
                               <div
@@ -1208,13 +1243,23 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                                 }}
                                 className={`text-[11px] p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between group ${
                                   trackingNo
-                                    ? 'text-gray-800 hover:text-indigo-600 hover:bg-white border-transparent hover:border-gray-200'
+                                    ? isPrefix
+                                      ? 'text-blue-900 bg-blue-50/40 hover:bg-white border-transparent hover:border-blue-200'
+                                      : 'text-gray-800 hover:text-indigo-600 hover:bg-white border-transparent hover:border-gray-200'
                                     : 'text-gray-400 italic bg-gray-50/50 border-gray-100'
                                 }`}
-                                title={trackingNo ? `Mã VĐ: ${trackingNo} (Click để sao chép)` : `Đơn ${orderNo} chưa có Tracking No`}
+                                title={
+                                  trackingNo
+                                    ? `Click để sao chép: ${copyText}`
+                                    : `Đơn ${orderNo} chưa có Tracking No`
+                                }
                               >
                                 <div className="flex items-center gap-1.5 truncate">
-                                  <Truck className="w-3 h-3 text-indigo-400 shrink-0" />
+                                  {isPrefix ? (
+                                    <FileText className="w-3 h-3 text-blue-500 shrink-0" />
+                                  ) : (
+                                    <Truck className="w-3 h-3 text-indigo-400 shrink-0" />
+                                  )}
                                   <span className="truncate">{displayText}</span>
                                 </div>
                                 {copiedKey === `track_${orderNo}_${idx}` ? (
