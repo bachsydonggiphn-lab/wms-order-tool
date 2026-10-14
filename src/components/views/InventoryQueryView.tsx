@@ -23,7 +23,9 @@ import {
   Zap,
   Activity,
   Printer,
-  Flame
+  Flame,
+  Sparkles,
+  CornerDownLeft
 } from 'lucide-react';
 import { InventoryQueryResult, InventoryGroupSummary, WmsInventoryItem, SkuGroupsMap } from '../../types';
 import { loadWmsInventory, getCachedInventory, exportInventoryToExcel } from '../../services/inventoryService';
@@ -88,6 +90,22 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [copiedSku, setCopiedSku] = useState<string | null>(null);
   const [copiedGroup, setCopiedGroup] = useState<string | null>(null);
+
+  // Autocomplete Suggestion States
+  const [isSuggestOpen, setIsSuggestOpen] = useState<boolean>(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close suggestion dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSuggestOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sorting for table mode (Mặc định sắp xếp theo Mã SKU A-Z và số)
   const [sortField, setSortField] = useState<SortField>('sku');
@@ -300,6 +318,95 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
       return true;
     });
   }, [data, selectedGroup, searchQuery, stockFilter]);
+
+  // Smart Autocomplete Suggestions calculation
+  const smartSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q || !data?.items) return [];
+
+    const matched = data.items.map((item) => {
+      const skuLower = item.sku.toLowerCase();
+      const titleLower = (item.title || item.productName || '').toLowerCase();
+      const groupLower = (item.group || '').toLowerCase();
+
+      let score = 0;
+      if (skuLower === q) {
+        score = 100;
+      } else if (skuLower.startsWith(q)) {
+        score = 80;
+      } else if (skuLower.includes(q)) {
+        score = 60;
+      } else if (titleLower.includes(q)) {
+        score = 40;
+      } else if (groupLower.includes(q)) {
+        score = 20;
+      }
+
+      return { item, score };
+    }).filter(entry => entry.score > 0);
+
+    matched.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.item.inUsed !== a.item.inUsed) return b.item.inUsed - a.item.inUsed;
+      return a.item.sku.localeCompare(b.item.sku, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    return matched.slice(0, 10).map(m => m.item);
+  }, [data?.items, searchQuery]);
+
+  const handleSelectSku = (sku: string) => {
+    setSearchQuery(sku);
+    setIsSuggestOpen(false);
+    setHighlightedIndex(-1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isSuggestOpen || smartSuggestions.length === 0) {
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && smartSuggestions.length > 0) {
+        setIsSuggestOpen(true);
+        setHighlightedIndex(0);
+        e.preventDefault();
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev => (prev < smartSuggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev => (prev > 0 ? prev - 1 : smartSuggestions.length - 1));
+    } else if (e.key === 'Enter') {
+      if (highlightedIndex >= 0 && highlightedIndex < smartSuggestions.length) {
+        e.preventDefault();
+        handleSelectSku(smartSuggestions[highlightedIndex].sku);
+      }
+    } else if (e.key === 'Escape') {
+      setIsSuggestOpen(false);
+      setHighlightedIndex(-1);
+    }
+  };
+
+  // Helper to highlight matching text
+  const highlightMatch = (text: string, query: string) => {
+    const q = query.trim();
+    if (!q || !text) return text;
+    try {
+      const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const parts = text.split(regex);
+      return parts.map((part, i) =>
+        part.toLowerCase() === q.toLowerCase() ? (
+          <mark key={i} className="bg-emerald-100 text-emerald-800 font-black px-0.5 rounded not-italic">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      );
+    } catch {
+      return text;
+    }
+  };
 
   // Grouped results based on filtered items
   const filteredGroups = useMemo(() => {
@@ -657,23 +764,121 @@ export const InventoryQueryView: React.FC<InventoryQueryViewProps> = ({
       {/* 3. Search Bar, Group Tabs & View Mode Switcher */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3.5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
+          {/* Search Box with Smart Autocomplete */}
+          <div ref={searchContainerRef} className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Tìm kiếm mã SKU, tên sản phẩm, nhóm..."
+              placeholder="Gõ mã SKU (vd: YD-A01, YD-D...), tên sản phẩm..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsSuggestOpen(true);
+                setHighlightedIndex(-1);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim() && smartSuggestions.length > 0) {
+                  setIsSuggestOpen(true);
+                }
+              }}
+              onKeyDown={handleKeyDown}
+              className="w-full pl-9 pr-8 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSuggestOpen(false);
+                  setHighlightedIndex(-1);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full hover:bg-slate-200/60 cursor-pointer"
+                title="Xóa tìm kiếm"
               >
                 ✕
               </button>
+            )}
+
+            {/* Smart Suggestions Dropdown */}
+            {isSuggestOpen && smartSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 md:w-[480px] top-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="px-3.5 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                  <span className="flex items-center gap-1.5 text-emerald-700">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                    Gợi ý thông minh ({smartSuggestions.length})
+                  </span>
+                  <span className="text-slate-400 font-normal">Dùng phím ↑ ↓ & Enter để chọn</span>
+                </div>
+                <div className="max-h-72 overflow-y-auto divide-y divide-slate-100/80">
+                  {smartSuggestions.map((item, idx) => {
+                    const isSelected = idx === highlightedIndex;
+                    return (
+                      <div
+                        key={item.id || item.sku}
+                        onClick={() => handleSelectSku(item.sku)}
+                        onMouseEnter={() => setHighlightedIndex(idx)}
+                        className={`p-2.5 flex items-center justify-between gap-3 cursor-pointer transition-colors ${
+                          isSelected ? 'bg-emerald-50/80' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-xs font-black text-slate-900">
+                              {highlightMatch(item.sku, searchQuery)}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200/60">
+                              {item.group}
+                            </span>
+                          </div>
+                          {item.title && (
+                            <p className="text-[11px] text-slate-500 truncate mt-0.5" title={item.title}>
+                              {highlightMatch(item.title, searchQuery)}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Stock Stats */}
+                        <div className="flex items-center gap-2 shrink-0 text-right">
+                          <div className="flex flex-col items-end">
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-xs font-black ${
+                                item.inUsed > 0
+                                  ? 'bg-emerald-100/80 text-emerald-800 border border-emerald-300/60'
+                                  : 'bg-rose-100/80 text-rose-800 border border-rose-300/60'
+                              }`}
+                            >
+                              {item.inUsed > 0 ? `Tồn: ${item.inUsed}` : 'Hết hàng (0)'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">
+                              Bán: <strong className="text-slate-600">{item.sellable}</strong>
+                              {item.onWay > 0 && <span className="text-amber-600 ml-1 font-bold">+{item.onWay} về</span>}
+                            </span>
+                          </div>
+                          <CornerDownLeft className={`w-3.5 h-3.5 ${isSelected ? 'text-emerald-600' : 'text-slate-300'}`} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="p-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <button
+                    type="button"
+                    onClick={() => setIsSuggestOpen(false)}
+                    className="text-emerald-700 hover:text-emerald-800 font-bold hover:underline cursor-pointer"
+                  >
+                    🔍 Xem bảng chi tiết cho "{searchQuery.trim()}"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSuggestOpen(false);
+                      setHighlightedIndex(-1);
+                    }}
+                    className="text-slate-400 hover:text-slate-600 cursor-pointer font-medium"
+                  >
+                    Đóng [Esc]
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
