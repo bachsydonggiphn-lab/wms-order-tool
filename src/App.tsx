@@ -116,6 +116,16 @@ export default function App() {
       });
     });
   }, []);
+
+  const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query';
+  const [lastOrderSubTab, setLastOrderSubTab] = useState<ActiveTabType>('sku_pcs');
+
+  useEffect(() => {
+    if (activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query') {
+      setLastOrderSubTab(activeTab);
+    }
+  }, [activeTab]);
+
   const [selectedPickingList, setSelectedPickingList] = useState<string>('');
   const [selectedCarrier, setSelectedCarrier] = useState<CarrierCode>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -277,7 +287,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
-      {/* Global Header */}
+      {/* Global Header with 3 Master Buttons beside Logo */}
       <Header
         orders={orders}
         totalSkus={totalSkus}
@@ -287,35 +297,42 @@ export default function App() {
         onLoadSample={handleLoadSampleData}
         onClear={handleClearData}
         onOpenWmsSync={() => setIsWmsModalOpen(true)}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        lastOrderSubTab={lastOrderSubTab}
       />
 
-      {/* Real-Time Live WMS Tracker Bar */}
-      <RealTimeTrackerBar
-        orders={orders}
-        onNewOrders={handleNewRealTimeOrders}
-        onReloadStatusOrders={handleReloadStatusOrders}
-        skuGroups={skuGroups}
-      />
+      {/* Real-Time Live WMS Tracker Bar - Chỉ hiển thị khi đang ở phân hệ 1 (Vận Hành Đơn Hàng) */}
+      {isOrderOps && (
+        <RealTimeTrackerBar
+          orders={orders}
+          onNewOrders={handleNewRealTimeOrders}
+          onReloadStatusOrders={handleReloadStatusOrders}
+          skuGroups={skuGroups}
+        />
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-5">
-        {/* Toolbar & 3 Master Modules Navigation */}
-        <Toolbar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          pickingLists={pickingLists}
-          selectedPickingList={selectedPickingList}
-          setSelectedPickingList={setSelectedPickingList}
-          selectedCarrier={selectedCarrier}
-          setSelectedCarrier={setSelectedCarrier}
-          carrierCounts={carrierCounts}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          onExportExcel={handleExportExcel}
-          onPrintPreview={() => setIsPrintModalOpen(true)}
-          totalOrders={orders.length}
-          orders={orders}
-        />
+        {/* Toolbar & Filter Bar - Chỉ hiển thị trong Phân hệ 1 (Vận Hành Đơn Hàng) */}
+        {isOrderOps && (
+          <Toolbar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            pickingLists={pickingLists}
+            selectedPickingList={selectedPickingList}
+            setSelectedPickingList={setSelectedPickingList}
+            selectedCarrier={selectedCarrier}
+            setSelectedCarrier={setSelectedCarrier}
+            carrierCounts={carrierCounts}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onExportExcel={handleExportExcel}
+            onPrintPreview={() => setIsPrintModalOpen(true)}
+            totalOrders={orders.length}
+            orders={orders}
+          />
+        )}
 
         {/* Data Input Panel - Giữ mounted, chỉ ẩn khi sang phân hệ 2 và 3 để không phải unmount */}
         <div className={activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' ? 'block' : 'hidden'}>
