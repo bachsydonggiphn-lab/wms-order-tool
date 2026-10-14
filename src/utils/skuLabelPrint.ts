@@ -1,7 +1,5 @@
-import { WmsInventoryItem } from '../types';
-
 export interface SkuLabelPrintOptions {
-  paperSize: '30x50' | '50x30' | '40x30' | '50x50' | '75x50' | '100x150';
+  paperSize?: '30x50' | '50x30' | '40x30' | '50x50' | '75x50' | '100x150';
   copies: number;
   showTitle?: boolean;
   showGroup?: boolean;
@@ -9,10 +7,10 @@ export interface SkuLabelPrintOptions {
 }
 
 export const PAPER_SIZE_CONFIGS: Record<
-  SkuLabelPrintOptions['paperSize'],
+  string,
   { label: string; widthMm: number; heightMm: number; orientation: 'portrait' | 'landscape' }
 > = {
-  '30x50': { label: '30 × 50 mm (Khổ Dọc - Xprinter Chuẩn)', widthMm: 30, heightMm: 50, orientation: 'portrait' },
+  '30x50': { label: '30 × 50 mm (Khổ Dọc / Ngang - Xprinter)', widthMm: 30, heightMm: 50, orientation: 'portrait' },
   '50x30': { label: '50 × 30 mm (Khổ Ngang)', widthMm: 50, heightMm: 30, orientation: 'landscape' },
   '40x30': { label: '40 × 30 mm (Tem Nhỏ)', widthMm: 40, heightMm: 30, orientation: 'landscape' },
   '50x50': { label: '50 × 50 mm (Khổ Vuông)', widthMm: 50, heightMm: 50, orientation: 'portrait' },
@@ -25,10 +23,9 @@ export function generateSkuLabelHtml(
   qrSvg: string,
   options: SkuLabelPrintOptions
 ): string {
-  const cfg = PAPER_SIZE_CONFIGS[options.paperSize] || PAPER_SIZE_CONFIGS['30x50'];
   const copies = Math.max(1, options.copies || 1);
 
-  // Tạo nội dung tem nhãn
+  // Tạo nội dung tem nhãn - KHÔNG CÓ BẤT KỲ TOOLBAR HAY TEXT THỪA NÀO
   const singleLabelHtml = `
     <div class="label-page">
       <div class="label-content">
@@ -56,13 +53,13 @@ export function generateSkuLabelHtml(
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>In Tem SKU - ${escapeHtml(item.sku)}</title>
+  <title>Tem SKU - ${escapeHtml(item.sku)}</title>
   <style>
     @page {
-      size: ${cfg.widthMm}mm ${cfg.heightMm}mm;
+      size: auto;
       margin: 0;
     }
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -70,30 +67,38 @@ export function generateSkuLabelHtml(
     html, body {
       width: 100%;
       height: 100%;
-      background-color: #ffffff;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #ffffff;
       color: #000000;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+      overflow: hidden;
     }
 
     .label-page {
-      width: ${cfg.widthMm}mm;
-      height: ${cfg.heightMm}mm;
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       page-break-after: always;
       break-after: page;
-      padding: 1.5mm 1.5mm;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      padding: 2mm 2mm;
       overflow: hidden;
-      margin: 0 auto;
+      margin: 0;
+      background: #ffffff;
     }
 
     .label-page:last-child {
-      page-break-after: auto;
-      break-after: auto;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
     }
 
     .label-content {
@@ -113,116 +118,87 @@ export function generateSkuLabelHtml(
       justify-content: center;
       width: 100%;
       flex: 1 1 auto;
-      max-height: ${Math.round(cfg.heightMm * 0.72)}mm;
+      max-height: 74vh;
+      overflow: hidden;
     }
 
     .qr-container svg {
       width: auto;
       height: 100%;
-      max-width: 95%;
-      max-height: 95%;
+      max-width: 90vw;
+      max-height: 100%;
       display: block;
       shape-rendering: crispEdges;
     }
 
     .sku-text {
-      font-size: ${cfg.heightMm >= 50 ? '15pt' : '11.5pt'};
+      font-size: clamp(14px, 5.2vw, 22px);
       font-weight: 900;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       line-height: 1.15;
-      margin-top: 1mm;
+      margin-top: 1.5mm;
       color: #000000;
       word-break: break-word;
       text-transform: uppercase;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 96vw;
     }
 
     .group-text {
-      font-size: 7.5pt;
+      font-size: 8pt;
       font-weight: 700;
       color: #333333;
       margin-top: 0.5mm;
       line-height: 1.1;
-      max-width: 95%;
+      max-width: 95vw;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .title-text {
-      font-size: 6.5pt;
+      font-size: 7pt;
       color: #444444;
       line-height: 1.1;
       margin-top: 0.5mm;
       max-height: 4.5mm;
       overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      word-break: break-word;
+      max-width: 95vw;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
-    @media screen {
-      body {
-        background-color: #f1f5f9;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
+    @media print {
+      html, body {
+        width: 100vw !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
       }
       .label-page {
-        background-color: #ffffff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        border: 1px dashed #cbd5e1;
-        border-radius: 4px;
-      }
-      .screen-toolbar {
-        position: sticky;
-        top: 10px;
-        z-index: 100;
-        background: #1e293b;
-        color: #ffffff;
-        padding: 10px 18px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-        font-size: 13px;
-        font-weight: 600;
-      }
-      .screen-toolbar button {
-        background: #10b981;
-        color: #ffffff;
-        border: none;
-        padding: 6px 14px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      .screen-toolbar button:hover {
-        background: #059669;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        border: none !important;
+        box-shadow: none !important;
       }
     }
   </style>
 </head>
 <body>
-  <div class="screen-toolbar" id="toolbar">
-    <span>🖨️ In Tem SKU: <strong>${escapeHtml(item.sku)}</strong> (${copies} tem - ${cfg.label})</span>
-    <button onclick="window.print()">In Ngay (Print)</button>
-    <button onclick="window.close()" style="background: #475569;">Đóng</button>
-  </div>
-
   ${allPagesHtml}
 
   <script>
-    // Tự động kích hoạt hộp thoại in của trình duyệt ngay khi trang tải xong
+    // Kích hoạt hộp thoại in của trình duyệt ngay khi load xong
     window.addEventListener('load', function() {
-      // Ẩn thanh công cụ khi in
       setTimeout(function() {
         window.print();
-      }, 300);
+      }, 250);
     });
   </script>
 </body>
