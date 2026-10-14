@@ -14,6 +14,7 @@ import { WmsInventoryItem } from '../types';
 import {
   SkuLabelPrintOptions,
   PAPER_SIZE_CONFIGS,
+  printSkuLabelDirectly,
   openSkuLabelPrintWindow
 } from '../utils/skuLabelPrint';
 
@@ -79,7 +80,7 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
 
   const handlePrint = () => {
     if (!qrSvg) return;
-    openSkuLabelPrintWindow(item, qrSvg, {
+    printSkuLabelDirectly(item, qrSvg, {
       paperSize,
       copies,
       showTitle,

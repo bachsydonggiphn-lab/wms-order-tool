@@ -215,6 +215,55 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
+export function printSkuLabelDirectly(
+  item: { sku: string; title?: string; group?: string },
+  qrSvg: string,
+  options: SkuLabelPrintOptions
+): boolean {
+  try {
+    const html = generateSkuLabelHtml(item, qrSvg, options);
+
+    let printFrame = document.getElementById('sku-thermal-print-frame') as HTMLIFrameElement;
+    if (!printFrame) {
+      printFrame = document.createElement('iframe');
+      printFrame.id = 'sku-thermal-print-frame';
+      printFrame.style.position = 'fixed';
+      printFrame.style.right = '0';
+      printFrame.style.bottom = '0';
+      printFrame.style.width = '0';
+      printFrame.style.height = '0';
+      printFrame.style.border = '0';
+      printFrame.style.opacity = '0';
+      printFrame.style.pointerEvents = 'none';
+      document.body.appendChild(printFrame);
+    }
+
+    const frameDoc = printFrame.contentWindow?.document || printFrame.contentDocument;
+    if (!frameDoc || !printFrame.contentWindow) {
+      return openSkuLabelPrintWindow(item, qrSvg, options);
+    }
+
+    frameDoc.open();
+    frameDoc.write(html);
+    frameDoc.close();
+
+    setTimeout(() => {
+      try {
+        printFrame.contentWindow?.focus();
+        printFrame.contentWindow?.print();
+      } catch (err) {
+        console.warn('Lỗi iframe print, fallback sang window.open:', err);
+        openSkuLabelPrintWindow(item, qrSvg, options);
+      }
+    }, 200);
+
+    return true;
+  } catch (e) {
+    console.error('Lỗi khi in trực tiếp bằng iframe:', e);
+    return openSkuLabelPrintWindow(item, qrSvg, options);
+  }
+}
+
 export function openSkuLabelPrintWindow(
   item: { sku: string; title?: string; group?: string },
   qrSvg: string,
@@ -238,3 +287,4 @@ export function openSkuLabelPrintWindow(
   }
   return true;
 }
+
