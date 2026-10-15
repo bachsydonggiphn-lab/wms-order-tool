@@ -3591,7 +3591,22 @@ async function startServer() {
       let resolvedCarrier = item.carrier;
 
       // Unambiguous tracking code formats MUST take precedence
+      // Viettel Post: SHOPEEVTPVN, SHOPEEVTP, VT, VTP - kiểm tra trước vì SHOPEEVTPVN chứa chữ SHOPEE và VN26
       if (
+        upper.startsWith('SHOPEEVTPVN') ||
+        upper.startsWith('SHOPEEVTP') ||
+        upper.startsWith('VT') || 
+        upper.startsWith('VTP') || 
+        item.carrier === 'viettelpost' ||
+        (item.carrierChannel && (
+          item.carrierChannel.toUpperCase().includes('SHOPEEVTPVN') ||
+          item.carrierChannel.toUpperCase().includes('SHOPEEVTP') ||
+          item.carrierChannel.toUpperCase().includes('VTP') ||
+          item.carrierChannel.toUpperCase().includes('VIETTEL')
+        ))
+      ) {
+        resolvedCarrier = 'viettelpost';
+      } else if (
         upper.startsWith('SPXVN') || 
         upper.startsWith('SPX') || 
         upper.startsWith('VNSPX') || 
@@ -3633,14 +3648,6 @@ async function startServer() {
         (item.carrierChannel && (item.carrierChannel.toUpperCase().includes('BEST') || item.carrierChannel.toUpperCase().includes('BST')))
       ) {
         resolvedCarrier = 'best';
-      } else if (
-        upper.startsWith('VT') || 
-        upper.startsWith('VTP') || 
-        upper.startsWith('SHOPEEVTP') ||
-        item.carrier === 'viettelpost' ||
-        (item.carrierChannel && item.carrierChannel.toUpperCase().includes('VTP'))
-      ) {
-        resolvedCarrier = 'viettelpost';
       } else if (
         // J&T Cargo: 530xxxxxxxxx (12-13 digit codes starting with 530)
         /^530\d+$/.test(upper) ||
@@ -3770,7 +3777,8 @@ async function startServer() {
             item.carrier === 'viettelpost' ||
             upper.startsWith('VT') ||
             upper.startsWith('VTP') ||
-            upper.startsWith('SHOPEEVTP')
+            upper.startsWith('SHOPEEVTP') ||
+            upper.startsWith('SHOPEEVTPVN')
           ) {
             const vtpRes = await fetchViettelPostLive(item.code, itemForce);
             results[item.code] = vtpRes;

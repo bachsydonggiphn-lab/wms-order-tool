@@ -151,7 +151,7 @@ export const CARRIER_CONFIG: Record<
     badgeText: 'text-emerald-700',
     badgeBorder: 'border-emerald-200',
     iconColor: 'text-emerald-600',
-    description: 'Mã SHOPEEVTP..., VTP..., VT kèm số hoặc mã bưu cục 10-15...',
+    description: 'Mã SHOPEEVTPVN..., SHOPEEVTP..., VTP..., VT kèm số hoặc mã bưu cục 10-15...',
   },
   VNPOST: {
     code: 'VNPOST',
@@ -206,10 +206,28 @@ export function xacDinhDonViVanChuyen(
   const tracking = (trackingNo || '').trim().toUpperCase();
   const raw = (rawText || '').toUpperCase();
 
-  // 1. SPX Hỏa Tốc (Shopee Express Instant): Mã bắt đầu bằng VN26... hoặc nhãn Hỏa Tốc / Instant
+  // 1. Viettel Post (VTP): SHOPEEVTPVN..., SHOPEEVTP..., VTP..., VT kèm số (VT123456789), hoặc đầu mã 10-15, kênh SHOPEEVTPVN / VIETTEL
+  // Ưu tiên kiểm tra trước vì SHOPEEVTPVN chứa VN26 và chữ SHOPEE dễ bị nhận nhầm sang SPX
+  if (
+    tracking.startsWith('SHOPEEVTPVN') ||
+    tracking.startsWith('SHOPEEVTP') ||
+    tracking.startsWith('VTP') ||
+    (/^VT\d{6,14}$/i.test(tracking)) ||
+    (/^(10|11|12|13|14|15)\d{8,10}$/.test(tracking)) ||
+    raw.includes('SHOPEEVTPVN') ||
+    raw.includes('SHOPEEVTP') ||
+    raw.includes('VIETTEL') ||
+    raw.includes('VIETTELPOST') ||
+    raw.includes('VIETTEL POST') ||
+    (raw.includes('VTP') && !raw.includes('VNPOST'))
+  ) {
+    return { carrier: 'VIETTELPOST', carrierName: CARRIER_CONFIG.VIETTELPOST.name };
+  }
+
+  // 2. SPX Hỏa Tốc (Shopee Express Instant): Mã bắt đầu bằng VN26... hoặc nhãn Hỏa Tốc / Instant
   if (
     tracking.startsWith('VN26') ||
-    raw.includes('VN26') ||
+    (/\bVN26[A-Z0-9]{8,}\b/i.test(raw)) ||
     raw.includes('SPX HỎA TỐC') ||
     raw.includes('SPX HOA TOC') ||
     raw.includes('SHOPEE EXPRESS HỎA TỐC') ||
@@ -222,7 +240,7 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'SPX_INSTANT', carrierName: CARRIER_CONFIG.SPX_INSTANT.name };
   }
 
-  // 2. GHN TikTok: Mã bắt đầu bằng VNGH... (Giao Hàng Nhanh trên TikTok Shop)
+  // 3. GHN TikTok: Mã bắt đầu bằng VNGH... (Giao Hàng Nhanh trên TikTok Shop)
   if (
     tracking.startsWith('VNGH') ||
     raw.includes('VNGH') ||
@@ -233,7 +251,7 @@ export function xacDinhDonViVanChuyen(
     return { carrier: 'GHN_TIKTOK', carrierName: CARRIER_CONFIG.GHN_TIKTOK.name };
   }
 
-  // 3. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE..., VNSP...
+  // 4. Shopee Express (SPX): SPXVN..., SPX..., VNSPX..., SPE..., VNSP...
   if (
     tracking.startsWith('SPXVN') ||
     tracking.startsWith('SPX') ||
@@ -246,20 +264,6 @@ export function xacDinhDonViVanChuyen(
     raw.includes('SHOPEE_EXPRESS')
   ) {
     return { carrier: 'SPX', carrierName: CARRIER_CONFIG.SPX.name };
-  }
-
-  // 3. Viettel Post (VTP): SHOPEEVTP..., VTP..., VT kèm số (VT123456789), hoặc đầu mã 10-15
-  if (
-    tracking.startsWith('SHOPEEVTP') ||
-    tracking.startsWith('VTP') ||
-    (/^VT\d{6,14}$/i.test(tracking)) ||
-    (/^(10|11|12|13|14|15)\d{8,10}$/.test(tracking)) ||
-    raw.includes('VIETTEL') ||
-    raw.includes('VIETTELPOST') ||
-    raw.includes('VIETTEL POST') ||
-    (raw.includes('VTP') && !raw.includes('VNPOST'))
-  ) {
-    return { carrier: 'VIETTELPOST', carrierName: CARRIER_CONFIG.VIETTELPOST.name };
   }
 
   // 4. Vietnam Post (VNPost / EMS): Chuẩn UPU 13 ký tự (EA...VN, EB...VN, CO...VN), EMS..., VNPOST...

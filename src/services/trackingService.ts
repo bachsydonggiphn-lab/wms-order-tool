@@ -953,6 +953,7 @@ export async function trackSingleOrder(
   // 7. Viettel Post tracking
   if (
     carrier === 'viettelpost' ||
+    upperCode.startsWith('SHOPEEVTPVN') ||
     upperCode.startsWith('SHOPEEVTP') ||
     upperCode.startsWith('VT') ||
     upperCode.startsWith('VTP')

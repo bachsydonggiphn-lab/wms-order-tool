@@ -110,8 +110,9 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
   const cleanChannel = (channelHint || '').trim().toUpperCase();
 
   // 1. PRIMARY RULE: Direct Tracking Number Prefix / Format Check
-  // Viettel Post (VTP): SHOPEEVTP..., VTP..., hoặc VT kèm số
+  // Viettel Post (VTP): SHOPEEVTPVN..., SHOPEEVTP..., VTP..., hoặc VT kèm số
   if (
+    cleanCode.startsWith('SHOPEEVTPVN') ||
     cleanCode.startsWith('SHOPEEVTP') ||
     cleanCode.startsWith('VTP') ||
     (/^VT\d{6,14}$/i.test(cleanCode)) ||
@@ -201,6 +202,16 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
 
   // 3. SECONDARY RULE: Check channel hint
   if (cleanChannel) {
+    // Viettel Post phải kiểm tra trước vì SHOPEEVTPVN chứa chữ SHOPEE
+    if (
+      cleanChannel.includes('SHOPEEVTPVN') ||
+      cleanChannel.includes('SHOPEEVTP') ||
+      cleanChannel.includes('VIETTEL') ||
+      cleanChannel.includes('VTP')
+    ) {
+      return 'viettelpost';
+    }
+
     if (cleanChannel.includes('GHN') || cleanChannel.includes('GIAOHANGNHANH') || cleanChannel.includes('GIAO HANG NHANH')) {
       return 'ghn';
     }
@@ -216,9 +227,6 @@ export function detectCarrier(code: string, channelHint: string = ''): CarrierId
       cleanChannel.includes('JTEXPRESS')
     ) {
       return 'jt';
-    }
-    if (cleanChannel.includes('VIETTEL') || cleanChannel.includes('VTP')) {
-      return 'viettelpost';
     }
     if (cleanChannel.includes('NINJA') || cleanChannel.includes('NIVN')) {
       return 'ninjavan';
