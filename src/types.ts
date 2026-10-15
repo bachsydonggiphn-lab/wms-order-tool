@@ -38,6 +38,7 @@ export interface RawOrderRow {
   rawPickingText: string;   // Cột R: Chứa Picking List No.
   orderNo: string;          // Cột P: Order No đã trích xuất
   trackingNo: string;       // Cột Q: Tracking No đã trích xuất
+  refNo?: string;           // Mã RefNo đã trích xuất (nếu có)
   pickingList: string;      // Cột U: Mã Picking List đã trích xuất
   carrier: CarrierCode;     // ĐVVC
   carrierName: string;      // Tên ĐVVC hiển thị

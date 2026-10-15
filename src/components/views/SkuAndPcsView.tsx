@@ -21,6 +21,7 @@ import {
   Flame,
   ListOrdered,
   Truck,
+  Hash,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { RawOrderRow, SkuCountResult, PcsGroupResult, CarrierCode, SkuGroupsMap } from '../../types';
@@ -57,8 +58,8 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [skuSortMode, setSkuSortMode] = useState<'name' | 'qty'>('name');
 
-  // Chế độ hiển thị trong các cột PCS: 'sku' (Phân loại theo SKU), 'order_no' (Mã đơn thô), 'tracking_no' (Mã vận đơn thuần), 'tracking_prefix' (Mã vận đơn kèm "Tracking No. ：")
-  const [columnViewMode, setColumnViewMode] = useState<'sku' | 'order_no' | 'tracking_no' | 'tracking_prefix'>('sku');
+  // Chế độ hiển thị trong các cột PCS: 'sku' (Phân loại theo SKU), 'order_no' (Mã đơn thô), 'tracking_no' (Mã vận đơn thuần), 'tracking_prefix' (Mã vận đơn kèm "Tracking No. ："), 'ref_prefix' (Kèm tiền tố "RefNo.：")
+  const [columnViewMode, setColumnViewMode] = useState<'sku' | 'order_no' | 'tracking_no' | 'tracking_prefix' | 'ref_prefix'>('sku');
 
   // Bộ lọc khoảng số lượng đơn hàng của SKU: 'all' | 'lt5' | '5-9' | '10-19' | '20' | 'ge5' | 'lt9' | 'custom'
   const [minOrderThreshold, setMinOrderThreshold] = useState<'all' | 'lt5' | '5-9' | '10-19' | '20' | 'ge5' | 'lt9' | 'custom'>('all');
@@ -245,9 +246,30 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
     setTimeout(() => setCopiedKey(null), 2500);
   };
 
-  // Copy toàn bộ cột PCS (theo chế độ Order No, Tracking No hoặc Tracking No. ：)
+  // Helper lấy mã RefNo của đơn hàng
+  const getOrderRefNo = (orderNo: string): string => {
+    const o = orderMap.get(orderNo);
+    if (!o) return orderNo;
+    if (o.refNo && o.refNo.trim()) return o.refNo.trim();
+    const match = o.rawOrderText?.match(/Ref\s*No\.?\s*[:：]\s*([^\r\n\t]+)/i);
+    return match ? match[1].trim() : (o.orderNo || orderNo);
+  };
+
+  // Copy toàn bộ cột PCS (theo chế độ Order No, Tracking No, Tracking No. ： hoặc RefNo.：)
   const handleCopyColumn = (title: string, list: string[]) => {
     if (!list || list.length === 0) return;
+    if (columnViewMode === 'ref_prefix') {
+      const refNos = list
+        .map((orderNo) => {
+          const r = getOrderRefNo(orderNo);
+          return `RefNo.：${r}`;
+        })
+        .filter(Boolean);
+      navigator.clipboard.writeText(refNos.join('\n'));
+      setCopiedKey(title);
+      setTimeout(() => setCopiedKey(null), 2000);
+      return;
+    }
     if (columnViewMode === 'tracking_prefix') {
       const trackingNos = list
         .map((orderNo) => {
@@ -610,6 +632,18 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                   <FileText className="w-3.5 h-3.5 text-blue-600" />
                   <span>Tracking No. ：</span>
                 </button>
+                <button
+                  onClick={() => setColumnViewMode('ref_prefix')}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    columnViewMode === 'ref_prefix'
+                      ? 'bg-white text-purple-700 shadow-2xs font-bold ring-1 ring-purple-300'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Hiển thị danh sách kèm tiền tố 'RefNo.：' (Định dạng chuẩn WMS)"
+                >
+                  <Hash className="w-3.5 h-3.5 text-purple-600" />
+                  <span>RefNo.：</span>
+                </button>
               </div>
             </div>
           </div>
@@ -919,7 +953,9 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                             handleCopyColumn(headerTitle, ordersList);
                           }}
                           title={
-                            columnViewMode === 'tracking_prefix'
+                            columnViewMode === 'ref_prefix'
+                              ? `Sao chép toàn bộ ${ordersList.length} dòng dạng "RefNo.：..." của cột ${headerTitle}`
+                              : columnViewMode === 'tracking_prefix'
                               ? `Sao chép toàn bộ ${ordersList.length} dòng dạng "Tracking No. ：..." của cột ${headerTitle}`
                               : columnViewMode === 'tracking_no'
                               ? `Sao chép toàn bộ ${ordersList.length} mã vận đơn (Tracking No.) của cột ${headerTitle}`
@@ -1218,6 +1254,38 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                             <Maximize2 className="w-3 h-3" />
                             <span>Mở Bảng Phân Tách SKU</span>
                           </button>
+                        </div>
+                      ) : columnViewMode === 'ref_prefix' ? (
+                        /* Content: Mode RefNo.： (Kèm tiền tố RefNo.：) */
+                        <div className="p-2.5 space-y-1 max-h-[500px] overflow-y-auto font-mono">
+                          {ordersList.map((orderNo, idx) => {
+                            const refNo = getOrderRefNo(orderNo);
+                            const displayText = `RefNo.：${refNo}`;
+                            const copyText = displayText;
+
+                            return (
+                              <div
+                                key={idx}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(copyText);
+                                  setCopiedKey(`ref_${orderNo}_${idx}`);
+                                  setTimeout(() => setCopiedKey(null), 1500);
+                                }}
+                                className="text-[11px] p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between group text-purple-900 bg-purple-50/40 hover:bg-white border-transparent hover:border-purple-200"
+                                title={`Click để sao chép: ${copyText}`}
+                              >
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <Hash className="w-3 h-3 text-purple-600 shrink-0" />
+                                  <span className="truncate">{displayText}</span>
+                                </div>
+                                {copiedKey === `ref_${orderNo}_${idx}` ? (
+                                  <span className="text-[9px] text-emerald-600 font-bold font-sans shrink-0">✓ Đã chép</span>
+                                ) : (
+                                  <Copy className="w-2.5 h-2.5 text-gray-400 opacity-0 group-hover:opacity-100 shrink-0" />
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : columnViewMode === 'tracking_no' || columnViewMode === 'tracking_prefix' ? (
                         /* Content: Mode C & D - Raw Tracking Nos (Mã vận đơn thuần hoặc Kèm tiền tố Tracking No. ：) */

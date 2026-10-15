@@ -421,6 +421,17 @@ export function layMaOrderNo(text: string | null | undefined): string {
 }
 
 /**
+ * Trích xuất RefNo. từ chuỗi text
+ */
+export function layMaRefNo(text: string | null | undefined): string {
+  if (!text || typeof text !== 'string') return '';
+  // 1. Tìm theo nhãn RefNo: hoặc RefNo.： hoặc RefNo.
+  const match = text.match(/Ref\s*No\.?\s*[:：]\s*([A-Za-z0-9-_]+)/i);
+  if (match && match[1]) return match[1].trim();
+  return '';
+}
+
+/**
  * Trích xuất Tracking No. từ chuỗi text
  */
 export function layMaTrackingNo(text: string | null | undefined): string {
@@ -865,6 +876,7 @@ export function parseRawOrderRows(
     rawPickingText?: string;
     orderNo?: string;
     trackingNo?: string;
+    refNo?: string;
     pickingList?: string;
     creationTime?: string;
     shippedTime?: string;
@@ -881,6 +893,7 @@ export function parseRawOrderRows(
 
     const orderNo = row.orderNo?.trim() || layMaOrderNo(rawOrder) || `ORDER-${index + 1}`;
     const trackingNo = row.trackingNo?.trim() || layMaTrackingNo(rawOrder);
+    const refNo = row.refNo?.trim() || layMaRefNo(rawOrder);
     const pickingList = row.pickingList?.trim() || layMaPickingList(rawPicking) || layMaPickingList(rawOrder);
     const carrierInfo = xacDinhDonViVanChuyen(trackingNo, rawOrder);
 
@@ -897,6 +910,7 @@ export function parseRawOrderRows(
       rawPickingText: rawPicking,
       orderNo,
       trackingNo,
+      refNo: refNo || undefined,
       pickingList,
       carrier: carrierInfo.carrier,
       carrierName: carrierInfo.carrierName,

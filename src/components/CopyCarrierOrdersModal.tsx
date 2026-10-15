@@ -23,7 +23,7 @@ interface CopyCarrierOrdersModalProps {
   initialCarrier?: CarrierCode;
 }
 
-type CopyFieldType = 'orderNo' | 'trackingNo' | 'tracking_prefix' | 'both' | 'detailed';
+type CopyFieldType = 'orderNo' | 'trackingNo' | 'tracking_prefix' | 'ref_prefix' | 'both' | 'detailed';
 type SeparatorType = 'newline' | 'comma' | 'semicolon' | 'space';
 
 export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
@@ -311,6 +311,16 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
         .join(sepChar);
     }
 
+    if (copyField === 'ref_prefix') {
+      return currentOrders
+        .map((o) => {
+          const r = o.refNo?.trim() || o.rawOrderText?.match(/Ref\s*No\.?\s*[:：]\s*([^\r\n\t]+)/i)?.[1]?.trim() || o.orderNo;
+          return `RefNo.：${r}`;
+        })
+        .filter(Boolean)
+        .join(sepChar);
+    }
+
     if (copyField === 'both') {
       return currentOrders
         .map((o) => `${o.orderNo}\t${o.trackingNo || ''}`)
@@ -551,6 +561,19 @@ export const CopyCarrierOrdersModal: React.FC<CopyCarrierOrdersModalProps> = ({
                   >
                     <span>Tracking No. ：(Có tiền tố)</span>
                     {copyField === 'tracking_prefix' && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCopyField('ref_prefix')}
+                    className={`px-3 py-2 text-xs font-semibold rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                      copyField === 'ref_prefix'
+                        ? 'border-purple-600 bg-purple-50 text-purple-700 font-bold'
+                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>RefNo.：(Có tiền tố)</span>
+                    {copyField === 'ref_prefix' && <Check className="w-3.5 h-3.5 text-purple-600" />}
                   </button>
 
                   <button
