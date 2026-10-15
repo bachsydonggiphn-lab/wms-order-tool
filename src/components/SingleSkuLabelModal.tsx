@@ -32,7 +32,7 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
   onClose,
   item
 }) => {
-  // Mặc định chọn 50x30mm (Khổ ngang - Chuẩn Xprinter XP-D465B)
+  // Mặc định chọn 50x30mm (Khổ ngang tiêu chuẩn dán túi/hộp)
   const [paperSize, setPaperSize] = useState<string>('50x30');
   const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [customWidth, setCustomWidth] = useState<number>(50);
@@ -40,17 +40,40 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
   const [copies, setCopies] = useState<number>(1);
   const [showTitle, setShowTitle] = useState<boolean>(false);
   const [showGroup, setShowGroup] = useState<boolean>(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrSvg, setQrSvg] = useState<string>('');
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
-  // Sinh mã QR code dạng SVG vector nét căng bất cứ khi nào SKU thay đổi
+  // Sinh mã QR code dạng Data URL (PNG 600px cực nét, không bị sọc ngang) và SVG
   useEffect(() => {
     if (!item?.sku) {
+      setQrDataUrl('');
       setQrSvg('');
       return;
     }
 
     let isSubscribed = true;
+
+    // Sinh ảnh Bitmap PNG 600px nét căng, chống đứt nét trên máy in nhiệt
+    QRCode.toDataURL(item.sku, {
+      width: 600,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    })
+      .then((url) => {
+        if (isSubscribed) {
+          setQrDataUrl(url);
+        }
+      })
+      .catch((err) => {
+        console.error('Lỗi tạo QR DataURL:', err);
+      });
+
+    // Dự phòng thêm SVG
     QRCode.toString(item.sku, {
       type: 'svg',
       margin: 1,
@@ -66,7 +89,7 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
         }
       })
       .catch((err) => {
-        console.error('Lỗi tạo QR Code:', err);
+        console.error('Lỗi tạo QR SVG:', err);
       });
 
     return () => {
@@ -111,9 +134,26 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
 
   if (!isOpen || !item) return null;
 
-  const handlePrint = () => {
-    if (!qrSvg) return;
-    printSkuLabelDirectly(item, qrSvg, {
+  // In qua cửa sổ popup chuẩn trình duyệt (Khuyên dùng - không bao giờ bị lỗi khổ A4)
+  const handlePrintWindow = () => {
+    const codeSrc = qrDataUrl || qrSvg;
+    if (!codeSrc) return;
+    openSkuLabelPrintWindow(item, codeSrc, {
+      paperSize,
+      customWidthMm: widthMm,
+      customHeightMm: heightMm,
+      orientation,
+      copies,
+      showTitle,
+      showGroup
+    });
+  };
+
+  // In trực tiếp qua iframe ngầm
+  const handlePrintDirect = () => {
+    const codeSrc = qrDataUrl || qrSvg;
+    if (!codeSrc) return;
+    printSkuLabelDirectly(item, codeSrc, {
       paperSize,
       customWidthMm: widthMm,
       customHeightMm: heightMm,
@@ -196,12 +236,26 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
             </div>
           </div>
 
-          {/* Scale Tip Alert Banner */}
-          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>
-              <strong>Kích thước chuẩn {widthMm} × {heightMm} mm:</strong> Trong hộp thoại in Chrome, chỉ cần để <strong>"Tỷ lệ: Mặc định" (100%)</strong> là vừa khít con tem, không cần kéo về 30%!
-            </span>
+          {/* Scale Tip Alert & Xprinter Instructions Banner */}
+          <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl text-xs text-amber-950 space-y-1.5 shadow-2xs">
+            <div className="font-black flex items-center gap-1.5 text-amber-900">
+              <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Cài đặt in máy Xprinter XP-D465B (Không bị thu nhỏ góc, không sọc đứt nét):</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-0.5">
+              <div className="bg-white/80 border border-amber-200/60 rounded-xl p-2">
+                <span className="font-bold text-amber-900 block">1. Khổ giấy (Paper size):</span>
+                <span className="text-slate-600">Trong Chrome bấm "Cài đặt khác" &rarr; chọn đúng khổ cuộn đang lắp (<strong>{widthMm}×{heightMm} mm</strong> hoặc <strong>100×150 mm</strong>).</span>
+              </div>
+              <div className="bg-white/80 border border-amber-200/60 rounded-xl p-2">
+                <span className="font-bold text-amber-900 block">2. Tỷ lệ (Scale):</span>
+                <span className="text-slate-600">Chọn <strong>"Mặc định" (100%)</strong> &mdash; tem tự động phủ trọn 100% diện tích nhãn in.</span>
+              </div>
+              <div className="bg-white/80 border border-amber-200/60 rounded-xl p-2">
+                <span className="font-bold text-amber-900 block">3. Lề (Margins):</span>
+                <span className="text-slate-600">Chọn <strong>"Không có" (None)</strong> để tem không bị lệch hay tạo khoảng trống thừa.</span>
+              </div>
+            </div>
           </div>
 
           {/* Grid: Preview Left + Controls Right */}
@@ -226,12 +280,29 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
                   height: `${Math.min(240, Math.max(130, heightMm * 4.2))}px`
                 }}
               >
-                {/* QR Code Container */}
+                {/* QR Code Container (PNG bitmap nét đặc, không bị gãy nét sọc ngang) */}
                 <div
                   className="w-full flex items-center justify-center overflow-hidden"
                   style={{ height: '70%' }}
-                  dangerouslySetInnerHTML={{ __html: qrSvg }}
-                />
+                >
+                  {qrDataUrl ? (
+                    <img
+                      src={qrDataUrl}
+                      alt={item.sku}
+                      className="max-h-full max-w-full object-contain select-none"
+                      style={{
+                        imageRendering: 'pixelated'
+                      }}
+                    />
+                  ) : qrSvg ? (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      dangerouslySetInnerHTML={{ __html: qrSvg }}
+                    />
+                  ) : (
+                    <div className="text-[11px] text-slate-400">Đang tạo mã QR...</div>
+                  )}
+                </div>
 
                 {/* SKU Code Text */}
                 <div className="font-mono text-sm font-black text-black tracking-wider mt-0.5 text-center select-all truncate max-w-full">
@@ -439,15 +510,27 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
             Đóng
           </button>
 
-          <button
-            type="button"
-            onClick={handlePrint}
-            disabled={!qrSvg}
-            className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20 flex items-center gap-2 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Xác Nhận In ({copies} Tem &bull; {widthMm}×{heightMm}mm)</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrintDirect}
+              disabled={!qrDataUrl && !qrSvg}
+              className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300/80 flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
+              title="In ngầm qua iframe nếu không muốn mở tab mới"
+            >
+              <span>In Nhanh (Iframe)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePrintWindow}
+              disabled={!qrDataUrl && !qrSvg}
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20 flex items-center gap-2 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Xác Nhận In ({copies} Tem &bull; {widthMm}×{heightMm}mm)</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
