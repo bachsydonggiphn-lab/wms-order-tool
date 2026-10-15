@@ -660,7 +660,10 @@ export interface HotSkuAnalyticsResult {
 /**
  * Nạp hàng loạt đơn hàng đã xuất kho vào database (bỏ qua đơn đã có)
  */
-export async function insertShippedOrdersBatch(orders: ShippedOrderInput[]): Promise<{
+export async function insertShippedOrdersBatch(
+  orders: ShippedOrderInput[],
+  skipClearCache = false
+): Promise<{
   insertedOrders: number;
   insertedItems: number;
 }> {
@@ -744,15 +747,17 @@ export async function insertShippedOrdersBatch(orders: ShippedOrderInput[]): Pro
     }
   }
 
-  // Thực thi theo từng chunk 250 câu lệnh
-  const BATCH_SIZE = 250;
+  // Thực thi theo từng chunk 1000 câu lệnh (Tăng tốc tối đa tốc độ ghi SQLite)
+  const BATCH_SIZE = 1000;
   for (let i = 0; i < statements.length; i += BATCH_SIZE) {
     const chunk = statements.slice(i, i + BATCH_SIZE);
     await db.batch(chunk, "write");
   }
 
-  // Xóa cache phân tích vì đã có đơn mới nạp vào
-  clearAnalyticsCache();
+  // Xóa cache phân tích nếu không bị hoãn
+  if (!skipClearCache) {
+    clearAnalyticsCache();
+  }
 
   return {
     insertedOrders: orders.length,

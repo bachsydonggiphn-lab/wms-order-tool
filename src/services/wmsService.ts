@@ -59,9 +59,20 @@ export interface WmsFetchResult {
 let cachedSessionCookie = '';
 let sessionExpiresAt = 0;
 
+const defaultHttpsAgent = new https.Agent({
+  keepAlive: true,
+  maxSockets: 20,
+  maxFreeSockets: 10,
+  timeout: 60000
+});
+
 export function httpsRequest(options: https.RequestOptions, postData?: string): Promise<{ statusCode: number; headers: any; body: string }> {
   return new Promise((resolve, reject) => {
-    const req = https.request(options, (res) => {
+    const opts: https.RequestOptions = {
+      agent: defaultHttpsAgent,
+      ...options
+    };
+    const req = https.request(opts, (res) => {
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
@@ -74,7 +85,7 @@ export function httpsRequest(options: https.RequestOptions, postData?: string): 
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(30000, () => {
+    req.setTimeout(45000, () => {
       req.destroy(new Error('Request timeout to czwh.wms.yunwms.com'));
     });
 
