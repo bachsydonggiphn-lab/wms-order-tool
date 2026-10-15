@@ -253,23 +253,49 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
     return;
   }
 
-  // 5. Endpoint Kéo Bổ Sung Đơn Xuất Kho (Theo Ngày Hoặc Mới Nhất - Streaming Incremental)
-  if (pathname === '/api/wms/shipped/sync' && (req.method === 'POST' || req.method === 'GET')) {
+  // 5. Endpoint Kéo Bổ Sung Đơn Xuất Kho (Theo Ngày Hoặc Mới Nhất - Hỗ trợ SSE Stream & REST)
+  if (
+    (pathname === '/api/wms/shipped/sync' || pathname === '/api/wms/shipped/sync-range' || pathname === '/api/wms/shipped/sync-stream') &&
+    (req.method === 'POST' || req.method === 'GET')
+  ) {
     const handleShippedSync = async () => {
       let options: any = {};
       if (req.method === 'POST') {
-        options = await parseJsonBody(req);
+        try {
+          options = await parseJsonBody(req);
+        } catch {
+          options = {};
+        }
       } else {
-        options = parsedUrl.query;
+        options = parsedUrl.query || {};
       }
 
-      const dateFor = (options.dateFor || '').trim();
-      const dateTo = (options.dateTo || '').trim();
-      const warehouse = String(options.warehouse ?? '7');
-      const maxPages = parseInt(String(options.maxPages || 0), 10);
-      const pageSize = Math.min(1000, Math.max(50, parseInt(String(options.pageSize || 500), 10)));
-      const username = String(options.username || 'David');
-      const password = String(options.password || '12345abc');
+      const isStream = pathname === '/api/wms/shipped/sync-stream' || options.stream === true || options.stream === 'true' || parsedUrl.query.stream === 'true';
+
+      if (isStream) {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*'
+        });
+      }
+
+      const sendSse = (event: string, data: any) => {
+        if (isStream) {
+          res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        }
+      };
+
+      const fromDate = (options.fromDate || options.dateFor || parsedUrl.query.fromDate || parsedUrl.query.dateFor || '').toString().trim();
+      const toDate = (options.toDate || options.dateTo || parsedUrl.query.toDate || parsedUrl.query.dateTo || '').toString().trim();
+      const warehouse = String(options.warehouse ?? parsedUrl.query.warehouse ?? '7');
+      const maxPages = parseInt(String(options.maxPages || parsedUrl.query.maxPages || 0), 10);
+      const pageSize = Math.min(1000, Math.max(50, parseInt(String(options.pageSize || parsedUrl.query.pageSize || 500), 10)));
+      const username = String(options.username || parsedUrl.query.username || 'David');
+      const password = String(options.password || parsedUrl.query.password || '12345abc');
+
+      sendSse('start', { message: 'Đang kết nối hệ thống YunWMS & lấy phiên làm việc...' });
 
       // Cập nhật trạng thái đang chạy
       await updateShippedSyncMeta({
@@ -280,22 +306,31 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       const cookie = await getWmsSessionCookie(username, password);
       const db = getSqliteDb();
 
-      // Nạp danh sách 25,000 order_no mới nhất để kiểm tra trùng tức thì O(1), không tốn RAM
-      const recentOrdersRes = await db.execute('SELECT order_no FROM wms_shipped_orders ORDER BY creation_time DESC LIMIT 25000');
-      const existingOrderNos = new Set(recentOrdersRes.rows.map(r => String(r.order_no)));
-
       // Chuẩn bị query YunWMS
       let postParams = `E4=${encodeURIComponent(warehouse)}&E11=8`;
-      if (dateFor) {
-        const cleanFrom = dateFor.includes(':') ? dateFor : `${dateFor} 00:00`;
-        const cleanTo = dateTo ? (dateTo.includes(':') ? dateTo : `${dateTo} 23:59`) : `${dateFor} 23:59`;
+      let cleanFrom = '';
+      let cleanTo = '';
+      if (fromDate) {
+        cleanFrom = fromDate.includes(':') ? fromDate : `${fromDate} 00:00`;
+        cleanTo = toDate ? (toDate.includes(':') ? toDate : `${toDate} 23:59`) : `${fromDate} 23:59`;
         postParams += `&searchDateType=${encodeURIComponent(options.searchDateType || 'createDate')}&dateFor=${encodeURIComponent(cleanFrom)}&dateTo=${encodeURIComponent(cleanTo)}`;
       }
 
       let totalInsertedOrders = 0;
       let totalInsertedItems = 0;
+      let totalFetchedOrders = 0;
+      let totalSkippedDuplicates = 0;
       let consecutiveFullExistingPages = 0;
-      let maxAllowedPages = maxPages > 0 ? maxPages : (dateFor ? 100 : 50);
+      let maxAllowedPages = maxPages > 0 ? maxPages : (fromDate ? 100 : 50);
+      let totalRecords = 0;
+
+      const seenInThisRun = new Set<string>();
+
+      sendSse('start', {
+        message: 'Đã kết nối YunWMS thành công. Bắt đầu quét dữ liệu đơn xuất kho...',
+        fromDate: cleanFrom || null,
+        toDate: cleanTo || null
+      });
 
       for (let page = 1; page <= maxAllowedPages; page++) {
         const reqPath = `/order/orders/list/page/${page}/pageSize/${pageSize}`;
@@ -323,7 +358,7 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
 
         // Tự động tính đúng tổng số trang dựa trên json.total từ YunWMS
         if (page === 1 && json.total) {
-          const totalRecords = parseInt(String(json.total || 0), 10);
+          totalRecords = parseInt(String(json.total || 0), 10);
           if (totalRecords > 0) {
             const calculatedPages = Math.ceil(totalRecords / pageSize);
             if (maxPages <= 0) {
@@ -339,13 +374,37 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
           break;
         }
 
+        // 1. Lấy tất cả mã đơn trên trang này
+        const pageOrderNos = rawOrders
+          .map((o: any) => (o.E1 || o.E17 || '').trim())
+          .filter(Boolean);
+
+        // 2. Tra cứu trực tiếp đối soát trong SQLite: Những đơn nào đã tồn tại từ trước
+        const existingInDbSet = new Set<string>();
+        if (pageOrderNos.length > 0) {
+          const CHUNK_SIZE = 200;
+          for (let i = 0; i < pageOrderNos.length; i += CHUNK_SIZE) {
+            const chunk = pageOrderNos.slice(i, i + CHUNK_SIZE);
+            const placeholders = chunk.map(() => '?').join(',');
+            const resOrders = await db.execute({
+              sql: `SELECT order_no FROM wms_shipped_orders WHERE order_no IN (${placeholders})`,
+              args: chunk
+            });
+            resOrders.rows.forEach((r: any) => existingInDbSet.add(String(r.order_no)));
+          }
+        }
+
+        // 3. Lọc tuyệt đối: Bỏ qua đơn trùng lặp, chỉ lấy 1 data duy nhất
         const pageOrdersToInsert: ShippedOrderInput[] = [];
+        let pageDuplicates = 0;
+
         for (const o of rawOrders) {
           const orderNo = (o.E1 || o.E17 || '').trim();
-          if (!orderNo || existingOrderNos.has(orderNo)) {
+          if (!orderNo || existingInDbSet.has(orderNo) || seenInThisRun.has(orderNo)) {
+            pageDuplicates++;
             continue;
           }
-          existingOrderNos.add(orderNo);
+          seenInThisRun.add(orderNo);
 
           const trackingNo = (o.tracking_number || '').trim();
           const creationTime = (o.E14 || '').trim();
@@ -394,16 +453,36 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
           totalInsertedItems += insertRes.insertedItems;
         }
 
-        // Tự động dừng thông minh: quét tối thiểu 15 trang (khoảng 3 ngày gần nhất) để không sót đơn giao trễ,
-        // sau đó dừng nếu gặp 4 trang liên tiếp toàn bộ là đơn cũ đã có trong SQL
-        if (pageOrdersToInsert.length === 0) {
-          consecutiveFullExistingPages++;
-          if (page >= 15 && consecutiveFullExistingPages >= 4) {
-            console.log(`[WMS Sync] Đã gặp 4 trang toàn đơn cũ liên tiếp ở trang ${page}. Hoàn tất đồng bộ!`);
-            break;
+        totalFetchedOrders += rawOrders.length;
+        totalSkippedDuplicates += pageDuplicates;
+
+        const percent = maxAllowedPages > 0 ? Math.min(100, Math.round((page / maxAllowedPages) * 100)) : 50;
+
+        // Gửi tiến độ thời gian thực về frontend
+        sendSse('progress', {
+          page,
+          maxAllowedPages,
+          percent,
+          totalRecords,
+          totalFetched: totalFetchedOrders,
+          totalInserted: totalInsertedOrders,
+          totalSkipped: totalSkippedDuplicates,
+          pageNew: pageOrdersToInsert.length,
+          pageDuplicates,
+          message: `Trang ${page}/${maxAllowedPages} (${percent}%): Đã quét ${totalFetchedOrders.toLocaleString()} đơn • Thêm mới ${totalInsertedOrders.toLocaleString()} đơn • Bỏ qua ${totalSkippedDuplicates.toLocaleString()} đơn trùng...`
+        });
+
+        // Chỉ dừng thông minh khi chạy quét tự do không chỉ định ngày, và gặp 4 trang liên tiếp toàn đơn cũ
+        if (!fromDate) {
+          if (pageOrdersToInsert.length === 0) {
+            consecutiveFullExistingPages++;
+            if (page >= 15 && consecutiveFullExistingPages >= 4) {
+              console.log(`[WMS Sync] Đã gặp 4 trang toàn đơn cũ liên tiếp ở trang ${page}. Hoàn tất đồng bộ!`);
+              break;
+            }
+          } else {
+            consecutiveFullExistingPages = 0;
           }
-        } else {
-          consecutiveFullExistingPages = 0;
         }
       }
 
@@ -429,23 +508,39 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
 
       const updatedMeta = await getShippedSyncMeta();
 
-      sendJson(res, 200, {
+      const completionData = {
         success: true,
-        message: `Đã nạp ${totalInsertedOrders} đơn mới (${totalInsertedItems} sản phẩm) vào SQL database.`,
+        percent: 100,
+        message: `Hoàn tất 100%! Đã quét ${totalFetchedOrders.toLocaleString()} đơn: Thêm mới ${totalInsertedOrders.toLocaleString()} đơn, bỏ qua ${totalSkippedDuplicates.toLocaleString()} đơn trùng lặp (chỉ giữ 1 bản ghi duy nhất). Tổng đơn trong SQL: ${currentTotal.toLocaleString()} đơn.`,
+        totalOrdersFetched: totalFetchedOrders,
         insertedOrders: totalInsertedOrders,
         insertedItems: totalInsertedItems,
+        skippedDuplicates: totalSkippedDuplicates,
         totalWmsOrders: currentTotal,
         meta: updatedMeta
-      });
+      };
+
+      if (isStream) {
+        sendSse('complete', completionData);
+        res.end();
+      } else {
+        sendJson(res, 200, completionData);
+      }
     };
 
     handleShippedSync().catch(async (err) => {
       console.error('[handleShippedSync Error]', err);
       await updateShippedSyncMeta({ shipped_sync_status: 'error' });
-      sendJson(res, 500, {
-        success: false,
-        message: err?.message || 'Lỗi khi đồng bộ đơn xuất kho từ YunWMS'
-      });
+      const isStream = pathname === '/api/wms/shipped/sync-stream' || parsedUrl.query.stream === 'true';
+      if (isStream) {
+        res.write(`event: error\ndata: ${JSON.stringify({ success: false, message: err?.message || 'Lỗi khi đồng bộ đơn xuất kho từ YunWMS' })}\n\n`);
+        res.end();
+      } else {
+        sendJson(res, 500, {
+          success: false,
+          message: err?.message || 'Lỗi khi đồng bộ đơn xuất kho từ YunWMS'
+        });
+      }
     });
     return;
   }

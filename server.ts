@@ -9,6 +9,7 @@ import zlib from "zlib";
 import { createServer as createViteServer } from "vite";
 import { getAllSqliteOrders, getOrderTimeline, upsertSqliteOrders, clearSqliteOrders, getSqliteStats, getSqliteDb, initSqliteDb } from "./sqliteDb";
 import { matchesTrackingPrefixFilter } from "./src/services/carrierDetector";
+import { handleWmsApi } from "./src/server/wmsApiMiddleware";
 
 interface GHNTrackingLog {
   order_code: string;
@@ -3793,6 +3794,15 @@ async function startServer() {
     }
 
     res.json({ success: true, results });
+  });
+
+  // WMS API & Tracking middleware
+  app.use((req, res, next) => {
+    if (req.url && (req.url.startsWith('/api/wms') || req.url.startsWith('/api/track'))) {
+      handleWmsApi(req, res, next);
+    } else {
+      next();
+    }
   });
 
   // Vite middleware for development vs Production static serving

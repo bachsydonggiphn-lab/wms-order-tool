@@ -28,7 +28,7 @@ import { HotSkuAbcTable } from './components/HotSkuAbcTable';
 import { GroupSlottingSection, GroupSlottingMetricItem } from './components/GroupSlottingSection';
 import { RelocationTasksSection } from './components/RelocationTasksSection';
 import { PairedSkusSection } from './components/PairedSkusSection';
-import { SyncShippedModal } from './components/SyncShippedModal';
+import { SyncShippedModal, SyncStats } from './components/SyncShippedModal';
 
 interface HotSkuSlottingModuleProps {
   skuGroups?: SkuGroupsMap;
@@ -75,6 +75,14 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
   const [syncToDate, setSyncToDate] = useState<string>('');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncProgressMsg, setSyncProgressMsg] = useState<string>('');
+  const [syncPercent, setSyncPercent] = useState<number>(0);
+  const [syncStats, setSyncStats] = useState<SyncStats>({
+    page: 0,
+    maxPages: 0,
+    totalFetched: 0,
+    totalInserted: 0,
+    totalSkipped: 0
+  });
 
   // Hàm tải dữ liệu phân tích từ Backend API
   const fetchAnalytics = async (showLoading = true) => {
@@ -154,36 +162,128 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
     });
   }, [analytics, searchTerm, selectedAbc, selectedZoneFilter, filterStockoutIncomingOnly]);
 
-  // Kéo dữ liệu đơn Shipped từ YunWMS
-  const handleTriggerSync = async () => {
-    setIsSyncing(true);
-    setSyncProgressMsg('Đang gửi lệnh kéo đơn xuất kho từ YunWMS...');
+  // Mở modal kéo đơn và gán ngày mặc định (3 ngày gần nhất) nếu chưa chọn
+  const handleOpenSyncModal = () => {
+    if (!syncFromDate) {
+      const d = new Date();
+      d.setDate(d.getDate() - 3);
+      setSyncFromDate(d.toISOString().slice(0, 10));
+      setSyncToDate(new Date().toISOString().slice(0, 10));
+    }
+    setSyncPercent(0);
+    setSyncProgressMsg('');
+    setSyncStats({ page: 0, maxPages: 0, totalFetched: 0, totalInserted: 0, totalSkipped: 0 });
+    setIsSyncModalOpen(true);
+  };
 
+  // Kéo dữ liệu đơn Shipped từ YunWMS bằng EventSource thời gian thực (% và số lượng)
+  const handleTriggerSync = () => {
+    setIsSyncing(true);
+    setSyncPercent(2);
+    setSyncProgressMsg('Đang khởi tạo kết nối YunWMS & lấy phiên làm việc...');
+    setSyncStats({ page: 0, maxPages: 0, totalFetched: 0, totalInserted: 0, totalSkipped: 0 });
+
+    const params = new URLSearchParams();
+    if (syncFromDate) params.set('fromDate', syncFromDate);
+    if (syncToDate) params.set('toDate', syncToDate);
+    params.set('stream', 'true');
+
+    let es: EventSource | null = null;
     try {
-      const res = await fetch('/api/wms/shipped/sync-range', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fromDate: syncFromDate || undefined,
-          toDate: syncToDate || undefined,
-          skipExistingDays: true
-        })
+      es = new EventSource(`/api/wms/shipped/sync-stream?${params.toString()}`);
+
+      es.addEventListener('start', (e: any) => {
+        try {
+          const data = JSON.parse(e.data || '{}');
+          setSyncProgressMsg(data.message || 'Đang kết nối YunWMS...');
+        } catch {}
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Lỗi kéo dữ liệu đơn xuất');
-      }
+      es.addEventListener('progress', (e: any) => {
+        try {
+          const data = JSON.parse(e.data || '{}');
+          setSyncPercent(data.percent || 0);
+          setSyncProgressMsg(data.message || '');
+          setSyncStats({
+            page: data.page,
+            maxPages: data.maxAllowedPages,
+            totalFetched: data.totalFetched,
+            totalInserted: data.totalInserted,
+            totalSkipped: data.totalSkipped,
+          });
+        } catch {}
+      });
 
-      setSyncProgressMsg(`Hoàn tất! Đã kéo thêm ${data.totalOrdersFetched || 0} đơn hàng.`);
-      setTimeout(() => {
-        setIsSyncModalOpen(false);
-        setIsSyncing(false);
-        setSyncProgressMsg('');
-        fetchAnalytics(false);
-      }, 1500);
-    } catch (err: any) {
-      alert(`Thất bại: ${err?.message || 'Lỗi kết nối'}`);
+      es.addEventListener('complete', (e: any) => {
+        try {
+          const data = JSON.parse(e.data || '{}');
+          setSyncPercent(100);
+          setSyncProgressMsg(data.message || 'Hoàn tất đồng bộ 100%!');
+          setSyncStats({
+            page: data.maxAllowedPages,
+            maxPages: data.maxAllowedPages,
+            totalFetched: data.totalOrdersFetched,
+            totalInserted: data.insertedOrders,
+            totalSkipped: data.skippedDuplicates,
+          });
+        } catch {}
+        if (es) {
+          es.close();
+          es = null;
+        }
+
+        setTimeout(() => {
+          setIsSyncModalOpen(false);
+          setIsSyncing(false);
+          setSyncProgressMsg('');
+          setSyncPercent(0);
+          fetchAnalytics(false);
+        }, 2200);
+      });
+
+      es.addEventListener('error', async (err: any) => {
+        console.warn('[SyncShipped EventSource warning/error, attempting fallback REST]', err);
+        if (es) {
+          es.close();
+          es = null;
+        }
+        // Fallback REST call nếu SSE gặp lỗi kết nối
+        try {
+          setSyncProgressMsg('Đang kéo dữ liệu qua cổng dự phòng...');
+          const res = await fetch('/api/wms/shipped/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromDate: syncFromDate || undefined,
+              toDate: syncToDate || undefined,
+            })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Lỗi kéo dữ liệu');
+          }
+          setSyncPercent(100);
+          setSyncProgressMsg(data.message || 'Hoàn tất!');
+          setSyncStats({
+            totalFetched: data.totalOrdersFetched,
+            totalInserted: data.insertedOrders,
+            totalSkipped: data.skippedDuplicates,
+          });
+          setTimeout(() => {
+            setIsSyncModalOpen(false);
+            setIsSyncing(false);
+            setSyncProgressMsg('');
+            setSyncPercent(0);
+            fetchAnalytics(false);
+          }, 2200);
+        } catch (restErr: any) {
+          alert(`Lỗi kéo đơn YunWMS: ${restErr?.message || 'Không thể kết nối'}`);
+          setIsSyncing(false);
+          setSyncProgressMsg('');
+        }
+      });
+    } catch (createErr: any) {
+      alert(`Không thể khởi tạo kết nối: ${createErr?.message}`);
       setIsSyncing(false);
       setSyncProgressMsg('');
     }
@@ -845,8 +945,8 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
               </button>
 
               <button
-                onClick={() => setIsSyncModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20"
+                onClick={handleOpenSyncModal}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer"
                 title="Kéo thêm ngày đơn từ hệ thống YunWMS"
               >
                 <RefreshCw className="w-4 h-4 text-slate-950" />
@@ -1110,14 +1210,16 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
         {/* 7. MODAL KÉO BỔ SUNG ĐƠN TỪ YUNWMS */}
         <SyncShippedModal
           isOpen={isSyncModalOpen}
+          onClose={() => !isSyncing && setIsSyncModalOpen(false)}
+          fromDate={syncFromDate}
+          toDate={syncToDate}
+          onFromDateChange={setSyncFromDate}
+          onToDateChange={setSyncToDate}
           isSyncing={isSyncing}
-          syncFromDate={syncFromDate}
-          setSyncFromDate={setSyncFromDate}
-          syncToDate={syncToDate}
-          setSyncToDate={setSyncToDate}
-          syncProgressMsg={syncProgressMsg}
-          onClose={() => setIsSyncModalOpen(false)}
-          onSync={handleTriggerSync}
+          progressMsg={syncProgressMsg}
+          progressPercent={syncPercent}
+          progressStats={syncStats}
+          onTriggerSync={handleTriggerSync}
         />
       </div>
     </TabErrorBoundary>
