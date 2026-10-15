@@ -3,32 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import confetti from 'canvas-confetti';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { RawOrderRow, SkuGroupsMap, CarrierCode } from './types';
-import { DEFAULT_SKU_GROUPS, DEFAULT_AREA_ORDER } from './utils/skuData';
-import { taoDuLieuMau, exportResultsToExcel, tinhTongHopSKU, xacDinhDonViVanChuyen } from './utils/orderProcessor';
+import { DEFAULT_SKU_GROUPS } from './utils/skuData';
+import { taoDuLieuMau, tinhTongHopSKU, xacDinhDonViVanChuyen } from './utils/orderProcessor';
 
 import { Header } from './components/Header';
-import { DataInputSection } from './components/DataInputSection';
-import { Toolbar, ActiveTabType } from './components/Toolbar';
-import { SkuAndPcsView } from './components/views/SkuAndPcsView';
-import { PickingListDetailView } from './components/views/PickingListDetailView';
-import { AreaGroupingView } from './components/views/AreaGroupingView';
-import { MixOrderAnalysisView } from './components/views/MixOrderAnalysisView';
-import { YogaClassificationView } from './components/views/YogaClassificationView';
-import { SinglePcsView } from './components/views/SinglePcsView';
-import { AllOrdersTableView } from './components/views/AllOrdersTableView';
-import { ShippedTrackingView } from './components/views/ShippedTrackingView';
-import { InventoryQueryView } from './components/views/InventoryQueryView';
-import { SkuSettingsView } from './components/views/SkuSettingsView';
-import { AppsScriptCodeView } from './components/views/AppsScriptCodeView';
-import { HotSkuSlottingView } from './components/views/HotSkuSlottingView';
-import { PrintPickingModal } from './components/PrintPickingModal';
-import { ClearDataModal } from './components/ClearDataModal';
-import { WmsSyncModal } from './components/WmsSyncModal';
-import { RealTimeTrackerBar } from './components/RealTimeTrackerBar';
-import { Package, FileSpreadsheet, PlusCircle, Sparkles, CloudDownload } from 'lucide-react';
+import { ActiveTabType } from './components/Toolbar';
+import { OrderOperationsModule } from './modules/orderOperations';
+import { HotSkuSlottingModule } from './modules/hotSkuSlotting';
+import { WmsInventoryModule } from './modules/wmsInventory';
 
 const LOCAL_STORAGE_KEY_SKU = 'warehouse_sku_groups_v1';
 const LOCAL_STORAGE_KEY_ORDERS = 'warehouse_orders_v1';
@@ -46,14 +30,13 @@ export default function App() {
     return DEFAULT_SKU_GROUPS;
   });
 
-  // 2. Quản lý danh sách đơn hàng (Mặc định rỗng, không tự động nạp dữ liệu mẫu)
+  // 2. Quản lý danh sách đơn hàng
   const [orders, setOrders] = useState<RawOrderRow[]>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY_ORDERS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Nếu dữ liệu trong LocalStorage là dữ liệu mẫu cũ thì xóa bỏ
           const isSample = parsed.some((o: RawOrderRow) => o.orderNo === 'YD-260816-0756' || o.orderNo === 'YD-260906-0733');
           if (isSample) {
             localStorage.removeItem(LOCAL_STORAGE_KEY_ORDERS);
@@ -71,11 +54,10 @@ export default function App() {
         }
       }
     } catch (e) {}
-    // Mặc định khởi tạo rỗng
     return [];
   });
 
-  // Tự động kiểm tra và nâng cấp lại ĐVVC cho các đơn đã lưu trong LocalStorage theo quy tắc mới nhất (VNGH,...)
+  // Tự động kiểm tra và nâng cấp lại ĐVVC
   useEffect(() => {
     setOrders((currentOrders) => {
       let hasChange = false;
@@ -101,9 +83,10 @@ export default function App() {
     });
   }, []);
 
-  // 3. Quản lý bộ lọc & View & Modals (Tối ưu Keep-Alive chuyển tab siêu tốc, không giật lag)
+  // 3. Quản lý 3 Tab Lớn (Vận Hành Đơn Hàng | Hàng Bán Chạy & Bố Trí Kho | Tra Cứu Tồn Kho WMS)
   const [activeTab, setActiveTabRaw] = useState<ActiveTabType>('sku_pcs');
   const [visitedTabs, setVisitedTabs] = useState<Set<ActiveTabType>>(() => new Set<ActiveTabType>(['sku_pcs']));
+  const [lastOrderSubTab, setLastOrderSubTab] = useState<ActiveTabType>('sku_pcs');
 
   const setActiveTab = useCallback((tab: ActiveTabType) => {
     React.startTransition(() => {
@@ -118,21 +101,12 @@ export default function App() {
   }, []);
 
   const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query';
-  const [lastOrderSubTab, setLastOrderSubTab] = useState<ActiveTabType>('sku_pcs');
 
   useEffect(() => {
     if (activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query') {
       setLastOrderSubTab(activeTab);
     }
   }, [activeTab]);
-
-  const [selectedPickingList, setSelectedPickingList] = useState<string>('');
-  const [selectedCarrier, setSelectedCarrier] = useState<CarrierCode>('ALL');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
-  const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
-  const [isWmsModalOpen, setIsWmsModalOpen] = useState<boolean>(false);
-  const [forceOpenInput, setForceOpenInput] = useState<boolean>(false);
 
   // Lưu SKU groups vào LocalStorage khi có thay đổi
   const handleUpdateSkuGroups = (newGroups: SkuGroupsMap) => {
@@ -149,77 +123,29 @@ export default function App() {
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY_ORDERS, JSON.stringify(data));
       } catch (e) {
-        console.warn('LocalStorage save error (bộ nhớ đầy hoặc quota):', e);
+        console.warn('LocalStorage save error:', e);
       }
     }, 1200);
   };
 
-  const normalizeOrdersCarrier = (rawList: RawOrderRow[]): RawOrderRow[] => {
-    return rawList.map((o) => {
-      const cInfo = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText);
-      return {
-        ...o,
-        carrier: cInfo.carrier,
-        carrierName: cInfo.carrierName,
-      };
-    });
-  };
-
-  const handleDataLoaded = (newOrders: RawOrderRow[]) => {
-    const normalized = normalizeOrdersCarrier(newOrders);
-    setOrders(normalized);
-    saveOrdersToStorage(normalized);
-    try {
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.8 },
-      });
-    } catch (e) {}
-  };
-
-  // Xử lý đơn mới bắt được từ Live WMS Real-Time Tracker
-  const handleNewRealTimeOrders = (freshOrders: RawOrderRow[]) => {
-    const normalizedFresh = normalizeOrdersCarrier(freshOrders);
-    setOrders((current) => {
-      const existingIds = new Set(current.map((o) => o.orderNo));
-      const trulyNew = normalizedFresh.filter((o) => !existingIds.has(o.orderNo));
-      if (trulyNew.length === 0) return current;
-
-      const merged = [...trulyNew, ...current];
-      saveOrdersToStorage(merged);
-      return merged;
-    });
-  };
-
-  // Thay thế toàn bộ đơn khi người dùng chọn "Chỉ cào trạng thái này" (VD: Shelved E11=5)
-  const handleReloadStatusOrders = (freshOrders: RawOrderRow[]) => {
-    const normalized = normalizeOrdersCarrier(freshOrders);
-    setOrders(normalized);
-    saveOrdersToStorage(normalized);
+  const handleOrdersChange = (newOrders: RawOrderRow[]) => {
+    setOrders(newOrders);
+    saveOrdersToStorage(newOrders);
   };
 
   const handleLoadSampleData = () => {
     const sample = taoDuLieuMau(skuGroups);
-    handleDataLoaded(sample);
+    handleOrdersChange(sample);
   };
 
   const handleConfirmClearOrders = () => {
     setOrders([]);
-    setSelectedPickingList('');
-    setSelectedCarrier('ALL');
-    setSearchTerm('');
-    setForceOpenInput((prev) => !prev);
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY_ORDERS, JSON.stringify([]));
     } catch (e) {}
   };
 
-  const handleClearData = () => {
-    setIsClearModalOpen(true);
-  };
-
-  // Danh sách các mã Picking List tìm thấy
+  // Header stats & counts
   const pickingLists = useMemo(() => {
     const set = new Set<string>();
     orders.forEach((o) => {
@@ -230,7 +156,6 @@ export default function App() {
     return Array.from(set).sort();
   }, [orders]);
 
-  // Thống kê số lượng đơn theo từng ĐVVC (có tính đến bộ lọc Picking List)
   const carrierCounts = useMemo(() => {
     const counts: Record<CarrierCode, number> = {
       ALL: 0,
@@ -248,12 +173,8 @@ export default function App() {
       BEST: 0,
       OTHER: 0,
     };
-    const filtered = selectedPickingList
-      ? orders.filter((o) => o.pickingList === selectedPickingList)
-      : orders;
-
-    counts.ALL = filtered.length;
-    filtered.forEach((o) => {
+    counts.ALL = orders.length;
+    orders.forEach((o) => {
       const c = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText).carrier;
       if (counts[c] !== undefined) {
         counts[c]++;
@@ -261,33 +182,24 @@ export default function App() {
         counts.OTHER++;
       }
     });
-
     counts.GHN_ALL = counts.GHN + counts.GHN_TIKTOK;
     counts.SPX_ALL = counts.SPX + counts.SPX_INSTANT;
-
     return counts;
-  }, [orders, selectedPickingList]);
+  }, [orders]);
 
-  // Thống kê tổng hợp SKU
   const skuSummary = useMemo(() => {
-    return tinhTongHopSKU(orders, selectedPickingList, selectedCarrier);
-  }, [orders, selectedPickingList, selectedCarrier]);
+    return tinhTongHopSKU(orders, '', 'ALL');
+  }, [orders]);
 
   const totalSkus = Object.keys(skuSummary).length;
   const totalPcs = Object.values(skuSummary).reduce((a: number, b: number) => a + b, 0);
 
-  // Xuất file Excel
-  const handleExportExcel = () => {
-    if (orders.length === 0) {
-      alert('Không có dữ liệu đơn hàng để xuất.');
-      return;
-    }
-    exportResultsToExcel(orders, skuGroups, DEFAULT_AREA_ORDER, selectedPickingList, selectedCarrier);
-  };
+  const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
+  const [isWmsModalOpen, setIsWmsModalOpen] = useState<boolean>(false);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
-      {/* Global Header with 3 Master Buttons beside Logo */}
+      {/* Global Header with 3 Master Module Switchers */}
       <Header
         orders={orders}
         totalSkus={totalSkus}
@@ -295,263 +207,60 @@ export default function App() {
         pickingLists={pickingLists}
         carrierCounts={carrierCounts}
         onLoadSample={handleLoadSampleData}
-        onClear={handleClearData}
+        onClear={() => setIsClearModalOpen(true)}
         onOpenWmsSync={() => setIsWmsModalOpen(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         lastOrderSubTab={lastOrderSubTab}
       />
 
-      {/* Real-Time Live WMS Tracker Bar - Chỉ hiển thị khi đang ở phân hệ 1 (Vận Hành Đơn Hàng) */}
-      {isOrderOps && (
-        <RealTimeTrackerBar
-          orders={orders}
-          onNewOrders={handleNewRealTimeOrders}
-          onReloadStatusOrders={handleReloadStatusOrders}
-          skuGroups={skuGroups}
-        />
-      )}
-
-      {/* Main Content Area */}
+      {/* Main Content Area: 3 Phân Hệ Lớn Được Bọc & Cô Lập Cách Ly Hoàn Toàn */}
       <main className="flex-1 w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-5">
-        {/* Toolbar & Filter Bar - Chỉ hiển thị trong Phân hệ 1 (Vận Hành Đơn Hàng) */}
-        {isOrderOps && (
-          <Toolbar
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            pickingLists={pickingLists}
-            selectedPickingList={selectedPickingList}
-            setSelectedPickingList={setSelectedPickingList}
-            selectedCarrier={selectedCarrier}
-            setSelectedCarrier={setSelectedCarrier}
-            carrierCounts={carrierCounts}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            onExportExcel={handleExportExcel}
-            onPrintPreview={() => setIsPrintModalOpen(true)}
-            totalOrders={orders.length}
+        {/* PHÂN HỆ 1: VẬN HÀNH ĐƠN HÀNG (2507) */}
+        <div className={isOrderOps ? 'block' : 'hidden'}>
+          <OrderOperationsModule
             orders={orders}
+            onOrdersChange={handleOrdersChange}
+            skuGroups={skuGroups}
+            onUpdateSkuGroups={handleUpdateSkuGroups}
+            activeSubTab={activeTab}
+            onSelectSubTab={setActiveTab}
+            visitedTabs={visitedTabs}
+            onLoadSampleData={handleLoadSampleData}
+            onConfirmClearOrders={handleConfirmClearOrders}
+            isClearModalOpen={isClearModalOpen}
+            setIsClearModalOpen={setIsClearModalOpen}
+            isWmsModalOpen={isWmsModalOpen}
+            setIsWmsModalOpen={setIsWmsModalOpen}
           />
+        </div>
+
+        {/* PHÂN HỆ 2: HÀNG BÁN CHẠY & BỐ TRÍ KHO (ABC) */}
+        {visitedTabs.has('hot_sku_slotting') && (
+          <div className={activeTab === 'hot_sku_slotting' ? 'block' : 'hidden'}>
+            <HotSkuSlottingModule
+              skuGroups={skuGroups}
+              onNavigateToInventory={(sku?: string) => {
+                setActiveTab('inventory_query');
+              }}
+              onNavigateToOrders={() => setActiveTab(lastOrderSubTab)}
+            />
+          </div>
         )}
 
-        {/* Data Input Panel - Giữ mounted, chỉ ẩn khi sang phân hệ 2 và 3 để không phải unmount */}
-        <div className={activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' ? 'block' : 'hidden'}>
-          <DataInputSection
-            onDataLoaded={handleDataLoaded}
-            onClearData={handleClearData}
-            onLoadSample={handleLoadSampleData}
-            onOpenWmsModal={() => setIsWmsModalOpen(true)}
-            skuGroups={skuGroups}
-            ordersCount={orders.length}
-            forceOpen={forceOpenInput}
-          />
-
-          {/* Empty state alert when no orders are loaded trong Phân hệ 1 */}
-          {orders.length === 0 && (
-            <div className="mb-6 p-6 bg-gradient-to-br from-indigo-50/90 to-amber-50/70 border border-indigo-200/80 rounded-3xl text-center shadow-xs">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
-                <Package className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-bold text-gray-900 mb-1">
-                Chưa Có Dữ Liệu Đơn Hàng Nào Trong Hệ Thống
-              </h3>
-              <p className="text-xs text-gray-600 max-w-lg mx-auto mb-4 leading-relaxed">
-                Bạn có thể bấm <b>Kéo Đơn Trực Tiếp YunWMS</b> để lấy đơn trạng thái <b>Submitted</b> từ kho VN02 tự động bằng API, hoặc sao chép bảng dữ liệu dán vào khung phía trên.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-2.5">
-                <button
-                  onClick={() => setIsWmsModalOpen(true)}
-                  className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <span className="text-amber-300 text-sm">⚡</span>
-                  <span>Kéo Đơn Trực Tiếp YunWMS (API)</span>
-                </button>
-                <button
-                  onClick={() => setForceOpenInput((prev) => !prev)}
-                  className="px-4 py-2 bg-white hover:bg-gray-50 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Mở Khung Nhập & Dán Dữ Liệu</span>
-                </button>
-                <button
-                  onClick={handleLoadSampleData}
-                  className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
-                  <span>Dữ Liệu Mẫu (22 đơn)</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Active Tab View Rendering with Keep-Alive Cache (Chuyển tab tức thì 0ms, không lag, không mất trạng thái) */}
-        <div className="w-full">
-          {visitedTabs.has('sku_pcs') && (
-            <div className={activeTab === 'sku_pcs' ? 'block' : 'hidden'}>
-              <SkuAndPcsView
-                orders={orders}
-                skuGroups={skuGroups}
-                selectedPickingList={selectedPickingList}
-                selectedCarrier={selectedCarrier}
-                searchTerm={searchTerm}
-                onNavigateTab={setActiveTab}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('hot_sku_slotting') && (
-            <div className={activeTab === 'hot_sku_slotting' ? 'block' : 'hidden'}>
-              <HotSkuSlottingView
-                skuGroups={skuGroups}
-                onNavigateToInventory={() => {
-                  setActiveTab('inventory_query');
-                }}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('inventory_query') && (
-            <div className={activeTab === 'inventory_query' ? 'block' : 'hidden'}>
-              <InventoryQueryView
-                skuGroups={skuGroups}
-                onNavigateToSlotting={() => {
-                  setActiveTab('hot_sku_slotting');
-                }}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('picking_detail') && (
-            <div className={activeTab === 'picking_detail' ? 'block' : 'hidden'}>
-              <PickingListDetailView
-                orders={orders}
-                skuGroups={skuGroups}
-                selectedPickingList={selectedPickingList}
-                onSelectPickingList={setSelectedPickingList}
-                searchTerm={searchTerm}
-                selectedCarrier={selectedCarrier}
-                onSelectCarrier={setSelectedCarrier}
-                onOpenPrintModal={(pl) => {
-                  if (pl) setSelectedPickingList(pl);
-                  setIsPrintModalOpen(true);
-                }}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('area_group') && (
-            <div className={activeTab === 'area_group' ? 'block' : 'hidden'}>
-              <AreaGroupingView
-                orders={orders}
-                skuGroups={skuGroups}
-                selectedPickingList={selectedPickingList}
-                selectedCarrier={selectedCarrier}
-                searchTerm={searchTerm}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('mix_analysis') && (
-            <div className={activeTab === 'mix_analysis' ? 'block' : 'hidden'}>
-              <MixOrderAnalysisView
-                orders={orders}
-                skuGroups={skuGroups}
-                selectedPickingList={selectedPickingList}
-                selectedCarrier={selectedCarrier}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('yoga_mat') && (
-            <div className={activeTab === 'yoga_mat' ? 'block' : 'hidden'}>
-              <YogaClassificationView
-                orders={orders}
-                skuGroups={skuGroups}
-                selectedPickingList={selectedPickingList}
-                selectedCarrier={selectedCarrier}
-                searchTerm={searchTerm}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('single_pcs') && (
-            <div className={activeTab === 'single_pcs' ? 'block' : 'hidden'}>
-              <SinglePcsView
-                orders={orders}
-                skuGroups={skuGroups}
-                selectedPickingList={selectedPickingList}
-                selectedCarrier={selectedCarrier}
-                searchTerm={searchTerm}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('shipped_tracking') && (
-            <div className={activeTab === 'shipped_tracking' ? 'block' : 'hidden'}>
-              <ShippedTrackingView
-                skuGroups={skuGroups}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('all_table') && (
-            <div className={activeTab === 'all_table' ? 'block' : 'hidden'}>
-              <AllOrdersTableView
-                orders={orders}
-                skuGroups={skuGroups}
-                selectedPickingList={selectedPickingList}
-                selectedCarrier={selectedCarrier}
-                onSelectCarrier={setSelectedCarrier}
-                searchTerm={searchTerm}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('sku_settings') && (
-            <div className={activeTab === 'sku_settings' ? 'block' : 'hidden'}>
-              <SkuSettingsView
-                skuGroups={skuGroups}
-                onUpdateSkuGroups={handleUpdateSkuGroups}
-              />
-            </div>
-          )}
-
-          {visitedTabs.has('apps_script') && (
-            <div className={activeTab === 'apps_script' ? 'block' : 'hidden'}>
-              <AppsScriptCodeView />
-            </div>
-          )}
-        </div>
+        {/* PHÂN HỆ 3: TRA CỨU TỒN KHO WMS (VN02) */}
+        {visitedTabs.has('inventory_query') && (
+          <div className={activeTab === 'inventory_query' ? 'block' : 'hidden'}>
+            <WmsInventoryModule
+              skuGroups={skuGroups}
+              onNavigateToSlotting={() => {
+                setActiveTab('hot_sku_slotting');
+              }}
+              onNavigateToOrders={() => setActiveTab(lastOrderSubTab)}
+            />
+          </div>
+        )}
       </main>
-
-      {/* Clear Data Confirmation Modal */}
-      <ClearDataModal
-        isOpen={isClearModalOpen}
-        onClose={() => setIsClearModalOpen(false)}
-        onConfirmClear={handleConfirmClearOrders}
-        onLoadSample={handleLoadSampleData}
-        currentOrdersCount={orders.length}
-      />
-
-      {/* WMS Direct Sync Modal */}
-      <WmsSyncModal
-        isOpen={isWmsModalOpen}
-        onClose={() => setIsWmsModalOpen(false)}
-        onDataLoaded={handleDataLoaded}
-        skuGroups={skuGroups}
-        currentOrdersCount={orders.length}
-      />
-
-      {/* Printable Modal */}
-      <PrintPickingModal
-        isOpen={isPrintModalOpen}
-        onClose={() => setIsPrintModalOpen(false)}
-        orders={orders}
-        selectedPickingList={selectedPickingList}
-        selectedCarrier={selectedCarrier}
-        skuGroups={skuGroups}
-      />
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
