@@ -14,15 +14,8 @@ export const PAPER_SIZE_CONFIGS: Record<
   string,
   { label: string; widthMm: number; heightMm: number; orientation: 'portrait' | 'landscape'; note?: string }
 > = {
-  '50x30': { label: '50 × 30 mm (Tem Ngang - Dán sản phẩm / túi zip)', widthMm: 50, heightMm: 30, orientation: 'landscape', note: 'Chuẩn tem dán sản phẩm mini' },
-  '100x150': { label: '100 × 150 mm (Khổ A6 - Cuộn tem vận đơn Xprinter XP-D465B)', widthMm: 100, heightMm: 150, orientation: 'portrait', note: 'Cuộn tem vận đơn phổ biến của máy XP-D465B' },
-  '75x50': { label: '75 × 50 mm (Tem Trung Ngang)', widthMm: 75, heightMm: 50, orientation: 'landscape', note: 'Khổ tem trung' },
-  '50x75': { label: '50 × 75 mm (Tem Trung Dọc)', widthMm: 50, heightMm: 75, orientation: 'portrait', note: 'Khổ tem trung dạng đứng' },
-  '40x30': { label: '40 × 30 mm (Tem Nhỏ Ngang)', widthMm: 40, heightMm: 30, orientation: 'landscape', note: 'Tem nhỏ' },
-  '30x40': { label: '30 × 40 mm (Tem Nhỏ Dọc)', widthMm: 30, heightMm: 40, orientation: 'portrait', note: 'Tem nhỏ dạng đứng' },
-  '50x50': { label: '50 × 50 mm (Tem Vuông)', widthMm: 50, heightMm: 50, orientation: 'portrait', note: 'Tem vuông cân đối' },
-  '35x25': { label: '35 × 25 mm (Tem Siêu Nhỏ)', widthMm: 35, heightMm: 25, orientation: 'landscape', note: 'Tem siêu nhỏ dán nhãn' },
-  'custom': { label: 'Tùy Chỉnh Kích Thước (Rộng × Cao mm)', widthMm: 50, heightMm: 30, orientation: 'landscape', note: 'Tự nhập mm' },
+  '35x25': { label: '35 × 25 mm (Tem Ngang Chuẩn Xprinter)', widthMm: 35, heightMm: 25, orientation: 'landscape', note: 'Chuẩn tem dán sản phẩm kho' },
+  'custom': { label: 'Tùy Chỉnh Kích Thước (Rộng × Cao mm)', widthMm: 35, heightMm: 25, orientation: 'landscape', note: 'Tự nhập mm' },
 };
 
 export function resolvePaperDimensions(options: SkuLabelPrintOptions): {
@@ -30,8 +23,8 @@ export function resolvePaperDimensions(options: SkuLabelPrintOptions): {
   heightMm: number;
   orientation: 'landscape' | 'portrait';
 } {
-  let widthMm = 50;
-  let heightMm = 30;
+  let widthMm = 35;
+  let heightMm = 25;
 
   if (options.customWidthMm && options.customHeightMm && options.customWidthMm > 0 && options.customHeightMm > 0) {
     widthMm = options.customWidthMm;

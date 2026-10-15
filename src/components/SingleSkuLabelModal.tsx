@@ -32,11 +32,11 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
   onClose,
   item
 }) => {
-  // Mặc định chọn 50x30mm (Khổ ngang tiêu chuẩn dán túi/hộp)
-  const [paperSize, setPaperSize] = useState<string>('50x30');
+  // Mặc định chuẩn 35x25mm (Khổ ngang - Chuẩn máy in Xprinter XP-D465B)
+  const [paperSize, setPaperSize] = useState<string>('35x25');
   const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
-  const [customWidth, setCustomWidth] = useState<number>(50);
-  const [customHeight, setCustomHeight] = useState<number>(30);
+  const [customWidth, setCustomWidth] = useState<number>(35);
+  const [customHeight, setCustomHeight] = useState<number>(25);
   const [copies, setCopies] = useState<number>(1);
   const [showTitle, setShowTitle] = useState<boolean>(false);
   const [showGroup, setShowGroup] = useState<boolean>(false);
@@ -245,7 +245,7 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-0.5">
               <div className="bg-white/80 border border-amber-200/60 rounded-xl p-2">
                 <span className="font-bold text-amber-900 block">1. Khổ giấy (Paper size):</span>
-                <span className="text-slate-600">Trong Chrome bấm "Cài đặt khác" &rarr; chọn đúng khổ cuộn đang lắp (<strong>{widthMm}×{heightMm} mm</strong> hoặc <strong>100×150 mm</strong>).</span>
+                <span className="text-slate-600">Trong Chrome bấm "Cài đặt khác" &rarr; chọn đúng khổ cuộn tem (<strong>{widthMm}×{heightMm} mm</strong> hoặc <strong>User</strong>).</span>
               </div>
               <div className="bg-white/80 border border-amber-200/60 rounded-xl p-2">
                 <span className="font-bold text-amber-900 block">2. Tỷ lệ (Scale):</span>
@@ -331,22 +331,22 @@ export const SingleSkuLabelModal: React.FC<SingleSkuLabelModalProps> = ({
 
             {/* Print Settings Form */}
             <div className="space-y-3.5">
-              {/* Paper Size Selector */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Khổ Giấy Máy In Nhiệt:
-                </label>
-                <select
-                  value={paperSize}
-                  onChange={(e) => handleSelectPaperSize(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer"
-                >
-                  {Object.entries(PAPER_SIZE_CONFIGS).map(([key, cfg]) => (
-                    <option key={key} value={key}>
-                      {cfg.label}
-                    </option>
-                  ))}
-                </select>
+              {/* Khổ tem in nhiệt cố định 35x25mm */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                    Khổ Giấy Máy In Nhiệt:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-base font-black text-slate-900">{widthMm} × {heightMm} mm</span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      Tem Ngang ↔ Mặc Định
+                    </span>
+                  </div>
+                </div>
+                <div className="text-[11px] text-slate-600 font-bold bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
+                  Xprinter XP-D465B
+                </div>
               </div>
 
               {/* Bố cục Ngang / Dọc toggle */}
