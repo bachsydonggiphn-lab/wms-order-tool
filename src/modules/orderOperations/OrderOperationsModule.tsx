@@ -154,7 +154,7 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
   }, [normalizeOrders, onOrdersChange]);
 
   const handleExportExcel = useCallback(() => {
-    exportResultsToExcel(orders, skuGroups, selectedPickingList, selectedCarrier);
+    exportResultsToExcel(orders, skuGroups, undefined, selectedPickingList, selectedCarrier);
   }, [orders, skuGroups, selectedPickingList, selectedCarrier]);
 
   return (
@@ -162,9 +162,12 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
       <div className="w-full space-y-4">
         {/* Real-Time Live Order Tracker Bar */}
         <RealTimeTrackerBar
+          orders={orders}
           currentOrders={orders}
+          onNewOrders={handleNewRealTimeOrders}
           onNewOrdersDetected={handleNewRealTimeOrders}
           onReloadStatusOrders={handleReloadStatusOrders}
+          skuGroups={skuGroups}
         />
 
         {/* Data Input Section */}
@@ -172,9 +175,9 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
           onDataLoaded={handleDataLoaded}
           skuGroups={skuGroups}
           onClearData={() => setIsClearModalOpen(true)}
-          currentOrdersCount={orders.length}
-          onOpenWmsSync={() => setIsWmsModalOpen(true)}
-          forceOpenInputTrigger={forceOpenInput}
+          ordersCount={orders.length}
+          onOpenWmsModal={() => setIsWmsModalOpen(true)}
+          forceOpen={forceOpenInput}
         />
 
         {/* Toolbar & Filter Bar */}

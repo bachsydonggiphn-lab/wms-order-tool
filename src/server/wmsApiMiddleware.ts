@@ -13,6 +13,7 @@ import {
 } from '../../sqliteDb';
 import { layNhomTuSKU } from '../utils/orderProcessor';
 import { DEFAULT_SKU_GROUPS } from '../utils/skuData';
+import { wmsRealtimeBroadcaster } from './wmsRealtimeBroadcaster';
 
 // Helper parse JSON body (tương thích cả Vite dev server lẫn Express body-parser)
 function parseJsonBody(req: any): Promise<any> {
@@ -68,6 +69,13 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
     return;
   }
 
+  // 0. Endpoint SSE Kết Nối Thời Gian Thực (Real-time Live Stream)
+  if (pathname === '/api/wms/live-stream') {
+    const warehouse = String(parsedUrl.query.warehouse ?? '7');
+    wmsRealtimeBroadcaster.addClient(req, res, warehouse);
+    return;
+  }
+
   // 1. Endpoint kiểm tra kết nối & session
   if (pathname === '/api/wms/status') {
     getWmsSessionCookie('David', '12345abc')
@@ -112,7 +120,8 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         maxPages,
         username,
         password,
-        skuGroups: options.skuGroups
+        skuGroups: options.skuGroups,
+        forceRefresh: Boolean(options.forceRefresh),
       });
 
       sendJson(res, 200, result);
@@ -143,9 +152,12 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       const username = String(options.username || 'David');
       const password = String(options.password || '12345abc');
 
+      const pageSize = options.pageSize ? parseInt(String(options.pageSize), 10) : 60;
+
       const result = await pollLatestWmsOrders(knownOrderNos, {
         warehouse,
         status,
+        pageSize,
         username,
         password,
         skuGroups: options.skuGroups

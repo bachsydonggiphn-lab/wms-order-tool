@@ -19,6 +19,7 @@ export interface WmsFetchOptions {
   dateFor?: string;
   dateTo?: string;
   searchDateType?: string;
+  forceRefresh?: boolean;
 }
 
 export interface WmsRawOrderItem {
@@ -235,6 +236,12 @@ export function convertWmsOrdersToRawOrderRows(
   return parseRawOrderRows(intermediateList, skuGroups);
 }
 
+interface ServerOrderCacheItem {
+  timestamp: number;
+  data: WmsFetchResult;
+}
+const serverOrderCache = new Map<string, ServerOrderCacheItem>();
+
 /**
  * Lấy danh sách đơn hàng từ YunWMS bằng API nội bộ POST /order/orders/list/page/{page}/pageSize/{pageSize}
  */
@@ -252,8 +259,19 @@ export async function fetchWmsOrders(
     skuGroups = DEFAULT_SKU_GROUPS,
     dateFor = '',
     dateTo = '',
-    searchDateType = 'createDate'
+    searchDateType = 'createDate',
+    forceRefresh = false
   } = options;
+
+  // 1. Kiểm tra Cache Bộ Nhớ Phía Máy Chủ (Server In-Memory Hot Cache)
+  // Phản hồi siêu tốc trong 2-5ms nếu dữ liệu đã có trong 15 giây qua
+  const cacheKey = `${warehouse}_${status}_${pageSize}_${maxPages}`;
+  if (!dateFor && !forceRefresh) {
+    const cached = serverOrderCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 4000) {
+      return cached.data;
+    }
+  }
 
   let sessionCookie = await getWmsSessionCookie(username, password);
 
@@ -307,7 +325,11 @@ export async function fetchWmsOrders(
   const totalPages = Math.ceil(totalOrders / pageSize) || 1;
 
   // Nếu maxPages > 0 thì chỉ lấy số trang đó, ngược lại lấy toàn bộ (totalPages)
-  const pagesToFetch = maxPages > 0 ? Math.min(maxPages, totalPages) : totalPages;
+  let pagesToFetch = maxPages > 0 ? Math.min(maxPages, totalPages) : totalPages;
+  if (status === '8' && maxPages <= 0) {
+    // Shipped có hơn 290.000 đơn (500+ trang), an toàn giới hạn 1 trang (500 đơn gần nhất)
+    pagesToFetch = Math.min(totalPages, 1);
+  }
 
   if (onProgress) {
     onProgress({
@@ -353,7 +375,7 @@ export async function fetchWmsOrders(
   // Chuyển đổi sang RawOrderRow
   const parsedRows = convertWmsOrdersToRawOrderRows(allWmsOrders, skuGroups);
 
-  return {
+  const result: WmsFetchResult = {
     success: true,
     totalOrders,
     returnedOrders: parsedRows.length,
@@ -362,6 +384,12 @@ export async function fetchWmsOrders(
     status,
     message: `Đã kết nối và lấy thành công ${parsedRows.length}/${totalOrders} đơn từ YunWMS.`
   };
+
+  if (!dateFor) {
+    serverOrderCache.set(cacheKey, { timestamp: Date.now(), data: result });
+  }
+
+  return result;
 }
 
 /**
@@ -373,6 +401,7 @@ export async function pollLatestWmsOrders(
   options: {
     warehouse?: string;
     status?: string;
+    pageSize?: number;
     username?: string;
     password?: string;
     skuGroups?: SkuGroupsMap;
@@ -383,10 +412,12 @@ export async function pollLatestWmsOrders(
   newOrders: RawOrderRow[];
   hasNew: boolean;
   latestOrderNo?: string;
+  statusCounts?: Record<string, number>;
 }> {
   const {
     warehouse = '7',
     status = '4',
+    pageSize = 60,
     username = 'David',
     password = '12345abc',
     skuGroups = DEFAULT_SKU_GROUPS
@@ -402,7 +433,7 @@ export async function pollLatestWmsOrders(
   const fetchPage1 = async (currentCookie: string) => {
     const res = await httpsRequest({
       hostname: 'czwh.wms.yunwms.com',
-      path: '/order/orders/list/page/1/pageSize/500',
+      path: `/order/orders/list/page/1/pageSize/${pageSize}`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -414,7 +445,12 @@ export async function pollLatestWmsOrders(
       }
     }, postData);
 
-    const json = JSON.parse(res.body);
+    let json: any = {};
+    try {
+      json = JSON.parse(res.body);
+    } catch {
+      json = { state: 0, total: 0, data: [] };
+    }
     if (json.state === 0 && (json.reLogin === 1 || (json.message && json.message.includes('登录')))) {
       const freshCookie = await getWmsSessionCookie(username, password, true);
       return fetchPage1(freshCookie);
@@ -422,7 +458,37 @@ export async function pollLatestWmsOrders(
     return json;
   };
 
-  const json = await fetchPage1(sessionCookie);
+  // Song song: Kéo số lượng đơn của trạng thái đối ứng (4 <-> 5) để hiển thị Real-time trên nút
+  const targetOtherStatus = status === '4' ? '5' : '4';
+  const otherPostData = `E4=${encodeURIComponent(warehouse)}&E11=${encodeURIComponent(targetOtherStatus)}`;
+
+  const fetchOtherCount = async (currentCookie: string) => {
+    try {
+      const res = await httpsRequest({
+        hostname: 'czwh.wms.yunwms.com',
+        path: '/order/orders/list/page/1/pageSize/1',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Cookie': currentCookie,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Referer': 'https://czwh.wms.yunwms.com/order/orders/list',
+          'Content-Length': Buffer.byteLength(otherPostData)
+        }
+      }, otherPostData);
+      const j = JSON.parse(res.body);
+      return parseInt(String(j.total || 0), 10);
+    } catch {
+      return null;
+    }
+  };
+
+  const [json, otherCount] = await Promise.all([
+    fetchPage1(sessionCookie),
+    fetchOtherCount(sessionCookie)
+  ]);
+
   const totalOrders = parseInt(String(json.total || 0), 10);
   const rawOrders: WmsRawOrderData[] = Array.isArray(json.data) ? json.data : [];
 
@@ -440,12 +506,20 @@ export async function pollLatestWmsOrders(
   const newParsedRows = convertWmsOrdersToRawOrderRows(newWmsOrders, skuGroups);
   const latestOrderNo = rawOrders.length > 0 ? (rawOrders[0].E1 || rawOrders[0].E17) : undefined;
 
+  const statusCounts: Record<string, number> = {
+    [status]: totalOrders
+  };
+  if (otherCount !== null) {
+    statusCounts[targetOtherStatus] = otherCount;
+  }
+
   return {
     success: true,
     totalOrders,
     newOrders: newParsedRows,
     hasNew: newParsedRows.length > 0,
-    latestOrderNo
+    latestOrderNo,
+    statusCounts
   };
 }
 

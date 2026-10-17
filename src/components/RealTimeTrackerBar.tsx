@@ -18,11 +18,13 @@ import confetti from 'canvas-confetti';
 import { RawOrderRow, SkuGroupsMap } from '../types';
 import { playOrderAlertSound } from '../utils/audioAlert';
 
-interface RealTimeTrackerBarProps {
-  orders: RawOrderRow[];
-  onNewOrders: (newOrders: RawOrderRow[]) => void;
-  onReloadStatusOrders?: (orders: RawOrderRow[], statusName: string) => void;
-  skuGroups: SkuGroupsMap;
+export interface RealTimeTrackerBarProps {
+  orders?: RawOrderRow[];
+  currentOrders?: RawOrderRow[];
+  onNewOrders?: (newOrders: RawOrderRow[]) => void;
+  onNewOrdersDetected?: (newOrders: RawOrderRow[]) => void;
+  onReloadStatusOrders?: (orders: RawOrderRow[], statusName?: string) => void;
+  skuGroups?: SkuGroupsMap;
 }
 
 export type WmsStatusKey = '5' | '4' | '8';
@@ -73,40 +75,156 @@ export const WMS_STATUS_CONFIG: Record<WmsStatusKey, StatusConfig> = {
 
 export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   orders,
+  currentOrders,
   onNewOrders,
+  onNewOrdersDetected,
   onReloadStatusOrders,
-  skuGroups,
+  skuGroups = {},
 }) => {
-  // Trạng thái bắt live thời gian thực: Mặc định BẬT (TRUE) để tự động làm mới liên tục
-  const [isLive, setIsLive] = useState<boolean>(true);
-  const [status, setStatus] = useState<WmsStatusKey>('4'); // Mặc định '4' = Submitted (trạng thái submit mới nhất)
-  const [intervalSec, setIntervalSec] = useState<number>(10); // Chu kỳ 10s mặc định
-  const [autoReplace, setAutoReplace] = useState<boolean>(true); // Mặc định TRUE: Xóa dữ liệu cũ & nạp mới trạng thái Submit mới nhất
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [warehouse, setWarehouse] = useState<string>('7'); // 7 = VN02 Hồ Chí Minh
+  const effectiveOrders = orders || currentOrders || [];
+  const effectiveOnNewOrders = onNewOrders || onNewOrdersDetected;
+
+  // Trạng thái bắt live thời gian thực: Tự động khôi phục từ localStorage hoặc mặc định BẬT
+  const [isLive, setIsLive] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('wms_auto_refresh_is_live');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const [status, setStatus] = useState<WmsStatusKey>(() => {
+    try {
+      const saved = localStorage.getItem('wms_auto_refresh_status');
+      return (saved === '4' || saved === '5' || saved === '8') ? saved : '4';
+    } catch {
+      return '4';
+    }
+  });
+
+  const [intervalSec, setIntervalSec] = useState<number>(() => {
+    try {
+      const saved = Number(localStorage.getItem('wms_auto_refresh_interval'));
+      return [5, 10, 15, 30].includes(saved) ? saved : 10;
+    } catch {
+      return 10;
+    }
+  });
+
+  const [autoReplace, setAutoReplace] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('wms_auto_refresh_replace');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('wms_auto_refresh_sound');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const [warehouse, setWarehouse] = useState<string>(() => {
+    try {
+      return localStorage.getItem('wms_auto_refresh_warehouse') || '7';
+    } catch {
+      return '7';
+    }
+  });
 
   // Trạng thái theo dõi
-  const [countdown, setCountdown] = useState<number>(10);
+  const [countdown, setCountdown] = useState<number>(intervalSec);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [isSwitchingStatus, setIsSwitchingStatus] = useState<boolean>(false);
   const [totalInWms, setTotalInWms] = useState<number | null>(null);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem('wms_auto_status_counts');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [sessionNewCount, setSessionNewCount] = useState<number>(0);
   const [lastDetectedOrders, setLastDetectedOrders] = useState<RawOrderRow[]>([]);
   const [latestOrderNo, setLatestOrderNo] = useState<string>('');
   const [lastCheckTime, setLastCheckTime] = useState<string>('');
+  const [justSynced, setJustSynced] = useState<boolean>(false);
+  const [isSseConnected, setIsSseConnected] = useState<boolean>(false);
 
-  // Refs để tránh closure stale state trong setInterval
+  // Lưu cài đặt vào localStorage khi người dùng thay đổi
+  useEffect(() => {
+    try { localStorage.setItem('wms_auto_refresh_is_live', String(isLive)); } catch {}
+  }, [isLive]);
+
+  useEffect(() => {
+    try { localStorage.setItem('wms_auto_refresh_status', status); } catch {}
+  }, [status]);
+
+  useEffect(() => {
+    try { localStorage.setItem('wms_auto_refresh_interval', String(intervalSec)); } catch {}
+  }, [intervalSec]);
+
+  useEffect(() => {
+    try { localStorage.setItem('wms_auto_refresh_replace', String(autoReplace)); } catch {}
+  }, [autoReplace]);
+
+  useEffect(() => {
+    try { localStorage.setItem('wms_auto_refresh_warehouse', warehouse); } catch {}
+  }, [warehouse]);
+
+  useEffect(() => {
+    try { localStorage.setItem('wms_auto_refresh_sound', String(soundEnabled)); } catch {}
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    try { localStorage.setItem('wms_auto_status_counts', JSON.stringify(statusCounts)); } catch {}
+  }, [statusCounts]);
+
+  // Refs để tránh closure stale state trong setInterval & Bộ nhớ đệm chuyển đổi siêu tốc
   const countdownIntervalRef = useRef<any>(null);
-  const ordersRef = useRef<RawOrderRow[]>(orders);
+  const ordersRef = useRef<RawOrderRow[]>(effectiveOrders);
   const statusRef = useRef<WmsStatusKey>(status);
   const warehouseRef = useRef<string>(warehouse);
   const autoReplaceRef = useRef<boolean>(autoReplace);
   const isPollingRef = useRef<boolean>(false);
   const soundEnabledRef = useRef<boolean>(soundEnabled);
+  const skuGroupsRef = useRef<SkuGroupsMap>(skuGroups);
+  const initialFetchDoneRef = useRef<boolean>(false);
+  const statusOrdersCacheRef = useRef<Record<string, RawOrderRow[]>>((() => {
+    try {
+      const c4 = sessionStorage.getItem('wms_cache_orders_4');
+      const c5 = sessionStorage.getItem('wms_cache_orders_5');
+      return {
+        ...(c4 ? { '4': JSON.parse(c4) } : {}),
+        ...(c5 ? { '5': JSON.parse(c5) } : {})
+      };
+    } catch {
+      return {};
+    }
+  })());
+  const lastWmsTotalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    ordersRef.current = orders;
-  }, [orders]);
+    ordersRef.current = effectiveOrders;
+    // Lưu vào cache hiện tại nếu có dữ liệu
+    if (effectiveOrders && effectiveOrders.length > 0) {
+      statusOrdersCacheRef.current[status] = effectiveOrders;
+      try {
+        sessionStorage.setItem('wms_cache_orders_' + status, JSON.stringify(effectiveOrders.slice(0, 500)));
+      } catch {}
+    }
+  }, [effectiveOrders, status]);
+
+  useEffect(() => {
+    skuGroupsRef.current = skuGroups;
+  }, [skuGroups]);
 
   useEffect(() => {
     statusRef.current = status;
@@ -124,7 +242,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
 
-  // 1. Hàm tự động làm mới thông minh (Smart Polling): Quét siêu nhẹ kiểm tra đơn mới, triệt tiêu hoàn toàn giật lag
+  // 1. Hàm tự động làm mới: Khi đến chu kỳ 10s, tự động kéo dữ liệu mới nhất từ WMS và cập nhật trực tiếp vào bảng
   const executeAutoRefresh = async (forceFullReload: boolean = false) => {
     if (isPollingRef.current) return;
     isPollingRef.current = true;
@@ -133,10 +251,11 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     const currentStatus = statusRef.current;
     const currentWarehouse = warehouseRef.current;
     const isReplaceMode = autoReplaceRef.current;
+    const currentOrders = ordersRef.current || [];
 
     try {
-      // Nếu người dùng bấm nút làm mới cưỡng bức (forceFullReload = true)
-      if (forceFullReload && isReplaceMode) {
+      if (isReplaceMode || forceFullReload || currentOrders.length === 0) {
+        // CHẾ ĐỘ XÓA CŨ & KÉO MỚI (MẶC ĐỊNH): Tự động kéo bản danh sách đơn mới nhất từ WMS và cập nhật bảng
         const res = await fetch('/api/wms/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -144,34 +263,85 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             warehouse: currentWarehouse,
             status: currentStatus,
             pageSize: 500,
-            maxPages: 0,
+            maxPages: currentStatus === '8' ? 1 : 1,
+            forceRefresh: true,
             username: 'David',
             password: '12345abc',
-            skuGroups,
+            skuGroups: skuGroupsRef.current,
           }),
         });
+
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.orders)) {
+            const freshOrders = data.orders;
+            statusOrdersCacheRef.current[currentStatus] = freshOrders;
+            try {
+              sessionStorage.setItem('wms_cache_orders_' + currentStatus, JSON.stringify(freshOrders.slice(0, 500)));
+            } catch {}
+
             setTotalInWms(data.totalOrders);
-            if (data.orders.length > 0) setLatestOrderNo(data.orders[0].orderNo);
+            lastWmsTotalRef.current = data.totalOrders;
+            if (freshOrders.length > 0) setLatestOrderNo(freshOrders[0].orderNo);
             const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             setLastCheckTime(nowStr);
+            setJustSynced(true);
+            setTimeout(() => setJustSynced(false), 2000);
+
+            setStatusCounts((prev) => ({
+              ...prev,
+              [currentStatus]: data.totalOrders,
+            }));
+
+            // Cập nhật lại toàn bộ bảng danh sách đơn hàng mà không cần người dùng click!
             const statusConfig = WMS_STATUS_CONFIG[currentStatus];
             if (onReloadStatusOrders) {
-              onReloadStatusOrders(data.orders, statusConfig.shortLabel);
-            } else {
-              onNewOrders(data.orders);
+              onReloadStatusOrders(freshOrders, statusConfig.shortLabel);
+            } else if (effectiveOnNewOrders) {
+              effectiveOnNewOrders(freshOrders);
+            }
+
+            // Phát hiện đơn mới để báo chuông
+            const prevIds = new Set(currentOrders.map(o => o.orderNo));
+            const newCount = freshOrders.filter(o => !prevIds.has(o.orderNo)).length;
+            if (newCount > 0) {
+              setSessionNewCount((prev) => prev + newCount);
+              if (soundEnabledRef.current) {
+                playOrderAlertSound();
+              }
             }
           }
         }
+
+        // Kéo ngầm số lượng của trạng thái còn lại (Submitted <-> Shelved) để cập nhật số trên nút
+        const otherStatus = currentStatus === '4' ? '5' : '4';
+        fetch('/api/wms/poll-new', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            warehouse: currentWarehouse,
+            status: otherStatus,
+            pageSize: 1,
+            username: 'David',
+            password: '12345abc',
+          }),
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success && d.totalOrders !== undefined) {
+              setStatusCounts((prev) => ({
+                ...prev,
+                [otherStatus]: d.totalOrders,
+              }));
+            }
+          })
+          .catch(() => {});
+
         return;
       }
 
-      // QUY TRÌNH QUÉT THÔNG MINH (SMART DIFF POLLING - SIÊU NHẸ ~5KB):
-      const currentOrders = ordersRef.current;
-      const known = currentOrders.map((o) => o.orderNo).filter(Boolean);
-
+      // CHẾ ĐỘ CỘNG DỒN: Chỉ quét và thêm đơn mới vào danh sách hiện tại
+      const known = currentOrders.slice(0, 100).map((o) => o?.orderNo).filter(Boolean);
       const res = await fetch('/api/wms/poll-new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -179,120 +349,79 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           knownOrderNos: known,
           warehouse: currentWarehouse,
           status: currentStatus,
+          pageSize: 60,
           username: 'David',
           password: '12345abc',
-          skuGroups,
+          skuGroups: skuGroupsRef.current,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
-          setTotalInWms(data.totalOrders);
-          if (data.latestOrderNo) {
-            setLatestOrderNo(data.latestOrderNo);
-          }
-
-          const nowStr = new Date().toLocaleTimeString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          });
+          const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           setLastCheckTime(nowStr);
+          setJustSynced(true);
+          setTimeout(() => setJustSynced(false), 2000);
 
-          // Kiểm tra xem đơn hàng trên WMS có thực sự thay đổi hay không:
-          const topOrderNo = currentOrders[0]?.orderNo;
-          const isCountChanged = data.totalOrders !== currentOrders.length;
-          const isTopOrderChanged = Boolean(data.latestOrderNo && topOrderNo && data.latestOrderNo !== topOrderNo);
-          const hasNew = Boolean(data.hasNew && Array.isArray(data.newOrders) && data.newOrders.length > 0);
-
-          // NẾU KHÔNG CÓ ĐƠN MỚI NÀO & SỐ LƯỢNG KHÔNG ĐỔI -> KẾT THÚC NGAY, TUYỆT ĐỐI KHÔNG RE-RENDER GÂY LAG
-          if (!isCountChanged && !isTopOrderChanged && !hasNew) {
-            return;
+          if (data.statusCounts) {
+            setStatusCounts((prev) => ({
+              ...prev,
+              ...data.statusCounts,
+            }));
           }
 
-          // CÓ ĐƠN MỚI THẬT SỰ!
-          if (isReplaceMode) {
-            // Nạp lại dữ liệu đồng bộ chính xác khi phát hiện có biến động số lượng
-            const fullRes = await fetch('/api/wms/orders', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                warehouse: currentWarehouse,
-                status: currentStatus,
-                pageSize: 500,
-                maxPages: 0,
-                username: 'David',
-                password: '12345abc',
-                skuGroups,
-              }),
-            });
+          setTotalInWms(data.totalOrders);
+          if (data.latestOrderNo) setLatestOrderNo(data.latestOrderNo);
 
-            if (fullRes.ok) {
-              const fullData = await fullRes.json();
-              if (fullData.success && Array.isArray(fullData.orders)) {
-                const freshOrders: RawOrderRow[] = fullData.orders;
-                const statusConfig = WMS_STATUS_CONFIG[currentStatus];
-                if (onReloadStatusOrders) {
-                  onReloadStatusOrders(freshOrders, statusConfig.shortLabel);
-                } else {
-                  onNewOrders(freshOrders);
-                }
+          if (data.hasNew && Array.isArray(data.newOrders) && data.newOrders.length > 0) {
+            const freshOrders: RawOrderRow[] = data.newOrders.map((o: RawOrderRow) => ({
+              ...o,
+              isRealTimeNew: true,
+              newTimestamp: Date.now(),
+            }));
 
-                if (soundEnabledRef.current) {
-                  playOrderAlertSound();
-                }
-
-                const diff = Math.abs(freshOrders.length - currentOrders.length);
-                setSessionNewCount((prev) => prev + (diff || 1));
-              }
-            }
-          } else {
-            // Chế độ cộng dồn:
-            if (hasNew) {
-              const freshOrders: RawOrderRow[] = data.newOrders.map((o: RawOrderRow) => ({
-                ...o,
-                isRealTimeNew: true,
-                newTimestamp: Date.now(),
-              }));
-
-              if (soundEnabledRef.current) {
-                playOrderAlertSound();
-              }
-
-              try {
-                confetti({
-                  particleCount: 35,
-                  spread: 55,
-                  origin: { y: 0.2, x: 0.85 },
-                });
-              } catch (e) {}
-
-              setSessionNewCount((prev) => prev + freshOrders.length);
-              setLastDetectedOrders(freshOrders);
-              onNewOrders(freshOrders);
-            }
+            if (soundEnabledRef.current) playOrderAlertSound();
+            setSessionNewCount((prev) => prev + freshOrders.length);
+            setLastDetectedOrders(freshOrders);
+            if (effectiveOnNewOrders) effectiveOnNewOrders(freshOrders);
           }
         }
       }
     } catch (err) {
-      console.warn('Real-Time smart-polling error:', err);
+      console.warn('Real-Time auto-refresh error:', err);
     } finally {
       isPollingRef.current = false;
       setIsPolling(false);
     }
   };
 
-  // 2. Hàm chuyển trạng thái: Cào dữ liệu sạch của trạng thái mới VÀ tiếp tục làm mới liên tục
-  const switchStatusAndFetch = async (targetStatus: WmsStatusKey) => {
+  // 2. Chuyển trạng thái siêu tốc (Instant Stale-While-Revalidate): Hiện ngay dữ liệu đệm trong 0ms, sau đó làm tươi nền
+  const switchStatusAndFetch = async (targetStatus: WmsStatusKey, forceFetch = false) => {
     setStatus(targetStatus);
     statusRef.current = targetStatus;
-    setIsSwitchingStatus(true);
+
+    const cached = statusOrdersCacheRef.current[targetStatus];
+    const statusConfig = WMS_STATUS_CONFIG[targetStatus];
+
+    // NẾU ĐÃ CÓ DỮ LIỆU ĐỆM -> HIỂN THỊ NGAY LẬP TỨC (0ms) KHÔNG ĐỂ NGƯỜI DÙNG PHẢI CHỜ!
+    if (cached && cached.length > 0 && !forceFetch) {
+      if (onReloadStatusOrders) {
+        onReloadStatusOrders(cached, statusConfig.shortLabel);
+      } else if (effectiveOnNewOrders) {
+        effectiveOnNewOrders(cached);
+      }
+      setTotalInWms(cached.length);
+    } else {
+      setIsSwitchingStatus(true);
+    }
+
     isPollingRef.current = true;
     setSessionNewCount(0);
     setLastDetectedOrders([]);
 
     try {
+      // Tải dữ liệu trạng thái mới: 1 trang 500 đơn (hoàn thành trong ~1s, an toàn không treo máy)
       const res = await fetch('/api/wms/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -300,35 +429,41 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           warehouse: warehouseRef.current,
           status: targetStatus,
           pageSize: 500,
-          maxPages: 0,
+          maxPages: targetStatus === '8' ? 1 : 2,
           username: 'David',
           password: '12345abc',
-          skuGroups,
+          skuGroups: skuGroupsRef.current,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.orders)) {
+          statusOrdersCacheRef.current[targetStatus] = data.orders;
+          try {
+            sessionStorage.setItem('wms_cache_orders_' + targetStatus, JSON.stringify(data.orders.slice(0, 500)));
+          } catch {}
           setTotalInWms(data.totalOrders);
-          const statusConfig = WMS_STATUS_CONFIG[targetStatus];
+          lastWmsTotalRef.current = data.totalOrders;
+          if (data.orders.length > 0) setLatestOrderNo(data.orders[0].orderNo);
+          const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setLastCheckTime(nowStr);
+
+          // Cập nhật số lượng của trạng thái vừa kéo
+          setStatusCounts((prev) => ({
+            ...prev,
+            [targetStatus]: data.totalOrders
+          }));
+
           if (onReloadStatusOrders) {
             onReloadStatusOrders(data.orders, statusConfig.shortLabel);
-          } else {
-            onNewOrders(data.orders);
+          } else if (effectiveOnNewOrders) {
+            effectiveOnNewOrders(data.orders);
           }
 
-          if (soundEnabled) {
+          if (soundEnabledRef.current && (!cached || cached.length === 0)) {
             playOrderAlertSound();
           }
-
-          try {
-            confetti({
-              particleCount: 45,
-              spread: 60,
-              origin: { y: 0.25 },
-            });
-          } catch (e) {}
         }
       }
     } catch (err) {
@@ -337,32 +472,66 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
       setIsSwitchingStatus(false);
       isPollingRef.current = false;
       setIsPolling(false);
-      // Tự động bật Live Tracker và reset đếm ngược để tiếp tục làm mới liên tục
       setIsLive(true);
       setCountdown(intervalSec);
     }
   };
 
-  // 3. Vòng lặp đếm ngược và quét liên tục theo thời gian thực
+  // 3. TỰ ĐỘNG CHẠY KHI MỞ TRANG: Tự động tải trạng thái hiện tại VÀ ngầm kéo trước trạng thái đối ứng
+  useEffect(() => {
+    if (isLive && !initialFetchDoneRef.current) {
+      initialFetchDoneRef.current = true;
+      switchStatusAndFetch(status).then(() => {
+        // Tự động tải trước (Pre-fetch) trạng thái còn lại trong nền
+        const otherStatus = status === '4' ? '5' : '4';
+        if (!statusOrdersCacheRef.current[otherStatus] || statusOrdersCacheRef.current[otherStatus].length === 0) {
+          fetch('/api/wms/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              warehouse: warehouseRef.current,
+              status: otherStatus,
+              pageSize: 500,
+              maxPages: 1,
+              username: 'David',
+              password: '12345abc',
+              skuGroups: skuGroupsRef.current,
+            }),
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.success && Array.isArray(d.orders)) {
+                statusOrdersCacheRef.current[otherStatus] = d.orders;
+                setStatusCounts((prev) => ({
+                  ...prev,
+                  [otherStatus]: d.totalOrders
+                }));
+                try {
+                  sessionStorage.setItem('wms_cache_orders_' + otherStatus, JSON.stringify(d.orders.slice(0, 500)));
+                } catch {}
+              }
+            })
+            .catch(() => {});
+        }
+      });
+    }
+  }, []);
+
+  // 4. Vòng lặp đếm ngược và quét liên tục theo thời gian thực (fallback khi không có SSE)
   useEffect(() => {
     if (!isLive) {
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
       return;
     }
 
-    // Reset đếm ngược
     setCountdown(intervalSec);
 
-    // Vòng lặp chạy mỗi 1 giây
     countdownIntervalRef.current = setInterval(() => {
-      // Nếu đang trong quá trình tải hoặc kiểm tra dữ liệu từ WMS, tạm dừng đếm ngược để tránh nghẽn luồng
-      if (isPollingRef.current) {
-        return;
-      }
-
       setCountdown((prev) => {
         if (prev <= 1) {
-          executeAutoRefresh();
+          setTimeout(() => {
+            executeAutoRefresh();
+          }, 10);
           return intervalSec;
         }
         return prev - 1;
@@ -374,6 +543,120 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     };
   }, [isLive, intervalSec, status, warehouse]);
 
+  // 5. Kết nối Server-Sent Events (SSE) thời gian thực với backend
+  useEffect(() => {
+    if (!isLive) {
+      setIsSseConnected(false);
+      return;
+    }
+
+    const sseUrl = `/api/wms/live-stream?warehouse=${warehouse}`;
+    let eventSource: EventSource | null = null;
+    let reconnectTimeout: any = null;
+
+    const connectSSE = () => {
+      try {
+        eventSource = new EventSource(sseUrl);
+
+        eventSource.onopen = () => {
+          setIsSseConnected(true);
+        };
+
+        eventSource.addEventListener('init', (e: any) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data.counts) {
+              setStatusCounts((prev) => ({ ...prev, ...data.counts }));
+              if (data.counts[statusRef.current] !== undefined) {
+                setTotalInWms(data.counts[statusRef.current]);
+              }
+            }
+          } catch {}
+        });
+
+        eventSource.addEventListener('heartbeat', (e: any) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data.counts) {
+              setStatusCounts((prev) => ({ ...prev, ...data.counts }));
+            }
+            if (data.timestamp) {
+              setLastCheckTime(data.timestamp);
+            }
+          } catch {}
+        });
+
+        eventSource.addEventListener('wms_pulse', (e: any) => {
+          try {
+            const data = JSON.parse(e.data);
+            const currentStatus = statusRef.current;
+            if (data.counts) {
+              setStatusCounts((prev) => ({ ...prev, ...data.counts }));
+              if (data.counts[currentStatus] !== undefined) {
+                setTotalInWms(data.counts[currentStatus]);
+              }
+            }
+            if (data.timestamp) {
+              setLastCheckTime(data.timestamp);
+            }
+
+            // Kiểm tra xem trạng thái đang xem (Submitted hoặc Shelved) có biến động không
+            const isStatus4Changed = currentStatus === '4' && data.status4?.changed;
+            const isStatus5Changed = currentStatus === '5' && data.status5?.changed;
+
+            if (isStatus4Changed || isStatus5Changed) {
+              setJustSynced(true);
+              setTimeout(() => setJustSynced(false), 2000);
+              // Kích hoạt nạp dữ liệu mới ngay lập tức không cần đợi 10s
+              executeAutoRefresh(true);
+            }
+          } catch (err) {
+            console.warn('SSE wms_pulse parse error:', err);
+          }
+        });
+
+        eventSource.onerror = () => {
+          setIsSseConnected(false);
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          // Tự động thử kết nối lại sau 3s
+          reconnectTimeout = setTimeout(connectSSE, 3000);
+        };
+      } catch (err) {
+        setIsSseConnected(false);
+      }
+    };
+
+    connectSSE();
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      setIsSseConnected(false);
+    };
+  }, [isLive, warehouse]);
+
+  const handleSwitchStatus = (targetStatus: WmsStatusKey) => {
+    setIsLive(true);
+    switchStatusAndFetch(targetStatus);
+  };
+
+  const handleToggleLive = () => {
+    const nextLive = !isLive;
+    setIsLive(nextLive);
+    if (nextLive) {
+      setCountdown(intervalSec);
+      executeAutoRefresh(true);
+    }
+  };
+
   const currentConfig = WMS_STATUS_CONFIG[status];
 
   return (
@@ -381,18 +664,45 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
       <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-3">
           
-          {/* CỤM 1: BỘ 3 NÚT CHUYỂN TRẠNG THÁI */}
+          {/* CỤM 1: BỘ 3 NÚT CHUYỂN TRẠNG THÁI VỚI SỐ LƯỢNG REALTIME */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <div className="flex items-center gap-1 text-xs text-slate-400 font-semibold shrink-0">
+            <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold shrink-0">
               <span className="text-amber-400">⚡</span>
-              <span className="hidden sm:inline">AUTO-REFRESH:</span>
+              <span className="hidden sm:inline font-bold">AUTO-REFRESH:</span>
+              <span className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border font-mono font-bold transition-all ${
+                isLive
+                  ? isSseConnected
+                    ? justSynced
+                      ? 'bg-amber-400/30 text-amber-200 border-amber-400 ring-2 ring-amber-400/50 shadow-lg animate-pulse'
+                      : 'bg-emerald-500/25 text-emerald-300 border-emerald-400/50 shadow-sm'
+                    : 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                  : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+              }`}>
+                {isLive ? (
+                  isSseConnected ? (
+                    <>
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      <span>{justSynced ? '⚡ Realtime Synced!' : `🟢 Live Realtime (SSE 2s)`}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
+                      <span>{justSynced ? '⚡ Đã đồng bộ' : `Tự chạy (${countdown}s)`}</span>
+                    </>
+                  )
+                ) : (
+                  <span>Tạm dừng</span>
+                )}
+              </span>
             </div>
 
             {/* Nút 1: Submitted (4) */}
             <button
-              onClick={() => switchStatusAndFetch('4')}
-              disabled={isSwitchingStatus}
-              title="Kéo trạng thái Submit mới nhất (Đã tạo / Chờ xử lý kho)"
+              onClick={() => handleSwitchStatus('4')}
+              title="Kéo trạng thái Submit mới nhất (Đã tạo / Chờ xử lý kho) và tự chạy làm mới"
               className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
                 status === '4'
                   ? WMS_STATUS_CONFIG['4'].activeBg
@@ -402,16 +712,22 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               <span>{WMS_STATUS_CONFIG['4'].icon}</span>
               <span className="hidden sm:inline">Submitted (E11=4)</span>
               <span className="sm:hidden">Submit</span>
-              {status === '4' && (
+              {statusCounts['4'] !== undefined && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
+                  status === '4' ? 'bg-white text-blue-900' : 'bg-blue-500/30 text-blue-200 border border-blue-400/40'
+                }`}>
+                  {statusCounts['4']}
+                </span>
+              )}
+              {status === '4' && isLive && (
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
               )}
             </button>
 
             {/* Nút 2: Shelved (5) */}
             <button
-              onClick={() => switchStatusAndFetch('5')}
-              disabled={isSwitchingStatus}
-              title="Kéo đơn Shelved (Đã lên kệ kho, có Picking List)"
+              onClick={() => handleSwitchStatus('5')}
+              title="Kéo đơn Shelved (Đã lên kệ kho, có Picking List) và tự chạy làm mới"
               className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
                 status === '5'
                   ? WMS_STATUS_CONFIG['5'].activeBg
@@ -421,16 +737,22 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               <span>{WMS_STATUS_CONFIG['5'].icon}</span>
               <span className="hidden sm:inline">Shelved (E11=5)</span>
               <span className="sm:hidden">Shelved</span>
-              {status === '5' && (
+              {statusCounts['5'] !== undefined && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
+                  status === '5' ? 'bg-slate-900 text-amber-300' : 'bg-amber-500/30 text-amber-200 border border-amber-400/40'
+                }`}>
+                  {statusCounts['5']}
+                </span>
+              )}
+              {status === '5' && isLive && (
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping"></span>
               )}
             </button>
 
             {/* Nút 3: Shipped (8) */}
             <button
-              onClick={() => switchStatusAndFetch('8')}
-              disabled={isSwitchingStatus}
-              title="Kéo đơn Shipped (Đã xuất kho / Đang giao)"
+              onClick={() => handleSwitchStatus('8')}
+              title="Kéo đơn Shipped (Đã xuất kho / Đang giao) và tự chạy làm mới"
               className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
                 status === '8'
                   ? WMS_STATUS_CONFIG['8'].activeBg
@@ -440,7 +762,18 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               <span>{WMS_STATUS_CONFIG['8'].icon}</span>
               <span className="hidden sm:inline">Shipped (E11=8)</span>
               <span className="sm:hidden">Shipped</span>
-              {status === '8' && (
+              {statusCounts['8'] !== undefined ? (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
+                  status === '8' ? 'bg-white text-emerald-900' : 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/40'
+                }`}>
+                  {statusCounts['8'] > 999 ? `${Math.round(statusCounts['8'] / 1000)}k` : statusCounts['8']}
+                </span>
+              ) : status === '8' && totalInWms !== null ? (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-white text-emerald-900">
+                  {totalInWms > 999 ? `${Math.round(totalInWms / 1000)}k` : totalInWms}
+                </span>
+              ) : null}
+              {status === '8' && isLive && (
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
               )}
             </button>
@@ -449,7 +782,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             {isSwitchingStatus && (
               <span className="text-xs text-amber-300 flex items-center gap-1 font-semibold animate-pulse">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span className="hidden sm:inline">Đang tải {currentConfig.shortLabel}...</span>
+                <span className="hidden sm:inline">Đang làm tươi {currentConfig.shortLabel}...</span>
               </span>
             )}
           </div>
@@ -462,8 +795,8 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               onClick={() => setAutoReplace(!autoReplace)}
               title={
                 autoReplace
-                  ? 'Đang bật: Mỗi 10s tự động xóa dữ liệu cũ và kéo lại trạng thái Submit mới nhất'
-                  : 'Đang tắt: Mỗi 10s chỉ giữ dữ liệu cũ và cộng dồn đơn mới'
+                  ? 'Đang bật: Mỗi chu kỳ tự động xóa dữ liệu cũ và kéo lại trạng thái mới nhất'
+                  : 'Đang tắt: Mỗi chu kỳ chỉ giữ dữ liệu cũ và cộng dồn đơn mới'
               }
               className={`px-2 sm:px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer ${
                 autoReplace
@@ -478,7 +811,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
 
             {/* Công tắc BẬT / TẮT LIVE */}
             <button
-              onClick={() => setIsLive(!isLive)}
+              onClick={handleToggleLive}
               className={`px-2 sm:px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer ${
                 isLive
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
