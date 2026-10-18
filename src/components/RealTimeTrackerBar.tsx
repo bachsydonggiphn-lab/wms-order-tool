@@ -665,11 +665,11 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-3">
           
           {/* CỤM 1: BỘ 3 NÚT CHUYỂN TRẠNG THÁI VỚI SỐ LƯỢNG REALTIME */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full lg:w-auto">
             <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold shrink-0">
               <span className="text-amber-400">⚡</span>
               <span className="hidden sm:inline font-bold">AUTO-REFRESH:</span>
-              <span className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border font-mono font-bold transition-all ${
+              <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 sm:px-2.5 py-1 rounded-lg border font-mono font-bold transition-all shrink-0 ${
                 isLive
                   ? isSseConnected
                     ? justSynced
@@ -685,7 +685,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                       </span>
-                      <span>{justSynced ? '⚡ Realtime Synced!' : `🟢 Live Realtime (SSE 2s)`}</span>
+                      <span>{justSynced ? '⚡ Synced!' : `🟢 Live (2s)`}</span>
                     </>
                   ) : (
                     <>
@@ -703,7 +703,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             <button
               onClick={() => handleSwitchStatus('4')}
               title="Kéo trạng thái Submit mới nhất (Đã tạo / Chờ xử lý kho) và tự chạy làm mới"
-              className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
+              className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm shrink-0 ${
                 status === '4'
                   ? WMS_STATUS_CONFIG['4'].activeBg
                   : 'bg-slate-800/90 hover:bg-slate-700 text-blue-200/90 border border-slate-700'
@@ -728,7 +728,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             <button
               onClick={() => handleSwitchStatus('5')}
               title="Kéo đơn Shelved (Đã lên kệ kho, có Picking List) và tự chạy làm mới"
-              className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
+              className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm shrink-0 ${
                 status === '5'
                   ? WMS_STATUS_CONFIG['5'].activeBg
                   : 'bg-slate-800/90 hover:bg-slate-700 text-amber-200/90 border border-slate-700'
@@ -753,7 +753,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             <button
               onClick={() => handleSwitchStatus('8')}
               title="Kéo đơn Shipped (Đã xuất kho / Đang giao) và tự chạy làm mới"
-              className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
+              className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm shrink-0 ${
                 status === '8'
                   ? WMS_STATUS_CONFIG['8'].activeBg
                   : 'bg-slate-800/90 hover:bg-slate-700 text-emerald-200/90 border border-slate-700'
@@ -780,7 +780,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
 
             {/* Loading spinner khi chuyển đổi trạng thái */}
             {isSwitchingStatus && (
-              <span className="text-xs text-amber-300 flex items-center gap-1 font-semibold animate-pulse">
+              <span className="text-xs text-amber-300 flex items-center gap-1 font-semibold animate-pulse shrink-0">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 <span className="hidden sm:inline">Đang làm tươi {currentConfig.shortLabel}...</span>
               </span>
@@ -788,7 +788,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           </div>
 
           {/* CỤM 2: CONTROLS - LIVE, CONFIG */}
-          <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs overflow-x-auto no-scrollbar py-0.5 w-full lg:w-auto">
             
             {/* Công tắc Chế độ: Xóa cũ & Kéo mới mỗi 10s */}
             <button
@@ -932,7 +932,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               <CheckCircle2 className="w-3 h-3" />
             </span>
             <span className="text-emerald-300 truncate">
-              {currentConfig.shortLabel}: {totalInWms?.toLocaleString() || '?'} đơn WMS | {orders.length.toLocaleString()} hiển thị | {lastCheckTime}
+              {currentConfig.shortLabel}: {totalInWms?.toLocaleString() || '?'} đơn WMS | {effectiveOrders.length.toLocaleString()} hiển thị | {lastCheckTime}
             </span>
             <span className={`hidden sm:inline px-1.5 py-0.5 rounded-md font-mono shrink-0 ${
               autoReplace

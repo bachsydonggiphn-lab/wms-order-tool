@@ -582,12 +582,13 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
             </div>
 
             {/* Switcher: Phân loại theo SKU vs Mã Đơn Thuần vs Mã Vận Đơn vs Tracking No. ： */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium hidden sm:inline">Hiển thị trong cột:</span>
-              <div className="flex items-center p-0.5 bg-gray-200/80 rounded-xl border border-gray-200 flex-wrap sm:flex-nowrap">
+            {/* Switcher: Phân loại theo SKU vs Mã Đơn Thuần vs Mã Vận Đơn vs Tracking No. ： */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs text-gray-500 font-medium hidden lg:inline shrink-0">Hiển thị:</span>
+              <div className="flex items-center p-0.5 bg-gray-200/80 rounded-xl border border-gray-200 overflow-x-auto no-scrollbar w-full sm:w-auto">
                 <button
                   onClick={() => setColumnViewMode('sku')}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                     columnViewMode === 'sku'
                       ? 'bg-white text-indigo-700 shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
@@ -595,11 +596,12 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                   title="Gom các đơn theo từng mã SKU (Xếp từ nhiều đến ít) và cho phép copy theo SKU"
                 >
                   <Flame className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Phân Tách Theo SKU (Copy theo mã)</span>
+                  <span className="hidden sm:inline">Phân Tách Theo SKU (Copy theo mã)</span>
+                  <span className="sm:hidden">Theo SKU</span>
                 </button>
                 <button
                   onClick={() => setColumnViewMode('order_no')}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                     columnViewMode === 'order_no'
                       ? 'bg-white text-indigo-700 shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
@@ -607,11 +609,12 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                   title="Hiển thị danh sách mã đơn thô (Order No.)"
                 >
                   <ListOrdered className="w-3.5 h-3.5 text-gray-500" />
-                  <span>Danh Sách Mã Đơn (Order No.)</span>
+                  <span className="hidden sm:inline">Danh Sách Mã Đơn (Order No.)</span>
+                  <span className="sm:hidden">Mã Đơn</span>
                 </button>
                 <button
                   onClick={() => setColumnViewMode('tracking_no')}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                     columnViewMode === 'tracking_no'
                       ? 'bg-white text-indigo-700 shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
@@ -619,11 +622,12 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                   title="Hiển thị danh sách mã vận đơn thuần (chỉ mã)"
                 >
                   <Truck className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Danh Sách Mã Vận Đơn (Tracking No.)</span>
+                  <span className="hidden sm:inline">Danh Sách Vận Đơn (Tracking No.)</span>
+                  <span className="sm:hidden">Vận Đơn</span>
                 </button>
                 <button
                   onClick={() => setColumnViewMode('tracking_prefix')}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                     columnViewMode === 'tracking_prefix'
                       ? 'bg-white text-blue-700 shadow-2xs font-bold ring-1 ring-blue-300'
                       : 'text-gray-600 hover:text-gray-900'
@@ -631,11 +635,11 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                   title="Hiển thị danh sách kèm tiền tố 'Tracking No. ：' (Định dạng chuẩn WMS)"
                 >
                   <FileText className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Tracking No. ：</span>
+                  <span>Tracking No.</span>
                 </button>
                 <button
                   onClick={() => setColumnViewMode('ref_prefix')}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                     columnViewMode === 'ref_prefix'
                       ? 'bg-white text-purple-700 shadow-2xs font-bold ring-1 ring-purple-300'
                       : 'text-gray-600 hover:text-gray-900'
@@ -643,7 +647,7 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                   title="Hiển thị danh sách kèm tiền tố 'RefNo.：' (Định dạng chuẩn WMS)"
                 >
                   <Hash className="w-3.5 h-3.5 text-purple-600" />
-                  <span>RefNo.：</span>
+                  <span>RefNo.</span>
                 </button>
               </div>
             </div>

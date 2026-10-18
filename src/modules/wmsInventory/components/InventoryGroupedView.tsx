@@ -57,37 +57,37 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
             {/* Group Header Bar */}
             <div
               onClick={() => toggleGroupExpand(g.group)}
-              className="p-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/50 hover:bg-slate-100/60 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 select-none"
+              className="p-3 sm:p-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/50 hover:bg-slate-100/60 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 select-none"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-black text-sm flex items-center justify-center border border-emerald-200 shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs sm:text-sm flex items-center justify-center border border-emerald-200 shrink-0">
                   {g.group.replace('YD-', '')}
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-base font-black text-slate-900 tracking-tight">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
                       Nhóm {g.group}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                       {g.skuCount} mã SKU
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      {g.percentageOfTotal}% tổng kho
+                    <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {g.percentageOfTotal}% kho
                     </span>
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
+                  <div className="text-[11px] sm:text-xs text-slate-500 mt-0.5 flex items-center gap-2 sm:gap-3 flex-wrap">
                     <span>
                       Khả dụng: <strong className="text-emerald-700">{g.totalInUsed.toLocaleString()}</strong>
                     </span>
                     <span>•</span>
                     <span>
-                      Có thể bán: <strong className="text-indigo-700">{g.totalSellable.toLocaleString()}</strong>
+                      Bán: <strong className="text-indigo-700">{g.totalSellable.toLocaleString()}</strong>
                     </span>
                     {g.totalOnWay > 0 && (
                       <>
                         <span>•</span>
                         <span className="text-amber-600 font-semibold">
-                          Đang về: +{g.totalOnWay.toLocaleString()}
+                          +{g.totalOnWay.toLocaleString()} về
                         </span>
                       </>
                     )}
@@ -95,7 +95,7 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                       <>
                         <span>•</span>
                         <span className="text-purple-600 font-semibold">
-                          Chờ xuất: {g.totalOutbound.toLocaleString()}
+                          Chờ: {g.totalOutbound.toLocaleString()}
                         </span>
                       </>
                     )}
@@ -110,11 +110,11 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                     e.stopPropagation();
                     handleCopyGroupSkus(g);
                   }}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 shrink-0"
                   title="Sao chép bảng SKU và số lượng của nhóm này"
                 >
                   {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-                  <span>{isCopied ? 'Đã sao chép!' : 'Copy nhóm'}</span>
+                  <span>{isCopied ? 'Đã copy!' : 'Copy nhóm'}</span>
                 </button>
 
                 <button
@@ -122,14 +122,14 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                     e.stopPropagation();
                     handleOpenPrintForGroup(g.group);
                   }}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all"
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all shrink-0"
                   title={`In danh sách SKU của nhóm ${g.group}`}
                 >
                   <Printer className="w-3.5 h-3.5 text-emerald-600" />
                   <span>In nhóm</span>
                 </button>
 
-                <div className="p-1 rounded-lg hover:bg-slate-200/60 text-slate-500">
+                <div className="p-1 rounded-lg hover:bg-slate-200/60 text-slate-500 shrink-0">
                   {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 </div>
               </div>
@@ -137,7 +137,7 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
 
             {/* Group Details Table (When expanded) */}
             {isExpanded && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto overscroll-contain scrollbar-thin" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-50 text-slate-500 border-b border-slate-200/80 font-bold uppercase text-[10px] tracking-wider">

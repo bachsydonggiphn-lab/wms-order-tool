@@ -62,20 +62,21 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* 3 NÚT TỔNG MASTER MODULES NẰM TRÊN CÙNG CẠNH LOGO */}
-          <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/90 shrink-0 shadow-2xs">
+          {/* 3 NÚT TỔNG MASTER MODULES NẰM TRÊN CÙNG CẠNH LOGO - Tối ưu cuộn ngang mượt mà trên Mobile */}
+          <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/90 shadow-2xs overflow-x-auto max-w-full no-scrollbar shrink-0">
             {/* 1. Vận Hành Đơn Hàng */}
             <button
               type="button"
               onClick={() => setActiveTab(lastOrderSubTab)}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0 ${
                 isOrderOps
                   ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm ring-2 ring-indigo-200'
                   : 'text-slate-700 hover:text-indigo-900 hover:bg-white/80'
               }`}
             >
               <Package className="w-4 h-4 shrink-0" />
-              <span>1. Vận Hành Đơn Hàng</span>
+              <span className="sm:hidden">1. Đơn Hàng</span>
+              <span className="hidden sm:inline">1. Vận Hành Đơn Hàng</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
                   isOrderOps ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
@@ -89,14 +90,15 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('hot_sku_slotting')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0 ${
                 activeTab === 'hot_sku_slotting'
                   ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 text-white shadow-sm ring-2 ring-orange-200'
                   : 'text-slate-700 hover:text-orange-900 hover:bg-white/80'
               }`}
             >
               <Flame className="w-4 h-4 shrink-0" />
-              <span>2. Hàng Bán Chạy & Bố Trí Kho</span>
+              <span className="sm:hidden">2. Bán Chạy</span>
+              <span className="hidden sm:inline">2. Hàng Bán Chạy & Bố Trí Kho</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
                   activeTab === 'hot_sku_slotting' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-800'
@@ -110,14 +112,15 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('inventory_query')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0 ${
                 activeTab === 'inventory_query'
                   ? 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-700 text-white shadow-sm ring-2 ring-cyan-200'
                   : 'text-slate-700 hover:text-cyan-900 hover:bg-white/80'
               }`}
             >
               <Warehouse className="w-4 h-4 shrink-0" />
-              <span>3. Tra Cứu Tồn Kho WMS</span>
+              <span className="sm:hidden">3. Tồn Kho</span>
+              <span className="hidden sm:inline">3. Tra Cứu Tồn Kho WMS</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
                   activeTab === 'inventory_query' ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-800'
@@ -131,37 +134,37 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Row 2: Stats Cards & Các Nút Thao Tác (Đồng Bộ, Dữ Liệu Mẫu, Xóa Đưa Xuống Dưới) - Chỉ hiển thị khi đang trong phân hệ 1 */}
         {isOrderOps && (
-          <div className="flex items-center justify-between gap-2.5 mt-2.5 pt-2 border-t border-slate-100 flex-wrap">
-            {/* Left: Stats Cards */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mt-2.5 pt-2 border-t border-slate-100">
+            {/* Left: Stats Cards - 4 cột đều trên mobile */}
+            <div className="grid grid-cols-4 sm:flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-600 shrink-0"></div>
                 <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">Đơn hàng</div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">Đơn</div>
                   <div className="text-xs font-bold text-gray-900 leading-tight">{orders.length}</div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-600 shrink-0"></div>
                 <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">SKU</div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">SKU</div>
                   <div className="text-xs font-bold text-gray-900 leading-tight">{totalSkus}</div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600 shrink-0"></div>
                 <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">PCS</div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">PCS</div>
                   <div className="text-xs font-bold text-gray-900 leading-tight">{totalPcs}</div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 shadow-2xs">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 shrink-0"></div>
                 <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-widest leading-tight">Lists</div>
+                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">Lists</div>
                   <div className="text-xs font-bold text-gray-900 leading-tight">{pickingLists.length}</div>
                 </div>
               </div>

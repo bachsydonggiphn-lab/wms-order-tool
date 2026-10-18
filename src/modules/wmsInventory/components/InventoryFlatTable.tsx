@@ -51,26 +51,26 @@ export const InventoryFlatTable: React.FC<InventoryFlatTableProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-      <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-700">
-        <div className="flex items-center gap-2">
+      <div className="p-3 sm:p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 text-xs font-bold text-slate-700">
+        <div className="flex items-center gap-2 flex-wrap">
           <span>Hiển thị {sortedTableItems.length} mã sản phẩm</span>
-          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-extrabold">
+          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] sm:text-[11px] font-extrabold">
             Sắp xếp vần chữ cái & số (A → Z, 0 → 9)
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
           <button
             onClick={() => handleOpenPrintModal('COLUMN_MATRIX')}
             disabled={!data || data.items.length === 0}
-            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all disabled:opacity-50"
+            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all disabled:opacity-50 shrink-0"
             title="In danh sách SKU đang lọc"
           >
             <Printer className="w-3.5 h-3.5 text-emerald-600" />
             <span>In Bảng Này</span>
           </button>
 
-          <span className="text-slate-500 font-semibold text-[11px]">Sắp xếp theo:</span>
+          <span className="text-slate-500 font-semibold text-[11px] shrink-0">Sắp xếp:</span>
           <select
             value={`${sortField}_${sortOrder}`}
             onChange={(e) => {
@@ -78,9 +78,9 @@ export const InventoryFlatTable: React.FC<InventoryFlatTableProps> = ({
               setSortField(f);
               setSortOrder(o);
             }}
-            className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer shadow-2xs"
+            className="bg-white border border-slate-200 rounded-lg px-2 sm:px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer shadow-2xs shrink-0"
           >
-            <option value="sku_asc">🔤 Mã SKU (A → Z & Số) [Chuẩn]</option>
+            <option value="sku_asc">🔤 Mã SKU (A → Z & Số)</option>
             <option value="sku_desc">🔤 Mã SKU (Z → A)</option>
             <option value="group_asc">🏷️ Nhóm SKU (A → Z)</option>
             <option value="inUsed_desc">📦 Khả dụng (Nhiều → Ít)</option>
@@ -91,7 +91,7 @@ export const InventoryFlatTable: React.FC<InventoryFlatTableProps> = ({
         </div>
       </div>
 
-      <div className="overflow-x-auto max-h-[750px] overflow-y-auto">
+      <div className="overflow-x-auto max-h-[750px] overflow-y-auto overscroll-contain scrollbar-thin" style={{ WebkitOverflowScrolling: 'touch' }}>
         <table className="w-full text-left text-xs border-collapse">
           <thead className="sticky top-0 bg-slate-100 z-10 shadow-2xs">
             <tr className="text-slate-600 border-b border-slate-200 font-bold uppercase text-[10px] tracking-wider">
