@@ -217,7 +217,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     if (effectiveOrders && effectiveOrders.length > 0) {
       statusOrdersCacheRef.current[status] = effectiveOrders;
       try {
-        sessionStorage.setItem('wms_cache_orders_' + status, JSON.stringify(effectiveOrders.slice(0, 500)));
+        sessionStorage.setItem('wms_cache_orders_' + status, JSON.stringify(effectiveOrders.slice(0, 5000)));
       } catch {}
     }
   }, [effectiveOrders, status]);
@@ -263,7 +263,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             warehouse: currentWarehouse,
             status: currentStatus,
             pageSize: 500,
-            maxPages: currentStatus === '8' ? 1 : 1,
+            maxPages: currentStatus === '8' ? 1 : 0,
             forceRefresh: true,
             username: 'David',
             password: '12345abc',
@@ -277,7 +277,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             const freshOrders = data.orders;
             statusOrdersCacheRef.current[currentStatus] = freshOrders;
             try {
-              sessionStorage.setItem('wms_cache_orders_' + currentStatus, JSON.stringify(freshOrders.slice(0, 500)));
+              sessionStorage.setItem('wms_cache_orders_' + currentStatus, JSON.stringify(freshOrders.slice(0, 5000)));
             } catch {}
 
             setTotalInWms(data.totalOrders);
@@ -421,7 +421,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     setLastDetectedOrders([]);
 
     try {
-      // Tải dữ liệu trạng thái mới: 1 trang 500 đơn (hoàn thành trong ~1s, an toàn không treo máy)
+      // Tải dữ liệu trạng thái mới: Lấy toàn bộ đơn hàng (Status 4 & 5), Shipped giới hạn 1 trang
       const res = await fetch('/api/wms/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -429,7 +429,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           warehouse: warehouseRef.current,
           status: targetStatus,
           pageSize: 500,
-          maxPages: targetStatus === '8' ? 1 : 2,
+          maxPages: targetStatus === '8' ? 1 : 0,
           username: 'David',
           password: '12345abc',
           skuGroups: skuGroupsRef.current,
@@ -441,7 +441,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
         if (data.success && Array.isArray(data.orders)) {
           statusOrdersCacheRef.current[targetStatus] = data.orders;
           try {
-            sessionStorage.setItem('wms_cache_orders_' + targetStatus, JSON.stringify(data.orders.slice(0, 500)));
+            sessionStorage.setItem('wms_cache_orders_' + targetStatus, JSON.stringify(data.orders.slice(0, 5000)));
           } catch {}
           setTotalInWms(data.totalOrders);
           lastWmsTotalRef.current = data.totalOrders;
@@ -492,7 +492,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               warehouse: warehouseRef.current,
               status: otherStatus,
               pageSize: 500,
-              maxPages: 1,
+              maxPages: otherStatus === '8' ? 1 : 0,
               username: 'David',
               password: '12345abc',
               skuGroups: skuGroupsRef.current,
@@ -507,7 +507,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                   [otherStatus]: d.totalOrders
                 }));
                 try {
-                  sessionStorage.setItem('wms_cache_orders_' + otherStatus, JSON.stringify(d.orders.slice(0, 500)));
+                  sessionStorage.setItem('wms_cache_orders_' + otherStatus, JSON.stringify(d.orders.slice(0, 5000)));
                 } catch {}
               }
             })
