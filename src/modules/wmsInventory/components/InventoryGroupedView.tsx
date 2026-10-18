@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ChevronDown,
   ChevronUp,
@@ -40,6 +40,8 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
   handleOpenSkuLabel,
   changedSkuMap
 }) => {
+  const [selectedSku, setSelectedSku] = useState<string | null>(null);
+
   return (
     <div className="space-y-4">
       {filteredGroups.map((g) => {
@@ -155,24 +157,50 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                       const isItemCopied = copiedSku === item.sku;
                       const isZero = item.inUsed <= 0;
                       const diff = changedSkuMap[item.sku];
+                      const isSelected = selectedSku === item.sku;
 
                       return (
                         <tr
                           key={item.id || item.sku}
-                          className={`transition-colors ${
-                            diff
-                              ? 'bg-amber-100/60 ring-2 ring-amber-400'
+                          onClick={() => setSelectedSku((prev) => (prev === item.sku ? null : item.sku))}
+                          className={`group relative cursor-pointer transition-all duration-150 select-text ${
+                            isSelected
+                              ? 'bg-blue-50/90 text-slate-900 shadow-sm border-y border-blue-200'
+                              : diff
+                              ? 'bg-amber-100/70 ring-1 ring-amber-400 hover:bg-amber-100'
                               : isZero
-                              ? 'bg-rose-50/30'
-                              : 'hover:bg-emerald-50/30'
+                              ? 'bg-rose-50/30 hover:bg-rose-100/60'
+                              : 'hover:bg-gradient-to-r hover:from-blue-50/90 hover:via-indigo-50/60 hover:to-blue-50/70 hover:shadow-xs'
                           }`}
                         >
-                          <td className="py-2 px-4 text-center text-slate-400 font-semibold text-[11px]">
-                            {idx + 1}
+                          <td className="py-2.5 px-4 text-center relative font-semibold text-[11px] transition-colors">
+                            {/* Thanh line nổi bật ở mép trái khi kéo chuột qua hoặc click chọn */}
+                            <span
+                              className={`absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-200 ${
+                                isSelected
+                                  ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.6)]'
+                                  : 'bg-transparent group-hover:bg-blue-500 group-hover:shadow-[0_0_8px_rgba(59,130,246,0.6)]'
+                              }`}
+                            />
+                            <span
+                              className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-mono text-[11px] transition-all duration-150 ${
+                                isSelected
+                                  ? 'bg-blue-600 text-white font-black shadow-xs scale-110'
+                                  : 'text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:font-black group-hover:scale-110 group-hover:shadow-xs'
+                              }`}
+                            >
+                              {idx + 1}
+                            </span>
                           </td>
-                          <td className="py-2 px-4 font-mono font-bold text-slate-900">
+                          <td className="py-2.5 px-4 font-mono font-bold text-slate-900">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                              <span
+                                className={`px-2.5 py-0.5 rounded-md font-mono text-xs transition-all duration-150 ${
+                                  isSelected
+                                    ? 'bg-blue-600 text-white font-black shadow-xs ring-2 ring-blue-400/50'
+                                    : 'bg-slate-100 border border-slate-200 text-slate-900 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-xs group-hover:scale-105 font-bold'
+                                }`}
+                              >
                                 {item.sku}
                               </span>
                               {diff && diff.diffInUsed !== 0 && (
@@ -186,49 +214,58 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                               )}
                             </div>
                           </td>
-                          <td className="py-2 px-4 text-slate-700 max-w-md truncate" title={item.title}>
+                          <td
+                            className="py-2.5 px-4 text-slate-700 group-hover:text-slate-950 group-hover:font-medium max-w-md truncate transition-colors"
+                            title={item.title}
+                          >
                             {item.title || item.productName}
                           </td>
-                          <td className="py-2 px-3 text-right font-bold">
+                          <td className="py-2.5 px-3 text-right font-bold">
                             <span
-                              className={`px-2 py-0.5 rounded-md font-extrabold ${
+                              className={`inline-block px-2.5 py-0.5 rounded-md font-extrabold transition-all duration-150 ${
                                 isZero
                                   ? 'bg-rose-100 text-rose-700'
                                   : item.inUsed > 500
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-slate-100 text-slate-800'
+                                  ? 'bg-emerald-100 text-emerald-800 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-xs group-hover:scale-110'
+                                  : 'bg-slate-100 text-slate-800 group-hover:bg-slate-900 group-hover:text-white group-hover:shadow-xs group-hover:scale-110'
                               }`}
                             >
                               {item.inUsed.toLocaleString()}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-right font-semibold text-slate-700">
+                          <td className="py-2.5 px-3 text-right font-semibold text-slate-700 group-hover:text-slate-950 group-hover:font-extrabold transition-colors">
                             {item.sellable.toLocaleString()}
                           </td>
-                          <td className="py-2 px-3 text-right font-semibold text-amber-600">
+                          <td className="py-2.5 px-3 text-right font-semibold text-amber-600 group-hover:font-extrabold transition-colors">
                             {item.onWay > 0 ? `+${item.onWay.toLocaleString()}` : '-'}
                           </td>
-                          <td className="py-2 px-3 text-right font-semibold text-purple-600">
+                          <td className="py-2.5 px-3 text-right font-semibold text-purple-600 group-hover:font-extrabold transition-colors">
                             {item.outbound > 0 ? item.outbound.toLocaleString() : '-'}
                           </td>
-                          <td className="py-2 px-3 text-right font-semibold text-rose-600">
+                          <td className="py-2.5 px-3 text-right font-semibold text-rose-600 group-hover:font-extrabold transition-colors">
                             {item.unsellable > 0 ? item.unsellable.toLocaleString() : '-'}
                           </td>
-                          <td className="py-2 px-4 text-center text-[10px] text-slate-400">
+                          <td className="py-2.5 px-4 text-center text-[10px] text-slate-400 group-hover:text-slate-600 group-hover:font-semibold transition-colors">
                             {item.updateTime ? item.updateTime.slice(5) : '-'}
                           </td>
-                          <td className="py-2 px-3 text-center">
+                          <td className="py-2.5 px-3 text-center">
                             <div className="flex items-center justify-center gap-1.5">
                               <button
-                                onClick={() => handleOpenSkuLabel(item)}
-                                className="p-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer transition-colors shadow-2xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenSkuLabel(item);
+                                }}
+                                className="p-1 rounded-md bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-200 cursor-pointer transition-all shadow-2xs group-hover:scale-110 active:scale-95"
                                 title={`In tem nhãn SKU ${item.sku} (Máy in nhiệt XP-D465B)`}
                               >
                                 <Printer className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                onClick={() => handleCopySku(item.sku)}
-                                className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopySku(item.sku);
+                                }}
+                                className="p-1 rounded-md hover:bg-slate-200 text-slate-400 hover:text-slate-900 cursor-pointer transition-all group-hover:scale-110 active:scale-95"
                                 title="Sao chép mã SKU"
                               >
                                 {isItemCopied ? (
