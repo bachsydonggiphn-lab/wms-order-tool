@@ -735,7 +735,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
 
         {/* Carrier Badges Filter Group & 1-Click Copy */}
-        <div className="flex items-center flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full">
           {carrierOptions.map((opt) => {
             const count = carrierCounts[opt.code] || 0;
 
@@ -759,7 +759,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             return (
               <React.Fragment key={opt.code}>
                 <div
-                  className={`inline-flex items-center rounded-xl border transition-all ${
+                  className={`inline-flex items-center rounded-xl border transition-all shrink-0 ${
                     isSelected ? opt.activeStyle : opt.colorStyle
                   } ${isMergedPart ? 'ring-2 ring-blue-300' : ''}`}
                 >

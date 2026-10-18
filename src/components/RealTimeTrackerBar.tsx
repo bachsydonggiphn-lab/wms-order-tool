@@ -660,7 +660,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   const currentConfig = WMS_STATUS_CONFIG[status];
 
   return (
-    <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border-b border-indigo-900/60 shadow-lg sticky top-14 z-20">
+    <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border-b border-indigo-900/60 shadow-lg lg:sticky lg:top-14 z-20">
       <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-3">
           

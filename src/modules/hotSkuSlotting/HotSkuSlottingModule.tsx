@@ -966,20 +966,20 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
 
           {/* Dải Lựa Chọn Khung Thời Gian & Chế Độ Phân Hạng */}
           <div className="mt-6 pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1">Khung Thời Gian:</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
+              <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1 shrink-0">Khung Giờ:</span>
               {[
-                { id: '3d', label: '3 Ngày Gần Nhất' },
-                { id: '7d', label: '7 Ngày Gần Nhất' },
-                { id: '30d', label: '30 Ngày (Khuyên dùng)' },
+                { id: '3d', label: '3 Ngày' },
+                { id: '7d', label: '7 Ngày' },
+                { id: '30d', label: '30 Ngày (Chuẩn)' },
                 { id: '90d', label: '90 Ngày' },
-                { id: 'all', label: 'Toàn Bộ Lịch Sử' },
-                { id: 'custom', label: 'Tùy Chọn Ngày' }
+                { id: 'all', label: 'Tất Cả' },
+                { id: 'custom', label: 'Tùy Chọn' }
               ].map((btn) => (
                 <button
                   key={btn.id}
                   onClick={() => setTimeframe(btn.id as any)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer ${
                     timeframe === btn.id
                       ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/30'
                       : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60'
@@ -991,12 +991,12 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
             </div>
 
             {/* Toggle Chế Độ Phân Hạng */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1">Góc Nhìn ABC:</span>
-              <div className="flex items-center p-1 rounded-xl bg-slate-800/90 border border-slate-700 text-xs">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
+              <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1 shrink-0 hidden sm:inline">Góc Nhìn ABC:</span>
+              <div className="flex items-center p-1 rounded-xl bg-slate-800/90 border border-slate-700 text-xs shrink-0">
                 <button
                   onClick={() => setRankingMode('normalized')}
-                  className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                     rankingMode === 'normalized'
                       ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 font-black'
                       : 'text-slate-300 hover:text-white'
@@ -1004,11 +1004,12 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
                   title="Loại bỏ chuỗi ngày cạn tồn, giữ hạng A và đặt chỗ Zone A đón hàng về"
                 >
                   <Zap className="w-3.5 h-3.5 text-slate-950" />
-                  ⚡ Chuẩn Hóa Đứt Hàng (Đón Hàng Về)
+                  <span className="hidden sm:inline">⚡ Chuẩn Hóa Đứt Hàng (Đón Hàng Về)</span>
+                  <span className="sm:hidden">⚡ Chuẩn Hóa</span>
                 </button>
                 <button
                   onClick={() => setRankingMode('actual')}
-                  className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                     rankingMode === 'actual'
                       ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-bold'
                       : 'text-slate-300 hover:text-white'
@@ -1016,13 +1017,14 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
                   title="Xếp hạng thuần túy theo số lượng thực tế đã xuất kho"
                 >
                   <Boxes className="w-3.5 h-3.5" />
-                  📦 Theo Sản Lượng Thực Tế
+                  <span className="hidden sm:inline">📦 Theo Sản Lượng Thực Tế</span>
+                  <span className="sm:hidden">📦 Thực Tế</span>
                 </button>
               </div>
             </div>
 
             {timeframe === 'custom' && (
-              <div className="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-xl border border-slate-700 text-xs">
+              <div className="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-xl border border-slate-700 text-xs shrink-0">
                 <Calendar className="w-4 h-4 text-amber-400 ml-1.5" />
                 <input
                   type="date"
@@ -1043,73 +1045,77 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
         </div>
 
         {/* SUB-TABS NAVIGATION BAR */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto py-1">
             <button
               onClick={() => setActiveSubTab('map_and_table')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 activeSubTab === 'map_and_table'
                   ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/25'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <Warehouse className="w-4 h-4" />
-              <span>Sơ Đồ Kệ Kho & Bảng Phân Tích ABC</span>
+              <Warehouse className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Sơ Đồ Kệ Kho & Bảng Phân Tích ABC</span>
+              <span className="sm:hidden">Sơ Đồ & Bảng ABC</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('group_slotting')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all relative ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 activeSubTab === 'group_slotting'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/25'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <FolderTree className="w-4 h-4" />
-              <span>Bố Trí Theo Nhóm Hàng</span>
+              <FolderTree className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Bố Trí Theo Nhóm Hàng</span>
+              <span className="sm:hidden">Theo Nhóm Hàng</span>
               {groupSlottingMetrics.length > 0 && (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                   activeSubTab === 'group_slotting' ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-800'
                 }`}>
-                  {groupSlottingMetrics.length} nhóm
+                  {groupSlottingMetrics.length}
                 </span>
               )}
             </button>
 
             <button
               onClick={() => setActiveSubTab('relocation_tasks')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all relative ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 activeSubTab === 'relocation_tasks'
                   ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/25'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <ClipboardList className="w-4 h-4" />
-              <span>Checklist Nhiệm Vụ Chuyển Kệ</span>
+              <ClipboardList className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Checklist Nhiệm Vụ Chuyển Kệ</span>
+              <span className="sm:hidden">Nhiệm Vụ Kệ</span>
               {(analytics?.relocationTasks?.length || 0) > 0 && (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                   activeSubTab === 'relocation_tasks' ? 'bg-white text-indigo-700' : 'bg-rose-500 text-white'
                 }`}>
-                  {analytics?.relocationTasks?.length} việc
+                  {analytics?.relocationTasks?.length}
                 </span>
               )}
             </button>
 
             <button
               onClick={() => setActiveSubTab('paired_skus')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 activeSubTab === 'paired_skus'
                   ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-600/25'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <Link2 className="w-4 h-4" />
-              <span>Ma Trận Cặp Mua Kèm (Đơn Mix)</span>
+              <Link2 className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Ma Trận Cặp Mua Kèm (Đơn Mix)</span>
+              <span className="sm:hidden">Cặp Mua Kèm</span>
               {uniquePairs.length > 0 && (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                   activeSubTab === 'paired_skus' ? 'bg-white text-emerald-800' : 'bg-emerald-100 text-emerald-800'
                 }`}>
-                  {uniquePairs.length} cặp
+                  {uniquePairs.length}
                 </span>
               )}
             </button>

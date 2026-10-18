@@ -13,6 +13,7 @@ import { ActiveTabType } from './components/Toolbar';
 import { OrderOperationsModule } from './modules/orderOperations';
 import { HotSkuSlottingModule } from './modules/hotSkuSlotting';
 import { WmsInventoryModule } from './modules/wmsInventory';
+import { ArrowUp } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_SKU = 'warehouse_sku_groups_v1';
 const LOCAL_STORAGE_KEY_ORDERS = 'warehouse_orders_v1';
@@ -196,6 +197,19 @@ export default function App() {
 
   const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
   const [isWmsModalOpen, setIsWmsModalOpen] = useState<boolean>(false);
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 350);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
@@ -271,6 +285,18 @@ export default function App() {
           </span>
         </div>
       </footer>
+
+      {/* Floating Scroll To Top Button (Mobile & Desktop) */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-5 z-40 p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-xl shadow-indigo-600/30 border border-indigo-400/30 transition-all transform active:scale-95 animate-fade-in flex items-center justify-center cursor-pointer"
+          title="Cuộn lên đầu trang"
+          aria-label="Cuộn lên đầu trang"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 }

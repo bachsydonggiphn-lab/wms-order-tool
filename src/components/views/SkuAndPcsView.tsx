@@ -74,6 +74,9 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
   const [modalSearch, setModalSearch] = useState<string>('');
   const [modalSelectedSkus, setModalSelectedSkus] = useState<Set<string>>(new Set());
 
+  // Chế độ xem trên mobile: 'pcs' (Chỉ xem cột PCS) | 'sku' (Chỉ xem bảng SKU) | 'both' (Xem cả hai)
+  const [mobileColumnTab, setMobileColumnTab] = useState<'pcs' | 'sku' | 'both'>('pcs');
+
   const { skuResult, pcsGroups } = xuLyGopPCS(orders, selectedPickingList, selectedCarrier, skuGroups);
 
   // Map nhanh OrderNo -> RawOrderRow
@@ -483,9 +486,48 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
         </div>
       </div>
 
+      {/* Mobile Toggle: Cột PCS vs Bảng SKU */}
+      <div className="lg:hidden flex items-center bg-gray-200/90 p-1 rounded-2xl gap-1 shadow-2xs">
+        <button
+          onClick={() => setMobileColumnTab('pcs')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileColumnTab === 'pcs'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-gray-700 hover:text-gray-900'
+          }`}
+        >
+          <Box className="w-3.5 h-3.5" />
+          <span>Cột PCS (1, 2, MIX...)</span>
+        </button>
+        <button
+          onClick={() => setMobileColumnTab('sku')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileColumnTab === 'sku'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-gray-700 hover:text-gray-900'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Bảng SKU ({skuEntries.length})</span>
+        </button>
+        <button
+          onClick={() => setMobileColumnTab('both')}
+          className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            mobileColumnTab === 'both'
+              ? 'bg-white text-indigo-700 shadow-xs'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+          title="Xem cả bảng SKU và cột PCS xếp dọc"
+        >
+          Cả 2
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Bảng Tổng Hợp SKU (Cột S:T) */}
-        <div className="lg:col-span-4 xl:col-span-3 bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+        <div className={`lg:col-span-4 xl:col-span-3 bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex-col ${
+          mobileColumnTab === 'pcs' ? 'hidden lg:flex' : 'flex'
+        }`}>
           {/* Header */}
           <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -571,7 +613,9 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
         </div>
 
         {/* Right Column: Bảng Gộp PCS (Cột X trở đi) */}
-        <div className="lg:col-span-8 xl:col-span-9 bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+        <div className={`lg:col-span-8 xl:col-span-9 bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex-col ${
+          mobileColumnTab === 'sku' ? 'hidden lg:flex' : 'flex'
+        }`}>
           {/* Header & Mode Switcher */}
           <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
