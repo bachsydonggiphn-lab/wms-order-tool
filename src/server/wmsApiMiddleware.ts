@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, httpsRequest } from '../services/wmsService';
+import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest } from '../services/wmsService';
 import { fetchGHNLive, fetchJNTLive, fetchJNTBatchLive, fetchSPXLive, fetchNinjaVanLive } from './trackingBackend';
 import {
   getShippedSyncMeta,
@@ -9,6 +9,8 @@ import {
   updateShippedSyncMeta,
   clearAnalyticsCache,
   getSqliteDb,
+  getSkuImage,
+  saveSkuImage,
   ShippedOrderInput
 } from '../../sqliteDb';
 import { layNhomTuSKU } from '../utils/orderProcessor';
@@ -253,6 +255,58 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       sendJson(res, 500, {
         success: false,
         message: err?.message || 'Lỗi khi kéo tồn kho từ YunWMS'
+      });
+    });
+    return;
+  }
+
+  // 3b. Endpoint Lấy Hình Ảnh SKU Sản Phẩm (Hover preview)
+  if (pathname === '/api/wms/sku-image' && (req.method === 'GET' || req.method === 'POST')) {
+    const handleSkuImage = async () => {
+      let options: any = {};
+      if (req.method === 'POST') {
+        options = await parseJsonBody(req);
+      } else {
+        options = parsedUrl.query;
+      }
+
+      const sku = String(options.sku || '').trim();
+      const productId = String(options.productId || '').trim();
+
+      if (!sku && !productId) {
+        sendJson(res, 400, { success: false, message: 'Yêu cầu tham số sku hoặc productId' });
+        return;
+      }
+
+      // 1. Kiểm tra cache SQLite trước (0ms)
+      if (sku) {
+        const cached = await getSkuImage(sku);
+        if (cached && cached.imageUrl) {
+          sendJson(res, 200, {
+            success: true,
+            sku,
+            productId: cached.productId || productId,
+            imageUrl: cached.imageUrl,
+            cached: true
+          });
+          return;
+        }
+      }
+
+      // 2. Kéo dữ liệu từ YunWMS
+      const result = await fetchSkuImage(sku, productId);
+      if (result.success && result.imageUrl && sku) {
+        // Lưu vào cache SQLite cho các lần sau
+        saveSkuImage(sku, result.productId || productId, result.imageUrl).catch(() => {});
+      }
+
+      sendJson(res, result.success ? 200 : 404, result);
+    };
+
+    handleSkuImage().catch((err) => {
+      sendJson(res, 500, {
+        success: false,
+        message: err?.message || 'Lỗi khi tải hình ảnh SKU'
       });
     });
     return;

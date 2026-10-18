@@ -28,6 +28,7 @@ import { RawOrderRow, SkuCountResult, PcsGroupResult, CarrierCode, SkuGroupsMap 
 import { xuLyGopPCS, CARRIER_CONFIG } from '../../utils/orderProcessor';
 import { DEFAULT_SKU_GROUPS } from '../../utils/skuData';
 import { ActiveTabType } from '../Toolbar';
+import { SkuHoverImage } from '../common/SkuHoverImage';
 
 interface SkuAndPcsViewProps {
   orders: RawOrderRow[];
@@ -1163,9 +1164,14 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                                       )}
                                       <div className="truncate">
                                         <div className="flex items-center gap-1 truncate">
-                                          <span className="font-mono font-bold text-xs text-gray-900 truncate">
-                                            {item.sku}
-                                          </span>
+                                          <SkuHoverImage
+                                            sku={item.sku}
+                                            productTitle={(item.orders?.[0]?.items?.[0] as any)?.productTitle}
+                                          >
+                                            <span className="font-mono font-bold text-xs text-gray-900 truncate hover:text-blue-600 transition-colors">
+                                              {item.sku}
+                                            </span>
+                                          </SkuHoverImage>
                                         </div>
                                         <span className="text-[10px] text-gray-500 block">
                                           {item.percentage}% ({item.totalQty} PCS)

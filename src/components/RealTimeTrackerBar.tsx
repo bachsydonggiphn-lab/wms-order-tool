@@ -492,7 +492,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               warehouse: warehouseRef.current,
               status: otherStatus,
               pageSize: 500,
-              maxPages: otherStatus === '8' ? 1 : 0,
+              maxPages: (otherStatus as string) === '8' ? 1 : 0,
               username: 'David',
               password: '12345abc',
               skuGroups: skuGroupsRef.current,

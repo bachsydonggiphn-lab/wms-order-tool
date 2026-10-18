@@ -230,6 +230,8 @@ export interface WmsInventoryItem {
   shared: number;        // Share Inventory
   warningQty: number;    // Cảnh báo tồn
   updateTime: string;    // Thời gian cập nhật WMS
+  productId?: string;    // ID sản phẩm nội bộ YunWMS (dùng để load hình ảnh)
+  imageUrl?: string;     // URL hình ảnh sản phẩm (CDN)
   raw?: any;
 }
 

@@ -124,6 +124,17 @@ export async function createAllTables(db: Client): Promise<void> {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // 5. Bảng wms_sku_images: Lưu cache hình ảnh SKU sản phẩm từ YunWMS
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS wms_sku_images (
+      sku TEXT PRIMARY KEY,
+      product_id TEXT,
+      image_url TEXT,
+      updated_at INTEGER
+    );
+  `);
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_sku_images_sku ON wms_sku_images(sku);");
 }
 
 export async function initSqliteDb(): Promise<void> {
@@ -1229,5 +1240,40 @@ export async function clearShippedOrders(): Promise<void> {
     { sql: "DELETE FROM wms_sync_meta WHERE key LIKE 'shipped_%';", args: [] }
   ], "write");
   clearAnalyticsCache();
+}
+
+/**
+ * Lấy URL hình ảnh của SKU từ cache SQLite
+ */
+export async function getSkuImage(sku: string): Promise<{ sku: string; productId: string; imageUrl: string } | null> {
+  if (!sku) return null;
+  await initSqliteDb();
+  const db = getSqliteDb();
+  const res = await db.execute({
+    sql: "SELECT sku, product_id, image_url FROM wms_sku_images WHERE sku = ? LIMIT 1;",
+    args: [sku.trim()]
+  });
+  if (res.rows && res.rows.length > 0) {
+    const row = res.rows[0];
+    return {
+      sku: String(row.sku || ''),
+      productId: String(row.product_id || ''),
+      imageUrl: String(row.image_url || '')
+    };
+  }
+  return null;
+}
+
+/**
+ * Lưu URL hình ảnh của SKU vào cache SQLite
+ */
+export async function saveSkuImage(sku: string, productId: string, imageUrl: string): Promise<void> {
+  if (!sku) return;
+  await initSqliteDb();
+  const db = getSqliteDb();
+  await db.execute({
+    sql: "INSERT OR REPLACE INTO wms_sku_images (sku, product_id, image_url, updated_at) VALUES (?, ?, ?, ?);",
+    args: [sku.trim(), productId || '', imageUrl || '', Date.now()]
+  });
 }
 

@@ -7,6 +7,7 @@ import {
   Printer
 } from 'lucide-react';
 import { InventoryGroupSummary, WmsInventoryItem } from '../../../types';
+import { SkuHoverImage } from '../../../components/common/SkuHoverImage';
 
 interface SkuDiffInfo {
   diffInUsed: number;
@@ -194,15 +195,23 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                           </td>
                           <td className="py-2.5 px-4 font-mono font-bold text-slate-900">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span
-                                className={`px-2.5 py-0.5 rounded-md font-mono text-xs transition-all duration-150 ${
-                                  isSelected
-                                    ? 'bg-blue-600 text-white font-black shadow-xs ring-2 ring-blue-400/50'
-                                    : 'bg-slate-100 border border-slate-200 text-slate-900 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-xs group-hover:scale-105 font-bold'
-                                }`}
+                              <SkuHoverImage
+                                sku={item.sku}
+                                productId={item.productId}
+                                productTitle={item.title || item.productName}
                               >
-                                {item.sku}
-                              </span>
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-mono text-xs transition-all duration-150 cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-blue-600 text-white font-black shadow-xs ring-2 ring-blue-400/50'
+                                      : 'bg-slate-100 border border-slate-200 text-slate-900 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-xs group-hover:scale-105 font-bold'
+                                  }`}
+                                  title="Rê chuột hoặc nhấp để xem ảnh sản phẩm WMS"
+                                >
+                                  <span>{item.sku}</span>
+                                  <span className="text-[10px] opacity-40 group-hover:opacity-100 transition-opacity" title="Có hình ảnh WMS">🖼️</span>
+                                </span>
+                              </SkuHoverImage>
                               {diff && diff.diffInUsed !== 0 && (
                                 <span
                                   className={`px-1.5 py-0.2 rounded text-[10px] font-black animate-bounce ${

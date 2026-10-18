@@ -4,6 +4,7 @@
  */
 
 import https from 'https';
+import http from 'http';
 import { RawOrderRow, SkuGroupsMap, WmsInventoryItem, InventoryGroupSummary, InventoryQueryResult } from '../types';
 import { DEFAULT_SKU_GROUPS } from '../utils/skuData';
 import { parseRawOrderRows, layNhomTuSKU } from '../utils/orderProcessor';
@@ -643,6 +644,7 @@ export async function fetchWmsInventory(
       shared: parseInt(String(raw.pi_shared ?? 0), 10) || 0,
       warningQty: parseInt(String(raw.pi_warning_qty ?? 0), 10) || 0,
       updateTime: raw.pi_update_time || '',
+      productId: raw.product_id ? String(raw.product_id) : undefined,
       raw
     };
   });
@@ -732,5 +734,142 @@ export async function fetchWmsInventory(
   }
 
   return result;
+}
+
+// Cache in-memory SKU -> Product Image
+const skuImageRamCache = new Map<string, { productId: string; imageUrl: string }>();
+
+/**
+ * Lấy URL hình ảnh sản phẩm từ hệ thống YunWMS dựa trên SKU hoặc productId
+ * Hệ thống sử dụng: GET /product/product/detail/skuid/{productId}
+ * Trích xuất hàm _loadImage({ ... "src": "http://czwh.yunwms.com/default/index/view-img?..." })
+ * và follow redirect 302 sang CDN HTTPS vĩnh viễn (https://hk-wms-oms-cdn.yunwms.com/...)
+ */
+export async function fetchSkuImage(
+  sku: string,
+  productId?: string,
+  username = 'David',
+  password = '12345abc'
+): Promise<{ success: boolean; sku: string; productId?: string; imageUrl?: string; message?: string }> {
+  const cleanSku = (sku || '').trim();
+  if (!cleanSku && !productId) {
+    return { success: false, sku: '', message: 'Thiếu mã SKU hoặc productId' };
+  }
+
+  // 1. Kiểm tra RAM cache
+  if (cleanSku && skuImageRamCache.has(cleanSku)) {
+    const cached = skuImageRamCache.get(cleanSku)!;
+    return { success: true, sku: cleanSku, productId: cached.productId, imageUrl: cached.imageUrl };
+  }
+
+  let finalProductId = productId ? String(productId).trim() : '';
+
+  // 2. Nếu chưa có productId, thử tìm trong tồn kho theo SKU
+  if (!finalProductId && cleanSku) {
+    try {
+      const sessionCookie = await getWmsSessionCookie(username, password);
+      const postData = `product_barcode=${encodeURIComponent(cleanSku)}`;
+      const res = await httpsRequest({
+        hostname: 'czwh.wms.yunwms.com',
+        path: '/warehouse/inventory/list/page/1/pageSize/5',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Cookie': sessionCookie,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Referer': 'https://czwh.wms.yunwms.com/warehouse/inventory/list',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      }, postData);
+
+      const json = JSON.parse(res.body);
+      if (json.data && json.data.length > 0 && json.data[0].product_id) {
+        finalProductId = String(json.data[0].product_id);
+      }
+    } catch (err: any) {
+      console.warn(`[fetchSkuImage] Lỗi tìm productId cho SKU ${cleanSku}:`, err?.message);
+    }
+  }
+
+  if (!finalProductId) {
+    return { success: false, sku: cleanSku, message: 'Không tìm thấy ID sản phẩm trên YunWMS' };
+  }
+
+  try {
+    const sessionCookie = await getWmsSessionCookie(username, password);
+    const detailRes = await httpsRequest({
+      hostname: 'czwh.wms.yunwms.com',
+      path: `/product/product/detail/skuid/${finalProductId}`,
+      method: 'GET',
+      headers: {
+        'Cookie': sessionCookie,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://czwh.wms.yunwms.com/product/product/list'
+      }
+    });
+
+    // Trích xuất _loadImage({...})
+    const match = detailRes.body.match(/_loadImage\((.*?)\);/);
+    if (!match) {
+      return { success: false, sku: cleanSku, productId: finalProductId, message: 'Sản phẩm chưa có hình ảnh' };
+    }
+
+    let imgObj: any = {};
+    try {
+      imgObj = JSON.parse(match[1]);
+    } catch {
+      return { success: false, sku: cleanSku, productId: finalProductId, message: 'Lỗi parse dữ liệu ảnh' };
+    }
+
+    let rawImgUrl = (imgObj.src || imgObj.pa_path || '').replace(/\\\//g, '/');
+    if (!rawImgUrl) {
+      return { success: false, sku: cleanSku, productId: finalProductId, message: 'Không có đường dẫn ảnh' };
+    }
+
+    // Kiểm tra follow 302 redirect để lấy URL CDN HTTPS vĩnh viễn
+    let cdnUrl = rawImgUrl;
+    if (rawImgUrl.startsWith('http://czwh.yunwms.com/')) {
+      try {
+        const redirectPromise = new Promise<string>((resolve) => {
+          const req = http.get(rawImgUrl, (res) => {
+            if (res.statusCode === 302 && res.headers.location) {
+              resolve(res.headers.location);
+            } else {
+              resolve(rawImgUrl);
+            }
+          });
+          req.on('error', () => resolve(rawImgUrl));
+          req.setTimeout(3000, () => {
+            req.destroy();
+            resolve(rawImgUrl);
+          });
+        });
+        cdnUrl = await redirectPromise;
+      } catch {
+        cdnUrl = rawImgUrl;
+      }
+    }
+
+    // Lưu vào RAM cache
+    if (cleanSku) {
+      skuImageRamCache.set(cleanSku, { productId: finalProductId, imageUrl: cdnUrl });
+    }
+
+    return {
+      success: true,
+      sku: cleanSku,
+      productId: finalProductId,
+      imageUrl: cdnUrl
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      sku: cleanSku,
+      productId: finalProductId,
+      message: err?.message || 'Lỗi khi tải hình ảnh từ YunWMS'
+    };
+  }
 }
 
