@@ -137,23 +137,27 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
 
             {/* Group Details Table (When expanded) */}
             {isExpanded && (
-              <div className="overflow-x-auto overscroll-contain scrollbar-thin" style={{ WebkitOverflowScrolling: 'touch' }}>
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 text-slate-500 border-b border-slate-200/80 font-bold uppercase text-[10px] tracking-wider">
-                      <th className="py-2.5 px-4 w-12 text-center">STT</th>
-                      <th className="py-2.5 px-4 w-44">Mã SKU</th>
-                      <th className="py-2.5 px-4">Tên Sản Phẩm (Title)</th>
-                      <th className="py-2.5 px-3 text-right">Khả Dụng (In Used)</th>
-                      <th className="py-2.5 px-3 text-right">Có Thể Bán (Sellable)</th>
-                      <th className="py-2.5 px-3 text-right">Đang Về (On Way)</th>
-                      <th className="py-2.5 px-3 text-right">Chờ Xuất</th>
-                      <th className="py-2.5 px-3 text-right">Hàng Lỗi</th>
-                      <th className="py-2.5 px-4 text-center w-28">Cập Nhật</th>
-                      <th className="py-2.5 px-3 text-center w-20">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+              <div>
+                <div
+                  className="overflow-x-auto overflow-y-auto max-h-[500px] overscroll-contain scrollbar-thin border-t border-slate-100"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                >
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="sticky top-0 bg-slate-100/95 backdrop-blur-xs z-10 shadow-2xs">
+                      <tr className="text-slate-600 border-b border-slate-200/90 font-bold uppercase text-[10px] tracking-wider">
+                        <th className="py-2.5 px-4 w-12 text-center">STT</th>
+                        <th className="py-2.5 px-4 w-44">Mã SKU</th>
+                        <th className="py-2.5 px-4">Tên Sản Phẩm (Title)</th>
+                        <th className="py-2.5 px-3 text-right">Khả Dụng (In Used)</th>
+                        <th className="py-2.5 px-3 text-right">Có Thể Bán (Sellable)</th>
+                        <th className="py-2.5 px-3 text-right">Đang Về (On Way)</th>
+                        <th className="py-2.5 px-3 text-right">Chờ Xuất</th>
+                        <th className="py-2.5 px-3 text-right">Hàng Lỗi</th>
+                        <th className="py-2.5 px-4 text-center w-28">Cập Nhật</th>
+                        <th className="py-2.5 px-3 text-center w-20">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
                     {g.items.map((item, idx) => {
                       const isItemCopied = copiedSku === item.sku;
                       const isZero = item.inUsed <= 0;
@@ -291,9 +295,17 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        );
+
+              {g.items.length > 8 && (
+                <div className="px-4 py-2 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between text-[11px] font-semibold text-slate-500 select-none">
+                  <span>Hiển thị toàn bộ {g.items.length} mã SKU trong nhóm {g.group}</span>
+                  <span className="text-slate-400 font-normal text-[10px]">↕️ Cuộn trong khung để xem tất cả</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
       })}
     </div>
   );
