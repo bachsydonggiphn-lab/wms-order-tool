@@ -2926,6 +2926,15 @@ async function startServer() {
   app.use(express.json({ limit: "150mb" }));
   app.use(express.urlencoded({ limit: "150mb", extended: true }));
 
+  // Mount WMS and Tracking API Middleware
+  app.use((req, res, next) => {
+    if (req.url && (req.url.startsWith('/api/wms') || req.url.startsWith('/api/track'))) {
+      handleWmsApi(req, res, next);
+    } else {
+      next();
+    }
+  });
+
   // API health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", time: new Date().toISOString() });

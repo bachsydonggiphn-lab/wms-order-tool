@@ -63,9 +63,9 @@ export const WMS_STATUS_CONFIG: Record<WmsStatusKey, StatusConfig> = {
   },
   '8': {
     key: '8',
-    label: 'Shipped (Đã xuất kho / Đang giao)',
-    shortLabel: 'Shipped (8)',
-    desc: 'Đơn đã đóng gói & giao bưu cục',
+    label: 'Shipped (Đã đóng gói / Xuất kho hôm nay)',
+    shortLabel: 'Shipped Hôm Nay (8)',
+    desc: 'Đơn đã đóng gói & xuất kho trong ngày hôm nay',
     badgeBg: 'bg-emerald-500/20 text-emerald-300',
     badgeBorder: 'border-emerald-400/40',
     activeBg: 'bg-emerald-600 text-white ring-4 ring-emerald-500/30',
@@ -263,7 +263,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             warehouse: currentWarehouse,
             status: currentStatus,
             pageSize: 500,
-            maxPages: currentStatus === '8' ? 1 : 0,
+            maxPages: 0,
             forceRefresh: true,
             username: 'David',
             password: '12345abc',
@@ -313,7 +313,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           }
         }
 
-        // Kéo ngầm số lượng của trạng thái còn lại (Submitted <-> Shelved) để cập nhật số trên nút
+        // Kéo ngầm số lượng của các trạng thái còn lại để cập nhật số trên nút
         const otherStatus = currentStatus === '4' ? '5' : '4';
         fetch('/api/wms/poll-new', {
           method: 'POST',
@@ -328,11 +328,18 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
         })
           .then((r) => r.json())
           .then((d) => {
-            if (d.success && d.totalOrders !== undefined) {
-              setStatusCounts((prev) => ({
-                ...prev,
-                [otherStatus]: d.totalOrders,
-              }));
+            if (d.success) {
+              if (d.statusCounts) {
+                setStatusCounts((prev) => ({
+                  ...prev,
+                  ...d.statusCounts,
+                }));
+              } else if (d.totalOrders !== undefined) {
+                setStatusCounts((prev) => ({
+                  ...prev,
+                  [otherStatus]: d.totalOrders,
+                }));
+              }
             }
           })
           .catch(() => {});
@@ -421,20 +428,20 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     setLastDetectedOrders([]);
 
     try {
-      // Tải dữ liệu trạng thái mới: Lấy toàn bộ đơn hàng (Status 4 & 5), Shipped giới hạn 1 trang
-      const res = await fetch('/api/wms/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          warehouse: warehouseRef.current,
-          status: targetStatus,
-          pageSize: 500,
-          maxPages: targetStatus === '8' ? 1 : 0,
-          username: 'David',
-          password: '12345abc',
-          skuGroups: skuGroupsRef.current,
-        }),
-      });
+        // Tải dữ liệu trạng thái mới: Lấy toàn bộ đơn hàng (Status 4, 5 và Shipped Hôm nay)
+        const res = await fetch('/api/wms/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            warehouse: warehouseRef.current,
+            status: targetStatus,
+            pageSize: 500,
+            maxPages: 0,
+            username: 'David',
+            password: '12345abc',
+            skuGroups: skuGroupsRef.current,
+          }),
+        });
 
       if (res.ok) {
         const data = await res.json();
@@ -492,7 +499,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               warehouse: warehouseRef.current,
               status: otherStatus,
               pageSize: 500,
-              maxPages: (otherStatus as string) === '8' ? 1 : 0,
+              maxPages: 0,
               username: 'David',
               password: '12345abc',
               skuGroups: skuGroupsRef.current,
@@ -749,10 +756,10 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               )}
             </button>
 
-            {/* Nút 3: Shipped (8) */}
+            {/* Nút 3: Shipped Hôm Nay (8) */}
             <button
               onClick={() => handleSwitchStatus('8')}
-              title="Kéo đơn Shipped (Đã xuất kho / Đang giao) và tự chạy làm mới"
+              title={`Kéo đơn Shipped hôm nay (Đã đóng gói & xuất kho: ${(statusCounts['8'] ?? totalInWms ?? 0).toLocaleString('vi-VN')} đơn) và tự chạy làm mới`}
               className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm shrink-0 ${
                 status === '8'
                   ? WMS_STATUS_CONFIG['8'].activeBg
@@ -760,19 +767,17 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               }`}
             >
               <span>{WMS_STATUS_CONFIG['8'].icon}</span>
-              <span className="hidden sm:inline">Shipped (E11=8)</span>
-              <span className="sm:hidden">Shipped</span>
-              {statusCounts['8'] !== undefined ? (
+              <span className="hidden sm:inline">Shipped Hôm Nay (E11=8)</span>
+              <span className="sm:hidden">Shipped HN</span>
+              {(statusCounts['8'] !== undefined || (status === '8' && totalInWms !== null)) && (
                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
                   status === '8' ? 'bg-white text-emerald-900' : 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/40'
                 }`}>
-                  {statusCounts['8'] > 999 ? `${Math.round(statusCounts['8'] / 1000)}k` : statusCounts['8']}
+                  {(statusCounts['8'] ?? totalInWms ?? 0) > 9999
+                    ? `${((statusCounts['8'] ?? totalInWms ?? 0) / 1000).toFixed(1)}k`
+                    : (statusCounts['8'] ?? totalInWms ?? 0).toLocaleString('vi-VN')}
                 </span>
-              ) : status === '8' && totalInWms !== null ? (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-white text-emerald-900">
-                  {totalInWms > 999 ? `${Math.round(totalInWms / 1000)}k` : totalInWms}
-                </span>
-              ) : null}
+              )}
               {status === '8' && isLive && (
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
               )}

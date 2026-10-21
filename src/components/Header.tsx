@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck, Flame, Warehouse } from 'lucide-react';
+import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck, Flame, Warehouse, Printer } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
 import { GKP_LOGO_PNG_BASE64 } from '../utils/logoBase64';
 import { ActiveTabType } from './Toolbar';
@@ -31,12 +31,12 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   lastOrderSubTab = 'sku_pcs',
 }) => {
-  const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query';
+  const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && activeTab !== 'order_pdf_print';
 
   return (
     <header className="bg-white border-b border-gray-200 shrink-0 sticky top-0 z-30 shadow-xs">
       <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-2 sm:py-2.5">
-        {/* Row 1: Logo + 3 Nút Tổng Master Modules + Actions */}
+        {/* Row 1: Logo + 4 Nút Tổng Master Modules + Actions */}
         <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
           {/* Logo & App Brand */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
@@ -62,7 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* 3 NÚT TỔNG MASTER MODULES NẰM TRÊN CÙNG CẠNH LOGO - Tối ưu cuộn ngang mượt mà trên Mobile */}
+          {/* 4 NÚT TỔNG MASTER MODULES NẰM TRÊN CÙNG CẠNH LOGO - Tối ưu cuộn ngang mượt mà trên Mobile */}
           <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/90 shadow-2xs overflow-x-auto max-w-full no-scrollbar shrink-0">
             {/* 1. Vận Hành Đơn Hàng */}
             <button
@@ -127,6 +127,28 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 VN02
+              </span>
+            </button>
+
+            {/* 4. Tổng Hợp PDF & Nhặt Hàng (Độc Lập) */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('order_pdf_print')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0 ${
+                activeTab === 'order_pdf_print'
+                  ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-sm ring-2 ring-emerald-200'
+                  : 'text-slate-700 hover:text-emerald-900 hover:bg-white/80'
+              }`}
+            >
+              <Printer className="w-4 h-4 shrink-0" />
+              <span className="sm:hidden">4. In PDF</span>
+              <span className="hidden sm:inline">4. Tổng Hợp PDF & Nhặt Hàng</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
+                  activeTab === 'order_pdf_print' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+                }`}
+              >
+                Tìm & In 1 Lần
               </span>
             </button>
           </div>

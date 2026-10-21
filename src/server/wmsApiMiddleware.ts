@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest } from '../services/wmsService';
+import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest, searchOrdersWithAttachments, mergeOrderPdfs } from '../services/wmsService';
 import { fetchGHNLive, fetchJNTLive, fetchJNTBatchLive, fetchSPXLive, fetchNinjaVanLive } from './trackingBackend';
 import {
   getShippedSyncMeta,
@@ -114,6 +114,9 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       const maxPages = parseInt(String(options.maxPages || 0), 10);
       const username = String(options.username || 'David');
       const password = String(options.password || '12345abc');
+      const dateFor = options.dateFor ? String(options.dateFor) : '';
+      const dateTo = options.dateTo ? String(options.dateTo) : '';
+      const searchDateType = options.searchDateType ? String(options.searchDateType) : '';
 
       const result = await fetchWmsOrders({
         warehouse,
@@ -123,6 +126,9 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         username,
         password,
         skuGroups: options.skuGroups,
+        dateFor,
+        dateTo,
+        searchDateType,
         forceRefresh: Boolean(options.forceRefresh),
       });
 
@@ -153,6 +159,9 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       const status = String(options.status ?? '4');
       const username = String(options.username || 'David');
       const password = String(options.password || '12345abc');
+      const dateFor = options.dateFor ? String(options.dateFor) : '';
+      const dateTo = options.dateTo ? String(options.dateTo) : '';
+      const searchDateType = options.searchDateType ? String(options.searchDateType) : '';
 
       const pageSize = options.pageSize ? parseInt(String(options.pageSize), 10) : 60;
 
@@ -162,7 +171,10 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
         pageSize,
         username,
         password,
-        skuGroups: options.skuGroups
+        skuGroups: options.skuGroups,
+        dateFor,
+        dateTo,
+        searchDateType
       });
 
       sendJson(res, 200, result);
@@ -255,6 +267,75 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       sendJson(res, 500, {
         success: false,
         message: err?.message || 'Lỗi khi kéo tồn kho từ YunWMS'
+      });
+    });
+    return;
+  }
+
+  // 5b. Endpoint Tìm Kiếm Đơn Hàng & File PDF Nhãn Vận Chuyển Hàng Loạt
+  if (pathname === '/api/wms/search-order-attachments' && (req.method === 'POST' || req.method === 'GET')) {
+    const handleSearchOrderAttachments = async () => {
+      let options: any = {};
+      if (req.method === 'POST') {
+        options = await parseJsonBody(req);
+      } else {
+        options = parsedUrl.query;
+      }
+
+      const searchCodes = options.searchCodes || options.codes || [];
+      const warehouse = String(options.warehouse ?? '7');
+      const username = String(options.username || 'David');
+      const password = String(options.password || '12345abc');
+
+      const result = await searchOrdersWithAttachments({
+        searchCodes,
+        warehouse,
+        username,
+        password,
+        skuGroups: options.skuGroups
+      });
+
+      sendJson(res, 200, result);
+    };
+
+    handleSearchOrderAttachments().catch((err) => {
+      sendJson(res, 500, {
+        success: false,
+        message: err?.message || 'Lỗi tìm kiếm đơn & lấy file PDF từ YunWMS'
+      });
+    });
+    return;
+  }
+
+  // 5c. Endpoint Gộp Nhiều File PDF Đơn Hàng Thành 1 File PDF Duy Nhất Để In 1 Lần
+  if (pathname === '/api/wms/merge-order-pdfs' && req.method === 'POST') {
+    const handleMergePdfs = async () => {
+      const options = await parseJsonBody(req);
+      const items = Array.isArray(options.items) ? options.items : (Array.isArray(options.orders) ? options.orders : []);
+      const username = String(options.username || 'David');
+      const password = String(options.password || '12345abc');
+
+      if (items.length === 0) {
+        sendJson(res, 400, { success: false, message: 'Danh sách đơn cần gộp PDF trống' });
+        return;
+      }
+
+      const drawPackingOverlay = options.drawPackingOverlay !== false;
+      const pdfUint8 = await mergeOrderPdfs(items, username, password, { drawPackingOverlay });
+      const pdfBuffer = Buffer.from(pdfUint8);
+
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'inline; filename="Tong_Hop_In_Nhan.pdf"',
+        'Content-Length': pdfBuffer.length
+      });
+      res.end(pdfBuffer);
+    };
+
+    handleMergePdfs().catch((err) => {
+      sendJson(res, 500, {
+        success: false,
+        message: err?.message || 'Lỗi khi gộp các tệp PDF'
       });
     });
     return;

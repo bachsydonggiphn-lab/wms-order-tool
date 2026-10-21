@@ -227,7 +227,119 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
   }, [labelPages.length, previewPageIndex]);
 
   const handlePrint = () => {
-    window.print();
+    try {
+      const printRoot = document.querySelector('.printable-root');
+      if (!printRoot) {
+        window.print();
+        return;
+      }
+
+      // Clone các tem in
+      const clone = printRoot.cloneNode(true) as HTMLElement;
+      // Đảm bảo tất cả các trang đều hiển thị (gỡ bỏ class hidden)
+      const allPages = clone.querySelectorAll('.label-page-container');
+      allPages.forEach((p) => {
+        (p as HTMLElement).style.display = 'block';
+        (p as HTMLElement).style.visibility = 'visible';
+        (p as HTMLElement).style.pageBreakAfter = 'always';
+        (p as HTMLElement).style.breakAfter = 'page';
+        (p as HTMLElement).style.margin = '0 auto';
+        (p as HTMLElement).style.boxShadow = 'none';
+      });
+
+      // Tạo hoặc tái sử dụng iframe
+      let iframe = document.getElementById('picking-print-iframe') as HTMLIFrameElement;
+      if (iframe) {
+        iframe.remove();
+      }
+      iframe = document.createElement('iframe');
+      iframe.id = 'picking-print-iframe';
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      // Thu thập toàn bộ CSS của trang
+      const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+        .map((el) => el.outerHTML)
+        .join('\n');
+
+      const is100x150 = paperSize === '100x150';
+      const printCss = `
+        <style>
+          @page {
+            size: ${is100x150 ? '100mm 150mm' : 'A4 portrait'};
+            margin: ${is100x150 ? '2mm 3mm' : '6mm'};
+          }
+          *, *::before, *::after {
+            box-sizing: border-box;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+          }
+          .printable-root {
+            display: block !important;
+            width: 100% !important;
+          }
+          .label-page-container {
+            display: block !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+          }
+        </style>
+      `;
+
+      const doc = iframe.contentWindow?.document;
+      if (!doc) {
+        window.print();
+        return;
+      }
+
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Phiếu Nhặt Hàng Kho - ${activePickingList || 'Warehouse'}</title>
+            ${styles}
+            ${printCss}
+          </head>
+          <body>
+            <div class="printable-root">
+              ${clone.innerHTML}
+            </div>
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (e) {
+          console.error('Lỗi in iframe, chuyển sang window.print:', e);
+          window.print();
+        }
+      }, 350);
+    } catch (err) {
+      console.error('Lỗi khi chuẩn bị in:', err);
+      window.print();
+    }
   };
 
   const handleCopyText = (text: string, key: string) => {
@@ -277,23 +389,35 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          /* Ẩn mọi giao diện trừ container in */
-          body * {
-            visibility: hidden;
-          }
-          .printable-root, .printable-root * {
-            visibility: visible;
-          }
-          .printable-root {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
+          /* Cho phép modal hiển thị trọn vẹn khi in */
+          .fixed.inset-0 {
+            position: static !important;
             background: transparent !important;
             padding: 0 !important;
             margin: 0 !important;
+            overflow: visible !important;
+            display: block !important;
+          }
+          .fixed.inset-0 > div {
+            max-width: none !important;
+            max-height: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+            display: block !important;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+          .printable-root {
+            display: block !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .label-page-container {
+            display: block !important;
             page-break-after: always !important;
             break-after: page !important;
             page-break-inside: avoid !important;

@@ -5,6 +5,7 @@
 
 import https from 'https';
 import http from 'http';
+import { PDFDocument, rgb, StandardFonts, PDFPage, PDFFont } from 'pdf-lib';
 import { RawOrderRow, SkuGroupsMap, WmsInventoryItem, InventoryGroupSummary, InventoryQueryResult } from '../types';
 import { DEFAULT_SKU_GROUPS } from '../utils/skuData';
 import { parseRawOrderRows, layNhomTuSKU } from '../utils/orderProcessor';
@@ -63,25 +64,41 @@ let sessionExpiresAt = 0;
 
 const defaultHttpsAgent = new https.Agent({
   keepAlive: true,
-  maxSockets: 20,
-  maxFreeSockets: 10,
-  timeout: 60000
+  maxSockets: 60,
+  maxFreeSockets: 30,
+  timeout: 45000
 });
 
-export function httpsRequest(options: https.RequestOptions, postData?: string): Promise<{ statusCode: number; headers: any; body: string }> {
+// Cache file đính kèm đơn hàng để phản hồi ngay lập tức (0ms)
+const wmsAttachmentCache = new Map<string, {
+  hasAttachment: boolean;
+  fileName?: string;
+  attachmentUrl?: string;
+  oatId?: string;
+  error?: string;
+}>();
+
+// Cache toàn bộ nội dung Buffer của file PDF nhãn (0ms khi xem trước và in)
+const pdfFileBufferCache = new Map<string, Buffer>();
+
+export function httpsRequest(options: https.RequestOptions, postData?: string | Buffer): Promise<{ statusCode: number; headers: any; body: string; raw: Buffer }> {
   return new Promise((resolve, reject) => {
     const opts: https.RequestOptions = {
       agent: defaultHttpsAgent,
       ...options
     };
     const req = https.request(opts, (res) => {
-      let data = '';
-      res.on('data', chunk => { data += chunk; });
+      const chunks: Buffer[] = [];
+      res.on('data', chunk => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      });
       res.on('end', () => {
+        const raw = Buffer.concat(chunks);
         resolve({
           statusCode: res.statusCode || 0,
           headers: res.headers,
-          body: data
+          body: raw.toString('utf8'),
+          raw
         });
       });
     });
@@ -243,6 +260,15 @@ interface ServerOrderCacheItem {
 }
 const serverOrderCache = new Map<string, ServerOrderCacheItem>();
 
+export function getVnTodayString(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+}
+
 /**
  * Lấy danh sách đơn hàng từ YunWMS bằng API nội bộ POST /order/orders/list/page/{page}/pageSize/{pageSize}
  */
@@ -260,14 +286,23 @@ export async function fetchWmsOrders(
     skuGroups = DEFAULT_SKU_GROUPS,
     dateFor = '',
     dateTo = '',
-    searchDateType = 'createDate',
+    searchDateType = '',
     forceRefresh = false
   } = options;
 
+  // Đối với status '8' (Shipped), nếu không truyền ngày cụ thể thì mặc định là NGÀY HÔM NAY (theo giờ VN)
+  // để thống kê chính xác số đơn kho đã đóng gói / xuất kho hôm nay (thay vì 300k+ đơn lịch sử)
+  const vnToday = getVnTodayString();
+  const effectiveDateFor = (status === '8' && !dateFor) ? vnToday : dateFor;
+  const effectiveDateTo = (status === '8' && !dateTo) ? (dateFor ? dateTo : vnToday) : dateTo;
+  const effectiveSearchDateType = (status === '8' && (!searchDateType || searchDateType === 'createDate'))
+    ? 'packTime'
+    : (searchDateType || 'createDate');
+
   // 1. Kiểm tra Cache Bộ Nhớ Phía Máy Chủ (Server In-Memory Hot Cache)
-  // Phản hồi siêu tốc trong 2-5ms nếu dữ liệu đã có trong 15 giây qua
-  const cacheKey = `${warehouse}_${status}_${pageSize}_${maxPages}`;
-  if (!dateFor && !forceRefresh) {
+  // Phản hồi siêu tốc trong 2-5ms nếu dữ liệu đã có trong 4 giây qua
+  const cacheKey = `${warehouse}_${status}_${pageSize}_${maxPages}_${effectiveDateFor}_${effectiveSearchDateType}`;
+  if (!forceRefresh) {
     const cached = serverOrderCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < 4000) {
       return cached.data;
@@ -280,10 +315,10 @@ export async function fetchWmsOrders(
   const params: string[] = [];
   if (warehouse) params.push(`E4=${encodeURIComponent(warehouse)}`);
   if (status) params.push(`E11=${encodeURIComponent(status)}`);
-  if (dateFor) {
-    params.push(`searchDateType=${encodeURIComponent(searchDateType)}`);
-    params.push(`dateFor=${encodeURIComponent(dateFor.includes(':') ? dateFor : `${dateFor} 00:00`)}`);
-    params.push(`dateTo=${encodeURIComponent(dateTo ? (dateTo.includes(':') ? dateTo : `${dateTo} 23:59`) : `${dateFor} 23:59`)}`);
+  if (effectiveDateFor) {
+    params.push(`searchDateType=${encodeURIComponent(effectiveSearchDateType)}`);
+    params.push(`dateFor=${encodeURIComponent(effectiveDateFor.includes(':') ? effectiveDateFor : `${effectiveDateFor} 00:00`)}`);
+    params.push(`dateTo=${encodeURIComponent(effectiveDateTo ? (effectiveDateTo.includes(':') ? effectiveDateTo : `${effectiveDateTo} 23:59`) : `${effectiveDateFor} 23:59`)}`);
   }
   const postData = params.join('&');
 
@@ -327,8 +362,8 @@ export async function fetchWmsOrders(
 
   // Nếu maxPages > 0 thì chỉ lấy số trang đó, ngược lại lấy toàn bộ (totalPages)
   let pagesToFetch = maxPages > 0 ? Math.min(maxPages, totalPages) : totalPages;
-  if (status === '8' && maxPages <= 0) {
-    // Shipped có hơn 290.000 đơn (500+ trang), an toàn giới hạn 1 trang (500 đơn gần nhất)
+  if (status === '8' && maxPages <= 0 && !effectiveDateFor) {
+    // Chỉ giới hạn 1 trang nếu status=8 hoàn toàn không có bộ lọc ngày (kéo 300k+ đơn toàn thời gian)
     pagesToFetch = Math.min(totalPages, 1);
   }
 
@@ -395,7 +430,7 @@ export async function fetchWmsOrders(
 
 /**
  * Bắt đơn mới thời gian thực (Polling siêu tốc):
- * Chỉ lấy trang 1 (50 đơn mới nhất), so sánh với các đơn đã có trong hệ thống và trả về đơn mới xuất hiện
+ * Chỉ lấy trang 1 (50-60 đơn mới nhất), so sánh với các đơn đã có trong hệ thống và trả về đơn mới xuất hiện
  */
 export async function pollLatestWmsOrders(
   knownOrderNos: string[] = [],
@@ -406,6 +441,9 @@ export async function pollLatestWmsOrders(
     username?: string;
     password?: string;
     skuGroups?: SkuGroupsMap;
+    dateFor?: string;
+    dateTo?: string;
+    searchDateType?: string;
   } = {}
 ): Promise<{
   success: boolean;
@@ -421,14 +459,29 @@ export async function pollLatestWmsOrders(
     pageSize = 60,
     username = 'David',
     password = '12345abc',
-    skuGroups = DEFAULT_SKU_GROUPS
+    skuGroups = DEFAULT_SKU_GROUPS,
+    dateFor = '',
+    dateTo = '',
+    searchDateType = ''
   } = options;
+
+  const vnToday = getVnTodayString();
+  const effectiveDateFor = (status === '8' && !dateFor) ? vnToday : dateFor;
+  const effectiveDateTo = (status === '8' && !dateTo) ? (dateFor ? dateTo : vnToday) : dateTo;
+  const effectiveSearchDateType = (status === '8' && (!searchDateType || searchDateType === 'createDate'))
+    ? 'packTime'
+    : (searchDateType || 'packTime');
 
   let sessionCookie = await getWmsSessionCookie(username, password);
 
   const params: string[] = [];
   if (warehouse) params.push(`E4=${encodeURIComponent(warehouse)}`);
   if (status) params.push(`E11=${encodeURIComponent(status)}`);
+  if (effectiveDateFor) {
+    params.push(`searchDateType=${encodeURIComponent(effectiveSearchDateType)}`);
+    params.push(`dateFor=${encodeURIComponent(effectiveDateFor.includes(':') ? effectiveDateFor : `${effectiveDateFor} 00:00`)}`);
+    params.push(`dateTo=${encodeURIComponent(effectiveDateTo ? (effectiveDateTo.includes(':') ? effectiveDateTo : `${effectiveDateTo} 23:59`) : `${effectiveDateFor} 23:59`)}`);
+  }
   const postData = params.join('&');
 
   const fetchPage1 = async (currentCookie: string) => {
@@ -459,11 +512,7 @@ export async function pollLatestWmsOrders(
     return json;
   };
 
-  // Song song: Kéo số lượng đơn của trạng thái đối ứng (4 <-> 5) để hiển thị Real-time trên nút
-  const targetOtherStatus = status === '4' ? '5' : '4';
-  const otherPostData = `E4=${encodeURIComponent(warehouse)}&E11=${encodeURIComponent(targetOtherStatus)}`;
-
-  const fetchOtherCount = async (currentCookie: string) => {
+  const fetchCountFor = async (postBody: string, currentCookie: string) => {
     try {
       const res = await httpsRequest({
         hostname: 'czwh.wms.yunwms.com',
@@ -475,9 +524,9 @@ export async function pollLatestWmsOrders(
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'X-Requested-With': 'XMLHttpRequest',
           'Referer': 'https://czwh.wms.yunwms.com/order/orders/list',
-          'Content-Length': Buffer.byteLength(otherPostData)
+          'Content-Length': Buffer.byteLength(postBody)
         }
-      }, otherPostData);
+      }, postBody);
       const j = JSON.parse(res.body);
       return parseInt(String(j.total || 0), 10);
     } catch {
@@ -485,9 +534,31 @@ export async function pollLatestWmsOrders(
     }
   };
 
-  const [json, otherCount] = await Promise.all([
+  // Kéo đồng thời số lượng của 2 trạng thái còn lại trong bộ 3 (4: Submitted, 5: Shelved, 8: Shipped Hôm Nay)
+  const todayShippedQuery = `E4=${encodeURIComponent(warehouse)}&E11=8&searchDateType=packTime&dateFor=${encodeURIComponent(vnToday + ' 00:00')}&dateTo=${encodeURIComponent(vnToday + ' 23:59')}`;
+  
+  let otherPromises: Promise<{ key: string; count: number | null }>[] = [];
+  if (status === '4') {
+    otherPromises = [
+      fetchCountFor(`E4=${encodeURIComponent(warehouse)}&E11=5`, sessionCookie).then(c => ({ key: '5', count: c })),
+      fetchCountFor(todayShippedQuery, sessionCookie).then(c => ({ key: '8', count: c }))
+    ];
+  } else if (status === '5') {
+    otherPromises = [
+      fetchCountFor(`E4=${encodeURIComponent(warehouse)}&E11=4`, sessionCookie).then(c => ({ key: '4', count: c })),
+      fetchCountFor(todayShippedQuery, sessionCookie).then(c => ({ key: '8', count: c }))
+    ];
+  } else {
+    // status === '8'
+    otherPromises = [
+      fetchCountFor(`E4=${encodeURIComponent(warehouse)}&E11=4`, sessionCookie).then(c => ({ key: '4', count: c })),
+      fetchCountFor(`E4=${encodeURIComponent(warehouse)}&E11=5`, sessionCookie).then(c => ({ key: '5', count: c }))
+    ];
+  }
+
+  const [json, ...otherCounts] = await Promise.all([
     fetchPage1(sessionCookie),
-    fetchOtherCount(sessionCookie)
+    ...otherPromises
   ]);
 
   const totalOrders = parseInt(String(json.total || 0), 10);
@@ -510,8 +581,10 @@ export async function pollLatestWmsOrders(
   const statusCounts: Record<string, number> = {
     [status]: totalOrders
   };
-  if (otherCount !== null) {
-    statusCounts[targetOtherStatus] = otherCount;
+  for (const item of otherCounts) {
+    if (item && item.count !== null && item.count !== undefined) {
+      statusCounts[item.key] = item.count;
+    }
   }
 
   return {
@@ -871,5 +944,900 @@ export async function fetchSkuImage(
       message: err?.message || 'Lỗi khi tải hình ảnh từ YunWMS'
     };
   }
+}
+
+export interface OrderAttachmentInfo {
+  orderNo: string;
+  orderId: string;
+  trackingNo: string;
+  refNo: string;
+  carrier?: string;
+  shippingMethod?: string;
+  pickingList?: string;
+  status: string;
+  statusCode: string;
+  warehouseId: string;
+  createDate: string;
+  items: Array<{
+    sku: string;
+    qty: number;
+    title?: string;
+  }>;
+  hasAttachment: boolean;
+  attachmentFileName?: string;
+  attachmentUrl?: string;
+  oatId?: string;
+  error?: string;
+}
+
+export interface SkuPickingSummaryItem {
+  sku: string;
+  group?: string;
+  totalQty: number;
+  orderCount: number;
+  orderNos: string[];
+}
+
+export interface BatchSearchOrderAttachmentsResult {
+  success: boolean;
+  totalInputCodes: number;
+  totalFound: number;
+  totalWithPdf: number;
+  orders: OrderAttachmentInfo[];
+  skuSummary: SkuPickingSummaryItem[];
+  totalPcs: number;
+  missingCodes: string[];
+}
+
+/**
+ * Tìm kiếm đơn hàng theo danh sách mã hoặc Picking List No., bóc tách SKU & tự động lấy tệp đính kèm PDF nhãn vận chuyển từ YunWMS
+ */
+export async function searchOrdersWithAttachments(options: {
+  searchCodes: string | string[];
+  warehouse?: string;
+  username?: string;
+  password?: string;
+  skuGroups?: SkuGroupsMap;
+}): Promise<BatchSearchOrderAttachmentsResult> {
+  const {
+    searchCodes,
+    warehouse = '7',
+    username = 'David',
+    password = '12345abc',
+    skuGroups = DEFAULT_SKU_GROUPS
+  } = options;
+
+  let codesList: string[] = [];
+  if (Array.isArray(searchCodes)) {
+    codesList = searchCodes;
+  } else if (typeof searchCodes === 'string') {
+    codesList = searchCodes
+      .split(/[\r\n,\t\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  // Deduplicate
+  const uniqueCodes = Array.from(new Set(codesList));
+  if (uniqueCodes.length === 0) {
+    return {
+      success: true,
+      totalInputCodes: 0,
+      totalFound: 0,
+      totalWithPdf: 0,
+      orders: [],
+      skuSummary: [],
+      totalPcs: 0,
+      missingCodes: []
+    };
+  }
+
+  const sessionCookie = await getWmsSessionCookie(username, password);
+  const rawFoundOrders: WmsRawOrderData[] = [];
+
+  // 1. Phân loại mã: Mã bắt đầu bằng PL (Picking List) vs Mã đơn thông thường
+  const plCodes: string[] = [];
+  const normalCodes: string[] = [];
+
+  for (const c of uniqueCodes) {
+    if (/^PL/i.test(c)) {
+      plCodes.push(c);
+    } else {
+      normalCodes.push(c);
+    }
+  }
+
+  // 2. Tìm kiếm theo Picking List No. (YunWMS sử dụng tham số picking_code)
+  for (const pl of plCodes) {
+    let page = 1;
+    let totalPages = 1;
+    while (page <= totalPages) {
+      const postBody = `E4=${encodeURIComponent(warehouse)}&picking_code=${encodeURIComponent(pl)}`;
+      try {
+        const res = await httpsRequest({
+          hostname: 'czwh.wms.yunwms.com',
+          path: `/order/orders/list/page/${page}/pageSize/500`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Cookie': sessionCookie,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://czwh.wms.yunwms.com/order/orders/list',
+            'Content-Length': Buffer.byteLength(postBody)
+          }
+        }, postBody);
+
+        const json = JSON.parse(res.body);
+        const total = parseInt(String(json.total || 0), 10);
+        totalPages = Math.ceil(total / 500) || 1;
+        if (Array.isArray(json.data)) {
+          rawFoundOrders.push(...json.data);
+        }
+      } catch (err: any) {
+        console.warn(`Lỗi tìm đơn theo picking_code ${pl}:`, err?.message);
+        break;
+      }
+      page++;
+    }
+  }
+
+  // 3. Tìm kiếm theo danh sách mã đơn thông thường (searchCode, chunk 35 mã)
+  if (normalCodes.length > 0) {
+    const CHUNK_SIZE = 35;
+    const chunks: string[][] = [];
+    for (let i = 0; i < normalCodes.length; i += CHUNK_SIZE) {
+      chunks.push(normalCodes.slice(i, i + CHUNK_SIZE));
+    }
+
+    for (const chunk of chunks) {
+      const postBody = `E4=${encodeURIComponent(warehouse)}&searchCode=${encodeURIComponent(chunk.join(' '))}`;
+      try {
+        const res = await httpsRequest({
+          hostname: 'czwh.wms.yunwms.com',
+          path: `/order/orders/list/page/1/pageSize/${Math.max(chunk.length * 2, 50)}`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Cookie': sessionCookie,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://czwh.wms.yunwms.com/order/orders/list',
+            'Content-Length': Buffer.byteLength(postBody)
+          }
+        }, postBody);
+
+        const json = JSON.parse(res.body);
+        if (Array.isArray(json.data)) {
+          rawFoundOrders.push(...json.data);
+        }
+      } catch (err: any) {
+        console.warn('Lỗi tìm kiếm đơn theo chunk:', err?.message);
+      }
+    }
+  }
+
+  // Khử trùng lặp đơn hàng theo order_id (E0)
+  const orderMap = new Map<string, WmsRawOrderData>();
+  for (const o of rawFoundOrders) {
+    const key = o.E0 || o.E1 || '';
+    if (key && !orderMap.has(key)) {
+      orderMap.set(key, o);
+    }
+  }
+
+  const foundOrdersList = Array.from(orderMap.values());
+
+  // Kéo file đính kèm cho từng đơn hàng song song (concurrency pool 6 luồng)
+  const fetchAttachmentForOrder = async (order: WmsRawOrderData): Promise<OrderAttachmentInfo> => {
+    const orderNo = (order.E1 || '').trim();
+    const orderId = String(order.E0 || '').trim();
+    const trackingNo = (order.tracking_number || '').trim();
+    const refNo = (order.E17 || '').trim();
+    const pickingList = (order.picking_code || '').trim();
+    const carrier = (order.E7 || order.E32 || '').trim();
+    const shippingMethod = (order.E32 || order.E7 || '').trim();
+    const statusCode = String(order.E11 || '');
+    const statusText = statusCode === '8' ? 'Shipped' : statusCode === '5' ? 'Shelved' : statusCode === '4' ? 'Submitted' : `Trạng thái ${statusCode}`;
+    const createDate = order.E14 || order.warehouse_E14 || '';
+
+    const items: Array<{ sku: string; qty: number; title?: string }> = [];
+    if (Array.isArray(order.productList)) {
+      for (const p of order.productList) {
+        const sku = (p.product_barcode || '').trim();
+        const qty = parseInt(String(p.op_quantity || 1), 10) || 1;
+        if (sku) {
+          items.push({ sku, qty, title: p.product_title });
+        }
+      }
+    }
+
+    if (!orderId) {
+      return {
+        orderNo,
+        orderId,
+        trackingNo,
+        refNo,
+        pickingList,
+        status: statusText,
+        statusCode,
+        warehouseId: String(order.E4 || warehouse),
+        createDate,
+        items,
+        hasAttachment: false,
+        error: 'Thiếu Order ID'
+      };
+    }
+
+    // Kiểm tra cache trước (0ms)
+    if (wmsAttachmentCache.has(orderId)) {
+      const cached = wmsAttachmentCache.get(orderId)!;
+      return {
+        orderNo,
+        orderId,
+        trackingNo,
+        refNo,
+        carrier,
+        shippingMethod,
+        pickingList,
+        status: statusText,
+        statusCode,
+        warehouseId: String(order.E4 || warehouse),
+        createDate,
+        items,
+        hasAttachment: cached.hasAttachment,
+        attachmentFileName: cached.fileName,
+        attachmentUrl: cached.attachmentUrl,
+        oatId: cached.oatId,
+        error: cached.error
+      };
+    }
+
+    try {
+      const attachRes = await httpsRequest({
+        hostname: 'czwh.wms.yunwms.com',
+        path: `/order/orders/attachment-edit/page/1/pageSize/10/order_id/${orderId}`,
+        method: 'POST',
+        headers: {
+          'Cookie': sessionCookie,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }, '');
+
+      const attachJson = JSON.parse(attachRes.body);
+      const attachFiles = Array.isArray(attachJson.attach_file) ? attachJson.attach_file : [];
+
+      // Tìm file PDF nhãn đơn hàng
+      const pdfItem = attachFiles.find((f: any) =>
+        f.oat_file_type === 'pdf' ||
+        (f.oat_file_name && f.oat_file_name.toLowerCase().endsWith('.pdf')) ||
+        f.oat_type === '3' ||
+        f.oat_type === 3
+      ) || attachFiles[0];
+
+      if (pdfItem) {
+        const fileUrl = (pdfItem.download_file || pdfItem.oat_file_path || '').replace(/\\\//g, '/');
+        const oatId = String(pdfItem.oat_id || pdfItem.ref_oat_id || '');
+        const fileName = pdfItem.oat_file_name || `order_${orderNo}.pdf`;
+
+        wmsAttachmentCache.set(orderId, {
+          hasAttachment: true,
+          fileName,
+          attachmentUrl: fileUrl,
+          oatId
+        });
+
+        return {
+          orderNo,
+          orderId,
+          trackingNo,
+          refNo,
+          carrier,
+          shippingMethod,
+          pickingList,
+          status: statusText,
+          statusCode,
+          warehouseId: String(order.E4 || warehouse),
+          createDate,
+          items,
+          hasAttachment: true,
+          attachmentFileName: fileName,
+          attachmentUrl: fileUrl,
+          oatId
+        };
+      } else {
+        wmsAttachmentCache.set(orderId, {
+          hasAttachment: false,
+          error: 'Chưa có tệp đính kèm trên WMS'
+        });
+        return {
+          orderNo,
+          orderId,
+          trackingNo,
+          refNo,
+          carrier,
+          shippingMethod,
+          pickingList,
+          status: statusText,
+          statusCode,
+          warehouseId: String(order.E4 || warehouse),
+          createDate,
+          items,
+          hasAttachment: false,
+          error: 'Chưa có tệp đính kèm trên WMS'
+        };
+      }
+    } catch (err: any) {
+      return {
+        orderNo,
+        orderId,
+        trackingNo,
+        refNo,
+        carrier,
+        shippingMethod,
+        pickingList,
+        status: statusText,
+        statusCode,
+        warehouseId: String(order.E4 || warehouse),
+        createDate,
+        items,
+        hasAttachment: false,
+        error: err?.message || 'Lỗi lấy file đính kèm'
+      };
+    }
+  };
+
+  // Concurrency pool luồng động liên tục (35 workers) giúp xử lý nhanh gấp nhiều lần
+  const CONCURRENCY = 35;
+  const processedOrders: OrderAttachmentInfo[] = new Array(foundOrdersList.length);
+  let currentIndex = 0;
+  let activeWorkers = 0;
+
+  await new Promise<void>((resolve) => {
+    if (foundOrdersList.length === 0) return resolve();
+    function runNext() {
+      if (currentIndex >= foundOrdersList.length && activeWorkers === 0) {
+        return resolve();
+      }
+      while (activeWorkers < CONCURRENCY && currentIndex < foundOrdersList.length) {
+        const itemIdx = currentIndex++;
+        activeWorkers++;
+        fetchAttachmentForOrder(foundOrdersList[itemIdx])
+          .then((res) => {
+            processedOrders[itemIdx] = res;
+          })
+          .catch((err) => {
+            processedOrders[itemIdx] = {
+              orderNo: foundOrdersList[itemIdx].E1 || '',
+              orderId: String(foundOrdersList[itemIdx].E0 || ''),
+              trackingNo: foundOrdersList[itemIdx].tracking_number || '',
+              refNo: foundOrdersList[itemIdx].E17 || '',
+              pickingList: foundOrdersList[itemIdx].picking_code || '',
+              status: '',
+              statusCode: String(foundOrdersList[itemIdx].E11 || ''),
+              warehouseId: String(foundOrdersList[itemIdx].E4 || ''),
+              createDate: '',
+              items: [],
+              hasAttachment: false,
+              error: err?.message || 'Lỗi lấy file'
+            };
+          })
+          .finally(() => {
+            activeWorkers--;
+            runNext();
+          });
+      }
+    }
+    runNext();
+  });
+
+  // Tổng hợp SKU Lấy Hàng (Picking Summary)
+  const skuMap = new Map<string, { totalQty: number; orderCount: number; orderNos: Set<string> }>();
+  let totalPcs = 0;
+
+  for (const o of processedOrders) {
+    for (const item of o.items) {
+      totalPcs += item.qty;
+      const current = skuMap.get(item.sku) || { totalQty: 0, orderCount: 0, orderNos: new Set<string>() };
+      current.totalQty += item.qty;
+      current.orderNos.add(o.orderNo || o.trackingNo);
+      current.orderCount = current.orderNos.size;
+      skuMap.set(item.sku, current);
+    }
+  }
+
+  const skuSummary: SkuPickingSummaryItem[] = Array.from(skuMap.entries())
+    .map(([sku, info]) => ({
+      sku,
+      group: layNhomTuSKU(sku, skuGroups),
+      totalQty: info.totalQty,
+      orderCount: info.orderCount,
+      orderNos: Array.from(info.orderNos)
+    }))
+    .sort((a, b) => b.totalQty - a.totalQty || a.sku.localeCompare(b.sku));
+
+  // Xác định mã đơn nào trong danh sách tìm kiếm chưa tìm thấy
+  const foundCodeSet = new Set<string>();
+  for (const o of processedOrders) {
+    if (o.orderNo) foundCodeSet.add(o.orderNo.toUpperCase());
+    if (o.trackingNo) foundCodeSet.add(o.trackingNo.toUpperCase());
+    if (o.refNo) foundCodeSet.add(o.refNo.toUpperCase());
+    if (o.pickingList) foundCodeSet.add(o.pickingList.toUpperCase());
+  }
+  plCodes.forEach((pl) => foundCodeSet.add(pl.toUpperCase()));
+
+  const missingCodes = uniqueCodes.filter((c) => !foundCodeSet.has(c.toUpperCase()));
+  const totalWithPdf = processedOrders.filter((o) => o.hasAttachment).length;
+
+  return {
+    success: true,
+    totalInputCodes: uniqueCodes.length,
+    totalFound: processedOrders.length,
+    totalWithPdf,
+    orders: processedOrders,
+    skuSummary,
+    totalPcs,
+    missingCodes
+  };
+}
+
+function cleanAsciiText(str: string): string {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .replace(/[^\x20-\x7E]/g, ' ')
+    .trim();
+}
+
+export interface MergeOrderInputItem {
+  isSeparator?: boolean;
+  separatorLabel?: string;
+  orderNo?: string;
+  trackingNo?: string;
+  refNo?: string;
+  carrier?: string;
+  shippingMethod?: string;
+  attachmentUrl?: string;
+  oatId?: string;
+  items?: Array<{ sku: string; qty: number; title?: string }>;
+}
+
+function isShopeeOrder(order: MergeOrderInputItem): boolean {
+  const carrier = (order.carrier || '').toUpperCase();
+  const method = (order.shippingMethod || '').toUpperCase();
+  const tracking = (order.trackingNo || '').toUpperCase();
+  const refNo = (order.refNo || '').toUpperCase();
+
+  // 1. Nhận diện qua kênh / đơn vị vận chuyển
+  if (
+    carrier.includes('SPX') ||
+    carrier.includes('SHOPEE') ||
+    carrier.includes('VNGH') ||
+    method.includes('SPX') ||
+    method.includes('SHOPEE') ||
+    method.includes('VNGH')
+  ) {
+    return true;
+  }
+
+  // 2. Nhận diện qua tiền tố Tracking No
+  // SPX Express luôn bắt đầu bằng SPX (ví dụ SPXVN...)
+  if (tracking.startsWith('SPX')) return true;
+  // GHN Shopee thường là GYM... (ví dụ GYM6PTVH, GYM6BPKF...)
+  if (tracking.startsWith('GYM')) return true;
+
+  // 3. Nhận diện qua Mã đơn sàn (Ref No)
+  // Mã sàn Shopee có độ dài khoảng 14-16 ký tự và CHỨA CẢ CHỮ CÁI VÀ SỐ (ví dụ: 2610217X8NARP1, 2610204YTYBCSM)
+  // Trong khi TikTok Ref No luôn là chuỗi 18 chữ số THUẦN TÚY (ví dụ: 586688019195266223)
+  const isShopeeRef = /^[0-9]{4,10}[A-Z0-9]+$/.test(refNo) && /[A-Z]/.test(refNo);
+  if (isShopeeRef) return true;
+
+  // TikTok J&T
+  if (tracking.startsWith('862') || /^\d{17,19}$/.test(refNo)) {
+    return false;
+  }
+
+  // Đơn VN... có chứa ký tự chữ trong ref
+  if (tracking.startsWith('VN') && /[A-Z]/.test(refNo)) {
+    return true;
+  }
+
+  return false;
+}
+
+function drawPackingOverlayOnPage(
+  page: PDFPage,
+  fontBold: PDFFont,
+  fontRegular: PDFFont,
+  orderInfo: MergeOrderInputItem
+) {
+  const { width, height } = page.getSize();
+  // Chỉ vẽ overlay nếu trang có chiều cao tương đối đủ (A6 chuẩn hoặc >= 320pt)
+  if (height < 320) return;
+
+  const items = Array.isArray(orderInfo.items) ? orderInfo.items : [];
+  if (items.length === 0) return;
+
+  const isShopee = isShopeeOrder(orderInfo);
+
+  if (isShopee) {
+    // ========================================================
+    // PHONG CÁCH SÀN SHOPEE (SPX Express, Shopee GHN...)
+    // Quy ước:
+    // - Bảng nhỏ gọn, các dòng nằm gần nhau (rowH = 15 - 19pt)
+    // - Nếu có 2 SKU: nhảy thụt xuống phía dưới 1 xíu (boxY = 134)
+    // - Nếu có 3 SKU: tiếp tục nhảy thụt xuống (boxY = 132)
+    // - Giữ nguyên không che lấp chữ mô tả sản phẩm ở trên và tiền COD ở dưới
+    // ========================================================
+    const shopeeX = 8;
+    const shopeeW = 155; // Nhỏ gọn lại một xíu
+
+    const numRows = Math.min(items.length, 4);
+    const colHeaderH = 12;
+    // Co chiều cao dòng lại cho gọn gàng, không bị thưa
+    const rowH = numRows === 1 ? 15 : (numRows === 2 ? 13.5 : (numRows === 3 ? 12.5 : 12));
+    const boxH = colHeaderH + (numRows * rowH);
+
+    // Quy ước vị trí: Nếu 2-3 SKU thì nhảy thụt xuống phía dưới 1 xíu
+    const boxY = numRows === 1 ? 140 : (numRows === 2 ? 135 : (numRows === 3 ? 132 : 130));
+    const topY = boxY + boxH;
+
+    // 1. Nền trắng viền đen nhỏ gọn
+    page.drawRectangle({
+      x: shopeeX,
+      y: boxY,
+      width: shopeeW,
+      height: boxH,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1.1,
+      color: rgb(1, 1, 1)
+    });
+
+    // 2. Header
+    page.drawRectangle({
+      x: shopeeX,
+      y: topY - colHeaderH,
+      width: shopeeW,
+      height: colHeaderH,
+      color: rgb(0.92, 0.92, 0.92)
+    });
+
+    page.drawLine({
+      start: { x: shopeeX, y: topY - colHeaderH },
+      end: { x: shopeeX + shopeeW, y: topY - colHeaderH },
+      thickness: 0.8,
+      color: rgb(0, 0, 0)
+    });
+
+    const colSttW = 16;
+    const colQtyW = 32; // Đổi 'SO LUONG' thành 'SL' nên cột gọn gàng hơn, chừa nhiều đất cho MA SKU
+    const colSkuX = shopeeX + colSttW;
+    const colQtyX = shopeeX + shopeeW - colQtyW;
+
+    const hQtyW = fontBold.widthOfTextAtSize('SL', 7.5);
+    page.drawText('STT', { x: shopeeX + 2.5, y: topY - colHeaderH + 3.5, size: 7, font: fontBold });
+    page.drawText('SKU', { x: colSkuX + 4, y: topY - colHeaderH + 3.5, size: 7.5, font: fontBold });
+    page.drawText('SL', { x: colQtyX + ((colQtyW - hQtyW) / 2), y: topY - colHeaderH + 3.5, size: 7.5, font: fontBold });
+
+    // Đường kẻ dọc phân chia 3 cột
+    page.drawLine({ start: { x: colSkuX, y: boxY }, end: { x: colSkuX, y: topY }, thickness: 0.7, color: rgb(0.3, 0.3, 0.3) });
+    page.drawLine({ start: { x: colQtyX, y: boxY }, end: { x: colQtyX, y: topY }, thickness: 0.7, color: rgb(0.3, 0.3, 0.3) });
+
+    for (let i = 0; i < numRows; i++) {
+      const item = items[i];
+      const rTop = topY - colHeaderH - (i * rowH);
+      const rMid = rTop - (rowH / 2);
+
+      if (i > 0) {
+        page.drawLine({
+          start: { x: shopeeX, y: rTop },
+          end: { x: shopeeX + shopeeW, y: rTop },
+          thickness: 0.5,
+          color: rgb(0.75, 0.75, 0.75)
+        });
+      }
+
+      page.drawText(String(i + 1), { x: shopeeX + 5, y: rMid - 2.5, size: 7.5, font: fontRegular });
+      page.drawText(cleanAsciiText(item.sku), { x: colSkuX + 4, y: rMid - 3, size: numRows === 1 ? 9 : 8.5, font: fontBold });
+
+      // Cột SL: Chỉ hiển thị con số thuần túy, căn giữa ô, không bôi đen, không chữ x hay PCS
+      const qtyStr = String(item.qty || 1);
+      const qtyFontSize = numRows === 1 ? 10 : 9.5;
+      const qtyWidth = fontBold.widthOfTextAtSize(qtyStr, qtyFontSize);
+      const qtyCenterX = colQtyX + ((colQtyW - qtyWidth) / 2);
+      page.drawText(qtyStr, {
+        x: qtyCenterX,
+        y: rMid - 3,
+        size: qtyFontSize,
+        font: fontBold,
+        color: rgb(0, 0, 0)
+      });
+    }
+
+    if (items.length > 4) {
+      page.drawText(`(+${items.length - 4} SKU...)`, {
+        x: colSkuX + 4,
+        y: boxY + 1.5,
+        size: 6.5,
+        font: fontRegular,
+        color: rgb(0.5, 0.1, 0.1)
+      });
+    }
+  } else {
+    // ========================================================
+    // PHONG CÁCH SÀN TIKTOK SHOP / J&T EXPRESS
+    // Nhãn TikTok có khoảng trắng lớn ở dưới đáy trang
+    // Bảng gọn gàng, các dòng gần nhau
+    // ========================================================
+    const boxMargin = 8;
+    const boxX = boxMargin;
+    const boxW = width - (boxMargin * 2);
+    const topY = Math.min(116, height * 0.28);
+
+    const numRows = Math.min(items.length, 5);
+    const colHeaderH = 12.5;
+    // Co lại chiều cao dòng cho gọn gàng
+    const rowH = numRows === 1 ? 16 : (numRows === 2 ? 14 : (numRows === 3 ? 13 : 12));
+    const boxH = colHeaderH + (numRows * rowH);
+    const boxY = topY - boxH;
+
+    const colSttW = 20;
+    const colQtyW = 42;
+    const colSkuX = boxX + colSttW;
+    const colQtyX = boxX + boxW - colQtyW;
+
+    // 1. Nền trắng viền đen
+    page.drawRectangle({
+      x: boxX,
+      y: boxY,
+      width: boxW,
+      height: boxH,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1.2,
+      color: rgb(1, 1, 1)
+    });
+
+    // 2. Header Bảng Cột
+    page.drawRectangle({
+      x: boxX,
+      y: topY - colHeaderH,
+      width: boxW,
+      height: colHeaderH,
+      color: rgb(0.92, 0.92, 0.92)
+    });
+
+    page.drawLine({
+      start: { x: boxX, y: topY - colHeaderH },
+      end: { x: boxX + boxW, y: topY - colHeaderH },
+      thickness: 0.8,
+      color: rgb(0, 0, 0)
+    });
+
+    const hQtyWTikTok = fontBold.widthOfTextAtSize('SL', 7.5);
+    page.drawText('STT', { x: boxX + 4, y: topY - colHeaderH + 3.5, size: 7.5, font: fontBold });
+    page.drawText('SKU', { x: colSkuX + 6, y: topY - colHeaderH + 3.5, size: 7.5, font: fontBold });
+    page.drawText('SL', { x: colQtyX + ((colQtyW - hQtyWTikTok) / 2), y: topY - colHeaderH + 3.5, size: 7.5, font: fontBold });
+
+    // Đường kẻ dọc 3 cột
+    page.drawLine({
+      start: { x: colSkuX, y: boxY },
+      end: { x: colSkuX, y: topY },
+      thickness: 0.8,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    page.drawLine({
+      start: { x: colQtyX, y: boxY },
+      end: { x: colQtyX, y: topY },
+      thickness: 0.8,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+
+    // 3. Nội dung từng dòng SKU (các dòng gần nhau)
+    for (let i = 0; i < numRows; i++) {
+      const item = items[i];
+      const rTop = topY - colHeaderH - (i * rowH);
+      const rMid = rTop - (rowH / 2);
+
+      if (i > 0) {
+        page.drawLine({
+          start: { x: boxX, y: rTop },
+          end: { x: boxX + boxW, y: rTop },
+          thickness: 0.5,
+          color: rgb(0.75, 0.75, 0.75)
+        });
+      }
+
+      page.drawText(String(i + 1), {
+        x: boxX + 6,
+        y: rMid - 2.5,
+        size: 8,
+        font: fontRegular
+      });
+
+      page.drawText(cleanAsciiText(item.sku), {
+        x: colSkuX + 6,
+        y: rMid - 3,
+        size: numRows === 1 ? 9.5 : 8.5,
+        font: fontBold
+      });
+
+      // Cột SL: Chỉ hiển thị con số thuần túy, căn giữa ô, không bôi đen, không chữ x hay PCS
+      const qtyStr = String(item.qty || 1);
+      const qtyFontSize = numRows === 1 ? 10.5 : 9.5;
+      const qtyWidth = fontBold.widthOfTextAtSize(qtyStr, qtyFontSize);
+      const qtyCenterX = colQtyX + ((colQtyW - qtyWidth) / 2);
+      page.drawText(qtyStr, {
+        x: qtyCenterX,
+        y: rMid - 3,
+        size: qtyFontSize,
+        font: fontBold,
+        color: rgb(0, 0, 0)
+      });
+    }
+
+    if (items.length > 5) {
+      page.drawText(`(+${items.length - 5} SKU khac...)`, {
+        x: colSkuX + 6,
+        y: boxY + 1.5,
+        size: 6.5,
+        font: fontRegular,
+        color: rgb(0.5, 0.1, 0.1)
+      });
+    }
+  }
+}
+
+/**
+ * Tải các file PDF nhãn đơn hàng và gộp thành 1 file PDF duy nhất để người dùng in một lần
+ * Hỗ trợ tự động vẽ overlay thông tin SKU đóng gói ở chân trang (đặc biệt cho đơn J&T / TikTok Shop)
+ */
+export async function mergeOrderPdfs(
+  items: Array<MergeOrderInputItem>,
+  username: string = 'David',
+  password: string = '12345abc',
+  options?: { drawPackingOverlay?: boolean }
+): Promise<Uint8Array> {
+  const mergedPdf = await PDFDocument.create();
+  let sessionCookie = '';
+
+  const drawPackingOverlay = options?.drawPackingOverlay !== false;
+  let fontBold: PDFFont | null = null;
+  let fontRegular: PDFFont | null = null;
+
+  if (drawPackingOverlay) {
+    try {
+      fontBold = await mergedPdf.embedFont(StandardFonts.HelveticaBold);
+      fontRegular = await mergedPdf.embedFont(StandardFonts.Helvetica);
+    } catch (e) {
+      console.warn('[mergeOrderPdfs] Khong the embed StandardFonts:', e);
+    }
+  }
+
+  let lastPageWidth = 288;
+  let lastPageHeight = 432;
+
+  // 1. Tải trước toàn bộ file PDF song song (Continuous Queue 35 workers)
+  const downloadSinglePdf = async (item: MergeOrderInputItem): Promise<Buffer | null> => {
+    if (item.isSeparator) return null;
+    const cacheKey = item.attachmentUrl || item.oatId || item.orderNo || '';
+    if (cacheKey && pdfFileBufferCache.has(cacheKey)) {
+      return pdfFileBufferCache.get(cacheKey)!;
+    }
+
+    let buf: Buffer | null = null;
+
+    // a. Tải trực tiếp qua CDN
+    if (item.attachmentUrl && item.attachmentUrl.startsWith('http')) {
+      try {
+        const u = new URL(item.attachmentUrl);
+        const res = await httpsRequest({
+          hostname: u.hostname,
+          path: u.pathname + u.search,
+          method: 'GET'
+        });
+        if (res.statusCode === 200 && res.raw && res.raw.length > 0) {
+          buf = res.raw;
+        }
+      } catch (err: any) {}
+    }
+
+    // b. Dự phòng WMS endpoint nội bộ
+    if (!buf && item.oatId) {
+      try {
+        if (!sessionCookie) {
+          sessionCookie = await getWmsSessionCookie(username, password);
+        }
+        const dlPath = `/default/download/order-attached/value/${item.oatId}/type/file`;
+        const res = await httpsRequest({
+          hostname: 'czwh.wms.yunwms.com',
+          path: dlPath,
+          method: 'GET',
+          headers: {
+            'Cookie': sessionCookie,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        if (res.statusCode === 200 && res.raw && res.raw.length > 0) {
+          buf = res.raw;
+        }
+      } catch (err: any) {}
+    }
+
+    if (buf && cacheKey) {
+      pdfFileBufferCache.set(cacheKey, buf);
+    }
+    return buf;
+  };
+
+  const nonSeparatorItems = items.filter((it) => !it.isSeparator);
+  const CONCURRENCY = 35;
+  let currentIndex = 0;
+  let activeWorkers = 0;
+
+  await new Promise<void>((resolve) => {
+    if (nonSeparatorItems.length === 0) return resolve();
+    function runNext() {
+      if (currentIndex >= nonSeparatorItems.length && activeWorkers === 0) {
+        return resolve();
+      }
+      while (activeWorkers < CONCURRENCY && currentIndex < nonSeparatorItems.length) {
+        const it = nonSeparatorItems[currentIndex++];
+        activeWorkers++;
+        downloadSinglePdf(it)
+          .catch(() => {})
+          .finally(() => {
+            activeWorkers--;
+            runNext();
+          });
+      }
+    }
+    runNext();
+  });
+
+  // 2. Gộp tuần tự các file PDF vào tài liệu hoàn chỉnh (xử lý bộ nhớ nhanh < 0.5s)
+  for (const item of items) {
+    // Nếu là phần tử phân tách giữa các nhóm SKU: Thêm đúng 2 trang trắng chuẩn kích cỡ
+    if (item.isSeparator) {
+      mergedPdf.addPage([lastPageWidth, lastPageHeight]);
+      mergedPdf.addPage([lastPageWidth, lastPageHeight]);
+      continue;
+    }
+
+    const cacheKey = item.attachmentUrl || item.oatId || item.orderNo || '';
+    const pdfBytes = cacheKey ? pdfFileBufferCache.get(cacheKey) : null;
+
+    if (pdfBytes) {
+      try {
+        const singleDoc = await PDFDocument.load(pdfBytes);
+        const copiedPages = await mergedPdf.copyPages(singleDoc, singleDoc.getPageIndices());
+
+        if (copiedPages.length > 0) {
+          const sz = copiedPages[0].getSize();
+          lastPageWidth = sz.width;
+          lastPageHeight = sz.height;
+        }
+        
+        copiedPages.forEach((p, pageIdx) => {
+          // Vẽ overlay thông tin đóng gói lên trang đầu tiên của đơn nếu được bật
+          if (drawPackingOverlay && fontBold && fontRegular && pageIdx === 0 && item.items && item.items.length > 0) {
+            try {
+              drawPackingOverlayOnPage(p, fontBold, fontRegular, item);
+            } catch (overlayErr: any) {
+              console.warn(`[mergeOrderPdfs] Lỗi vẽ overlay cho đơn ${item.orderNo}:`, overlayErr?.message);
+            }
+          }
+          mergedPdf.addPage(p);
+        });
+      } catch (docErr: any) {
+        console.warn(`[mergeOrderPdfs] Lỗi nạp PDF của đơn ${item.orderNo}:`, docErr?.message);
+      }
+    }
+  }
+
+  return await mergedPdf.save();
 }
 

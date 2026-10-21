@@ -219,7 +219,7 @@ export const WmsSyncModal: React.FC<WmsSyncModalProps> = ({
               >
                 <option value="5">⭐ Shelved (E11 = 5) [Đã lên kệ / Đang nhặt hàng]</option>
                 <option value="4">Submitted. (E11 = 4) [Đã tạo / Chờ xử lý kho]</option>
-                <option value="8">Shipped (E11 = 8) [Đã xuất kho / Đang giao]</option>
+                <option value="8">Shipped (E11 = 8) [Đã xuất kho / Đóng gói hôm nay]</option>
                 <option value="1">Order Placed (E11 = 1) [Đã đặt hàng]</option>
                 <option value="">Tất cả trạng thái (All Status)</option>
               </select>

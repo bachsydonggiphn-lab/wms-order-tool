@@ -29,6 +29,7 @@ import { CopyCarrierOrdersModal } from './CopyCarrierOrdersModal';
 
 export type ActiveTabType =
   | 'sku_pcs'
+  | 'order_pdf_print'
   | 'hot_sku_slotting'
   | 'inventory_query'
   | 'shipped_tracking'

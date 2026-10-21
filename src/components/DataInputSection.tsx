@@ -578,7 +578,7 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
                         >
                           <option value="5">⭐ Shelved (E11 = 5) [Đã lên kệ / Đang nhặt hàng]</option>
                           <option value="4">Submitted. (E11 = 4) [Chờ xử lý / Đã tạo]</option>
-                          <option value="8">Shipped (E11 = 8) [Đã xuất kho]</option>
+                          <option value="8">Shipped (E11 = 8) [Đã xuất kho / Đóng gói hôm nay]</option>
                           <option value="">Tất cả trạng thái</option>
                         </select>
                       </div>

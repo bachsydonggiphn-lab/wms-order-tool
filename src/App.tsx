@@ -13,6 +13,7 @@ import { ActiveTabType } from './components/Toolbar';
 import { OrderOperationsModule } from './modules/orderOperations';
 import { HotSkuSlottingModule } from './modules/hotSkuSlotting';
 import { WmsInventoryModule } from './modules/wmsInventory';
+import { OrderPdfBatchPrintView } from './components/views/OrderPdfBatchPrintView';
 import { ArrowUp } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_SKU = 'warehouse_sku_groups_v1';
@@ -101,10 +102,10 @@ export default function App() {
     });
   }, []);
 
-  const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query';
+  const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && activeTab !== 'order_pdf_print';
 
   useEffect(() => {
-    if (activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query') {
+    if (activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && activeTab !== 'order_pdf_print') {
       setLastOrderSubTab(activeTab);
     }
   }, [activeTab]);
@@ -271,6 +272,16 @@ export default function App() {
                 setActiveTab('hot_sku_slotting');
               }}
               onNavigateToOrders={() => setActiveTab(lastOrderSubTab)}
+            />
+          </div>
+        )}
+
+        {/* PHÂN HỆ 4: TỔNG HỢP PDF & NHẶT HÀNG (TÌM & IN 1 LẦN) - ĐỘC LẬP HOÀN TOÀN */}
+        {visitedTabs.has('order_pdf_print') && (
+          <div className={activeTab === 'order_pdf_print' ? 'block' : 'hidden'}>
+            <OrderPdfBatchPrintView
+              orders={orders}
+              skuGroups={skuGroups}
             />
           </div>
         )}
