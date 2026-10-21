@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest, searchOrdersWithAttachments, mergeOrderPdfs } from '../services/wmsService';
+import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest, searchOrdersWithAttachments, mergeOrderPdfs, batchShipWmsOrders } from '../services/wmsService';
 import { fetchGHNLive, fetchJNTLive, fetchJNTBatchLive, fetchSPXLive, fetchNinjaVanLive } from './trackingBackend';
 import {
   getShippedSyncMeta,
@@ -336,6 +336,33 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       sendJson(res, 500, {
         success: false,
         message: err?.message || 'Lỗi khi gộp các tệp PDF'
+      });
+    });
+    return;
+  }
+
+  // 5d. Endpoint Ký Xuất Kho Hàng Loạt (Chuyển Trạng Thái Sang Shipped - E11=8 trên YunWMS)
+  if (pathname === '/api/wms/batch-ship-orders' && req.method === 'POST') {
+    const handleBatchShip = async () => {
+      const options = await parseJsonBody(req);
+      const orders = Array.isArray(options.orders) ? options.orders : [];
+      const warehouse = String(options.warehouse || '7');
+      const username = String(options.username || 'David');
+      const password = String(options.password || '12345abc');
+
+      if (orders.length === 0) {
+        sendJson(res, 400, { success: false, message: 'Danh sách đơn xuất kho trống' });
+        return;
+      }
+
+      const result = await batchShipWmsOrders(orders, warehouse, username, password);
+      sendJson(res, 200, result);
+    };
+
+    handleBatchShip().catch((err) => {
+      sendJson(res, 500, {
+        success: false,
+        message: err?.message || 'Lỗi ký xuất kho trên YunWMS'
       });
     });
     return;

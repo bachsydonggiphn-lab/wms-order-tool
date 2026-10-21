@@ -9,6 +9,7 @@ import { PDFDocument, rgb, StandardFonts, PDFPage, PDFFont } from 'pdf-lib';
 import { RawOrderRow, SkuGroupsMap, WmsInventoryItem, InventoryGroupSummary, InventoryQueryResult } from '../types';
 import { DEFAULT_SKU_GROUPS } from '../utils/skuData';
 import { parseRawOrderRows, layNhomTuSKU } from '../utils/orderProcessor';
+import * as XLSX from 'xlsx';
 
 export interface WmsFetchOptions {
   username?: string;
@@ -1840,4 +1841,159 @@ export async function mergeOrderPdfs(
 
   return await mergedPdf.save();
 }
+
+export interface BatchShipOrderItem {
+  orderCode: string;
+  trackingNo?: string;
+  weight?: string | number;
+}
+
+export interface BatchShipResult {
+  success: boolean;
+  message: string;
+  totalOrders: number;
+  shippedCount: number;
+  failedCount: number;
+  errors: string[];
+}
+
+/**
+ * Ký xuất kho hàng loạt đơn hàng (chuyển sang trạng thái Shipped - E11=8) trên YunWMS
+ * Sử dụng API chuẩn: /shipment/job-queue/upload-check-out & /shipment/job-queue/run-check-out
+ */
+export async function batchShipWmsOrders(
+  orders: BatchShipOrderItem[],
+  warehouse: string = '7',
+  username = 'David',
+  password = '12345abc'
+): Promise<BatchShipResult> {
+  const validOrders = (orders || []).filter(o => o && o.orderCode && o.orderCode.trim());
+  if (validOrders.length === 0) {
+    return {
+      success: false,
+      message: 'Không có đơn hàng hợp lệ để xuất kho',
+      totalOrders: 0,
+      shippedCount: 0,
+      failedCount: 0,
+      errors: ['Danh sách đơn rỗng']
+    };
+  }
+
+  try {
+    const sessionCookie = await getWmsSessionCookie(username, password);
+
+    // 1. Tạo file Excel .xls chuẩn theo cấu trúc yêu cầu của YunWMS Job Queue
+    const rows = [
+      ['订单号/Order Code', '订单类型/Order Type', '跟踪号/Tracking Number', '签出重/Checkout Weight', '体积重/Volume Weight'],
+      ...validOrders.map(item => [
+        item.orderCode.trim(),
+        0,
+        (item.trackingNo || '').trim(),
+        item.weight || '',
+        ''
+      ])
+    ];
+
+    const ws1 = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws1, 'Sheet1');
+
+    const wsDoc = XLSX.utils.aoa_to_sheet([['订单类型/Order Type : 0单个订单，1退仓订单，2转仓订单，不填默认为0']]);
+    XLSX.utils.book_append_sheet(wb, wsDoc, '字段说明');
+
+    const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xls' }) as Buffer;
+
+    // 2. Tạo multipart/form-data payload
+    const boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
+    const preFile = [
+      `--${boundary}\r\nContent-Disposition: form-data; name="warehouse_id"\r\n\r\n${warehouse}\r\n`,
+      `--${boundary}\r\nContent-Disposition: form-data; name="FileName"; filename="batch_checkout.xls"\r\nContent-Type: application/vnd.ms-excel\r\n\r\n`
+    ].join('');
+    const postFile = `\r\n--${boundary}--\r\n`;
+
+    const payload = Buffer.concat([
+      Buffer.from(preFile, 'utf8'),
+      excelBuffer,
+      Buffer.from(postFile, 'utf8')
+    ]);
+
+    // 3. Upload file lên job-queue
+    const uploadRes = await httpsRequest({
+      hostname: 'czwh.wms.yunwms.com',
+      path: '/shipment/job-queue/upload-check-out',
+      method: 'POST',
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        'Cookie': sessionCookie,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://czwh.wms.yunwms.com/shipment/job-queue/list',
+        'Content-Length': payload.length
+      }
+    }, payload);
+
+    let uploadJson: any = {};
+    try {
+      uploadJson = JSON.parse(uploadRes.body);
+    } catch {
+      uploadJson = { state: 0, message: uploadRes.body };
+    }
+
+    if (!uploadJson.state && uploadJson.state !== 1) {
+      return {
+        success: false,
+        message: uploadJson.message || 'Lỗi tải danh sách lên YunWMS',
+        totalOrders: validOrders.length,
+        shippedCount: 0,
+        failedCount: validOrders.length,
+        errors: uploadJson.error || [uploadJson.message || 'Lỗi không xác định khi upload']
+      };
+    }
+
+    // 4. Kích hoạt xuất kho qua run-check-out
+    const runRes = await httpsRequest({
+      hostname: 'czwh.wms.yunwms.com',
+      path: '/shipment/job-queue/run-check-out',
+      method: 'POST',
+      headers: {
+        'Cookie': sessionCookie,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://czwh.wms.yunwms.com/shipment/job-queue/list',
+        'Content-Length': 0
+      }
+    });
+
+    let runJson: any = {};
+    try {
+      runJson = JSON.parse(runRes.body);
+    } catch {
+      runJson = { state: 1, message: 'Đã gửi lệnh chạy xuất kho' };
+    }
+
+    const successCount = typeof uploadJson.success === 'number' ? uploadJson.success : validOrders.length;
+    const failCount = typeof uploadJson.fail === 'number' ? uploadJson.fail : 0;
+    const errorList = Array.isArray(uploadJson.error) ? uploadJson.error : [];
+
+    return {
+      success: successCount > 0,
+      message: `Đã chuyển Shipped thành công ${successCount}/${validOrders.length} đơn trên YunWMS.`,
+      totalOrders: validOrders.length,
+      shippedCount: successCount,
+      failedCount: failCount,
+      errors: errorList
+    };
+  } catch (err: any) {
+    console.error('[batchShipWmsOrders] Exception:', err);
+    return {
+      success: false,
+      message: `Lỗi kết nối YunWMS: ${err.message}`,
+      totalOrders: validOrders.length,
+      shippedCount: 0,
+      failedCount: validOrders.length,
+      errors: [err.message]
+    };
+  }
+}
+
 
