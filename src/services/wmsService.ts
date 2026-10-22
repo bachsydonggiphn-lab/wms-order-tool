@@ -1811,7 +1811,7 @@ export async function mergeOrderPdfs(
   items: Array<MergeOrderInputItem>,
   username: string = 'David',
   password: string = '12345abc',
-  options?: { drawPackingOverlay?: boolean; drawPageNumbers?: boolean }
+  options?: { drawPackingOverlay?: boolean; drawPageNumbers?: boolean; pageNumberMode?: 'CONTINUOUS' | 'PER_SKU' }
 ): Promise<Uint8Array> {
   const mergedPdf = await PDFDocument.create();
   let sessionCookie = '';
@@ -1955,14 +1955,18 @@ export async function mergeOrderPdfs(
     }
   }
 
-  // 3. Đánh số thứ tự đơn hàng (1, 2, ..., 111) lên từng nhãn, khớp 1-1 với cột STT bảng danh sách
+  // 3. Đánh số thứ tự đơn hàng (toàn bộ 1..N hoặc riêng lẻ từng SKU 1..n) lên từng nhãn
   if (drawPageNumbers && fontBold) {
     let orderCounter = 0;
+    const pageNumberMode = options?.pageNumberMode || 'CONTINUOUS';
     const totalPages = mergedPdf.getPageCount();
     for (let pIdx = 0; pIdx < totalPages; pIdx++) {
       const p = mergedPdf.getPage(pIdx);
       const isSep = separatorPageIndices.has(pIdx);
       if (isSep) {
+        if (pageNumberMode === 'PER_SKU') {
+          orderCounter = 0; // Reset số thứ tự bắt đầu lại từ 1 cho mã SKU tiếp theo
+        }
         drawPageNumberOnPage(p, 0, fontBold, true);
       } else {
         orderCounter++;

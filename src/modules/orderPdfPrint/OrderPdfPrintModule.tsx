@@ -39,6 +39,7 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
     isMergingPdf, mergeError, copiedSkuTable,
     drawPackingOverlay, setDrawPackingOverlay,
     drawPageNumbers, setDrawPageNumbers,
+    pageNumberMode, setPageNumberMode,
     previewPdfUrl, setPreviewPdfUrl, previewTitle,
     distinctPickingLists, parsedCodes,
     ordersOfSelectedSkus, totalPcsOfSelectedSkus,
@@ -166,6 +167,8 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
             setDrawPackingOverlay={setDrawPackingOverlay}
             drawPageNumbers={drawPageNumbers}
             setDrawPageNumbers={setDrawPageNumbers}
+            pageNumberMode={pageNumberMode}
+            setPageNumberMode={setPageNumberMode}
             isMergingPdf={isMergingPdf}
             mergeError={mergeError}
             onPreviewOrders={handlePreviewMergedPdfForOrders}

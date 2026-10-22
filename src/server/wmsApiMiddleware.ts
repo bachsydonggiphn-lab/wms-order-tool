@@ -322,9 +322,11 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
 
       const drawPackingOverlay = options.drawPackingOverlay !== false;
       const drawPageNumbers = options.drawPageNumbers !== false;
+      const pageNumberMode = options.pageNumberMode === 'PER_SKU' ? 'PER_SKU' : 'CONTINUOUS';
       const pdfUint8 = await mergeOrderPdfs(items, username, password, {
         drawPackingOverlay,
-        drawPageNumbers
+        drawPageNumbers,
+        pageNumberMode
       });
       const pdfBuffer = Buffer.from(pdfUint8);
 

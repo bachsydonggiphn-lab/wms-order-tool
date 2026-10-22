@@ -282,6 +282,8 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
     setDrawPackingOverlay: pdfMerge.setDrawPackingOverlay,
     drawPageNumbers: pdfMerge.drawPageNumbers,
     setDrawPageNumbers: pdfMerge.setDrawPageNumbers,
+    pageNumberMode: pdfMerge.pageNumberMode,
+    setPageNumberMode: pdfMerge.setPageNumberMode,
     previewPdfUrl: pdfMerge.previewPdfUrl,
     setPreviewPdfUrl: pdfMerge.setPreviewPdfUrl,
     previewTitle: pdfMerge.previewTitle,

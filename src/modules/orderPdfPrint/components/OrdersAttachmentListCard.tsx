@@ -13,6 +13,8 @@ interface OrdersAttachmentListCardProps {
   setDrawPackingOverlay: (val: boolean) => void;
   drawPageNumbers?: boolean;
   setDrawPageNumbers?: (val: boolean) => void;
+  pageNumberMode?: 'CONTINUOUS' | 'PER_SKU';
+  setPageNumberMode?: (mode: 'CONTINUOUS' | 'PER_SKU') => void;
   isMergingPdf: boolean;
   mergeError: string | null;
   onPreviewOrders: (orders: OrderAttachmentInfo[], title: string) => void;
@@ -42,6 +44,8 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
   setDrawPackingOverlay,
   drawPageNumbers = true,
   setDrawPageNumbers,
+  pageNumberMode = 'CONTINUOUS',
+  setPageNumberMode,
   isMergingPdf,
   mergeError,
   onPreviewOrders,
@@ -178,20 +182,50 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
           </label>
 
           {setDrawPageNumbers && (
-            <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-sky-950 select-none bg-sky-50/80 border border-sky-300/80 px-2.5 py-1 rounded-lg shadow-2xs hover:bg-sky-100/60 transition-colors">
-              <input
-                type="checkbox"
-                checked={drawPageNumbers}
-                onChange={(e) => setDrawPageNumbers(e.target.checked)}
-                className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer accent-sky-600"
-              />
-              <span className="flex items-center gap-1.5">
-                <span>Đánh số thứ tự in (1, 2, ... Khớp STT)</span>
+            <div className="flex items-center gap-2 bg-sky-50/80 border border-sky-300/80 px-2.5 py-1 rounded-lg shadow-2xs">
+              <label className="flex items-center gap-1.5 cursor-pointer font-bold text-xs text-sky-950 select-none hover:text-sky-700 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={drawPageNumbers}
+                  onChange={(e) => setDrawPageNumbers(e.target.checked)}
+                  className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer accent-sky-600"
+                />
+                <span>Đánh số thứ tự in</span>
+              </label>
+
+              {drawPageNumbers && setPageNumberMode ? (
+                <div className="flex items-center bg-white/90 p-0.5 rounded-md border border-sky-200 text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setPageNumberMode('CONTINUOUS')}
+                    className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                      pageNumberMode === 'CONTINUOUS'
+                        ? 'bg-sky-600 text-white shadow-2xs font-extrabold'
+                        : 'text-slate-600 hover:text-sky-700 hover:bg-sky-50'
+                    }`}
+                    title="Đánh số thứ tự liên tục 1..N xuyên suốt toàn bộ đơn hàng (ví dụ 1 đến 111)"
+                  >
+                    Toàn bộ (1..N)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPageNumberMode('PER_SKU')}
+                    className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                      pageNumberMode === 'PER_SKU'
+                        ? 'bg-sky-600 text-white shadow-2xs font-extrabold'
+                        : 'text-slate-600 hover:text-sky-700 hover:bg-sky-50'
+                    }`}
+                    title="Mỗi mã SKU được đánh số thứ tự từ 1 (ví dụ SKU 1 từ 1-100, SKU 2 từ 1-11...)"
+                  >
+                    Từng SKU (1..n)
+                  </button>
+                </div>
+              ) : (
                 <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-sky-200 text-sky-900">
                   Chuẩn Khay
                 </span>
-              </span>
-            </label>
+              )}
+            </div>
           )}
 
           {setAutoShipOnPrint && (
@@ -247,6 +281,8 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
         displayedOrders={displayedOrders}
         selectedSkus={selectedSkus}
         shippedOrdersSet={shippedOrdersSet}
+        pageNumberMode={pageNumberMode}
+        skuSummary={searchResults.skuSummary}
         onPrintSingleOrder={(o) => onPrintOrders([o], `In Đơn ${o.orderNo}`)}
       />
     </div>
