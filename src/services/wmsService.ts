@@ -1770,17 +1770,17 @@ function drawPageNumberOnPage(
   // Vẽ mỗi số thứ tự đơn hàng (1, 2, ..., 111) ở góc bên phải dưới cùng
   // Tuỳ biến ô: số đơn lẻ thì nhỏ lại hình vuông, hàng chục dài 1 xíu, hàng trăm dài 1 xíu, chiều cao ngắn lại
   const badgeText = String(orderSeq);
-  const fontSize = 9.5;
+  const fontSize = 9;
   const textWidth = fontBold.widthOfTextAtSize(badgeText, fontSize);
-  const padY = 2.2;
+  const padY = 1.8;
   const badgeH = fontSize + (padY * 2);
 
-  const padX = badgeText.length === 1 ? 4.5 : (badgeText.length === 2 ? 4.5 : 5);
+  const padX = badgeText.length === 1 ? 4 : (badgeText.length === 2 ? 4.5 : 5);
   const badgeW = textWidth + (padX * 2);
 
-  // Dịch chuyển xuống dưới 1 xíu nữa: cách mép phải 7pt, mép dưới 6pt
-  const badgeX = width - badgeW - 7;
-  const badgeY = 6;
+  // Dịch chuyển sát góc dưới cùng bên phải: cách mép phải 4.5pt, cách mép đáy 2.2pt (tránh đè lên khung chữ)
+  const badgeX = width - badgeW - 4.5;
+  const badgeY = 2.2;
 
   // 1. Nền trắng viền đen sắc nét
   page.drawRectangle({
@@ -1790,7 +1790,7 @@ function drawPageNumberOnPage(
     height: badgeH,
     color: rgb(1, 1, 1),
     borderColor: rgb(0, 0, 0),
-    borderWidth: 1.2
+    borderWidth: 1.0
   });
 
   // 2. Chữ số thứ tự màu đen đậm sắc nét
