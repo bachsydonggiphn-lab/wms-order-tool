@@ -40,6 +40,7 @@ export function usePdfMergeAction() {
           carrier: o.carrier,
           shippingMethod: o.shippingMethod,
           items: o.items,
+          skuGroup: o.skuGroup,
           attachmentUrl: o.attachmentUrl,
           oatId: o.oatId
         };

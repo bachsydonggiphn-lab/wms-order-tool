@@ -15,6 +15,8 @@ interface OrdersAttachmentListCardProps {
   setDrawPageNumbers?: (val: boolean) => void;
   pageNumberMode?: 'CONTINUOUS' | 'PER_SKU';
   setPageNumberMode?: (mode: 'CONTINUOUS' | 'PER_SKU') => void;
+  separateBlankPages?: boolean;
+  setSeparateBlankPages?: (val: boolean) => void;
   isMergingPdf: boolean;
   mergeError: string | null;
   onPreviewOrders: (orders: OrderAttachmentInfo[], title: string) => void;
@@ -46,6 +48,8 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
   setDrawPageNumbers,
   pageNumberMode = 'CONTINUOUS',
   setPageNumberMode,
+  separateBlankPages = true,
+  setSeparateBlankPages,
   isMergingPdf,
   mergeError,
   onPreviewOrders,
@@ -199,11 +203,9 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
                     type="button"
                     onClick={() => setPageNumberMode('CONTINUOUS')}
                     className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                      pageNumberMode === 'CONTINUOUS'
-                        ? 'bg-sky-600 text-white shadow-2xs font-extrabold'
-                        : 'text-slate-600 hover:text-sky-700 hover:bg-sky-50'
+                      pageNumberMode === 'CONTINUOUS' ? 'bg-sky-600 text-white shadow-2xs font-extrabold' : 'text-slate-600 hover:text-sky-700'
                     }`}
-                    title="Đánh số thứ tự liên tục 1..N xuyên suốt toàn bộ đơn hàng (ví dụ 1 đến 111)"
+                    title="Đánh số thứ tự liên tục 1..N toàn bộ danh sách đơn hàng"
                   >
                     Toàn bộ (1..N)
                   </button>
@@ -211,9 +213,7 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
                     type="button"
                     onClick={() => setPageNumberMode('PER_SKU')}
                     className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                      pageNumberMode === 'PER_SKU'
-                        ? 'bg-sky-600 text-white shadow-2xs font-extrabold'
-                        : 'text-slate-600 hover:text-sky-700 hover:bg-sky-50'
+                      pageNumberMode === 'PER_SKU' ? 'bg-sky-600 text-white shadow-2xs font-extrabold' : 'text-slate-600 hover:text-sky-700'
                     }`}
                     title="Mỗi mã SKU được đánh số thứ tự từ 1 (ví dụ SKU 1 từ 1-100, SKU 2 từ 1-11...)"
                   >
@@ -221,27 +221,34 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
                   </button>
                 </div>
               ) : (
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-sky-200 text-sky-900">
-                  Chuẩn Khay
-                </span>
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-sky-200 text-sky-900">Chuẩn Khay</span>
               )}
             </div>
           )}
 
+          {setSeparateBlankPages && (
+            <label className="flex items-center gap-1.5 cursor-pointer font-bold text-xs text-slate-700 select-none bg-slate-100/80 border border-slate-300/80 px-2.5 py-1 rounded-lg shadow-2xs hover:bg-slate-200/60 transition-colors">
+              <input
+                type="checkbox"
+                checked={separateBlankPages}
+                onChange={(e) => setSeparateBlankPages(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+              />
+              <span>Cách 2 trang trắng giữa SKU</span>
+            </label>
+          )}
+
           {setAutoShipOnPrint && (
-            <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-emerald-950 select-none bg-emerald-50/80 border border-emerald-300/80 px-2.5 py-1 rounded-lg shadow-2xs hover:bg-emerald-100/60 transition-colors">
+            <label className="flex items-center gap-1.5 cursor-pointer font-bold text-xs text-emerald-950 select-none bg-emerald-50/80 border border-emerald-300/80 px-2.5 py-1 rounded-lg shadow-2xs hover:bg-emerald-100/60 transition-colors">
               <input
                 type="checkbox"
                 checked={autoShipOnPrint}
                 onChange={(e) => setAutoShipOnPrint(e.target.checked)}
                 className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
               />
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1">
                 <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
-                <span>Tự động chuyển Shipped trên YunWMS sau khi in PDF</span>
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-emerald-200 text-emerald-900">
-                  Tự Động
-                </span>
+                <span>Tự động chuyển Shipped trên YunWMS</span>
               </span>
             </label>
           )}

@@ -27,6 +27,7 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
   const [selectedSkus, setSelectedSkus] = useState<Set<string>>(new Set());
   const [orderTableFilter, setOrderTableFilter] = useState<'ALL' | 'SELECTED_SKUS'>('ALL');
   const [copiedSkuTable, setCopiedSkuTable] = useState<boolean>(false);
+  const [separateBlankPages, setSeparateBlankPages] = useState<boolean>(true);
   const [lastPreviewTargetOrders, setLastPreviewTargetOrders] = useState<OrderAttachmentInfo[] | null>(null);
 
   // 4. Hook phụ trách xử lý gộp, in, xem trước và tải PDF
@@ -97,6 +98,7 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
       return;
     }
     const currentCodes = orders.map((o) => o.orderNo || o.trackingNo).filter(Boolean);
+    setSeparateBlankPages(false);
     setInputMode('ORDER_CODES');
     setInputText(Array.from(new Set(currentCodes)).join('\n'));
     setSearchError(null);
@@ -144,22 +146,24 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
     }
   };
 
-  // Xử lý khi bấm nút Quét Picking List
+  // Xử lý khi bấm nút Quét Picking List -> Tự động bật cách 2 trang trắng
   const handleSearchPickingList = () => {
     const cleanPl = pickingListInput.trim();
     if (!cleanPl) {
       setSearchError('Vui lòng nhập hoặc chọn một mã Picking List No.');
       return;
     }
+    setSeparateBlankPages(true);
     executeSearchWithCodes([cleanPl], cleanPl);
   };
 
-  // Xử lý khi bấm nút Quét Danh Sách Mã Đơn
+  // Xử lý khi bấm nút Quét Danh Sách Mã Đơn Lẻ -> Tự động tắt cách trang trắng theo yêu cầu
   const handleSearchOrderCodes = () => {
     if (parsedCodes.length === 0) {
       setSearchError('Vui lòng nhập hoặc dán ít nhất một mã đơn hàng / mã vận đơn.');
       return;
     }
+    setSeparateBlankPages(false);
     executeSearchWithCodes(parsedCodes);
   };
 
@@ -190,14 +194,19 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
     setTimeout(() => setCopiedSkuTable(false), 2000);
   };
 
-  // Wrapper In & Xem Trước sắp xếp theo SKU và chèn 2 trang trắng ngăn cách
-  const handlePrintOrganizedOrders = (targetOrders: OrderAttachmentInfo[], jobTitle?: string) => {
-    const { printableItems } = organizeOrdersBySkuWithSeparators(
+  // Helper lấy danh sách đơn cần in đã gom SKU và phân cách (nếu không bị tắt)
+  const getPrintableItems = (targetOrders: OrderAttachmentInfo[]) => {
+    return organizeOrdersBySkuWithSeparators(
       targetOrders,
       searchResults?.skuSummary || [],
-      selectedSkus
-    );
-    return pdfMerge.handlePrintMergedPdfForOrders(printableItems);
+      selectedSkus,
+      { disableSeparators: !separateBlankPages }
+    ).printableItems;
+  };
+
+  // Wrapper In & Xem Trước sắp xếp theo SKU
+  const handlePrintOrganizedOrders = (targetOrders: OrderAttachmentInfo[]) => {
+    return pdfMerge.handlePrintMergedPdfForOrders(getPrintableItems(targetOrders));
   };
 
   const handlePreviewOrganizedOrders = (
@@ -206,11 +215,7 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
     forceAll: boolean = false
   ) => {
     setLastPreviewTargetOrders(targetOrders);
-    const { printableItems } = organizeOrdersBySkuWithSeparators(
-      targetOrders,
-      searchResults?.skuSummary || [],
-      selectedSkus
-    );
+    const printableItems = getPrintableItems(targetOrders);
 
     let previewItems = printableItems;
     let actualTitle = jobTitle || 'Xem Trước Nhãn PDF';
@@ -246,12 +251,7 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
   };
 
   const handleDownloadOrganizedOrders = (targetOrders: OrderAttachmentInfo[], filenamePrefix?: string) => {
-    const { printableItems } = organizeOrdersBySkuWithSeparators(
-      targetOrders,
-      searchResults?.skuSummary || [],
-      selectedSkus
-    );
-    return pdfMerge.handleDownloadMergedPdf(printableItems, filenamePrefix);
+    return pdfMerge.handleDownloadMergedPdf(getPrintableItems(targetOrders), filenamePrefix);
   };
 
   const hasMorePreview = Boolean(
@@ -284,6 +284,7 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
     setDrawPageNumbers: pdfMerge.setDrawPageNumbers,
     pageNumberMode: pdfMerge.pageNumberMode,
     setPageNumberMode: pdfMerge.setPageNumberMode,
+    separateBlankPages, setSeparateBlankPages,
     previewPdfUrl: pdfMerge.previewPdfUrl,
     setPreviewPdfUrl: pdfMerge.setPreviewPdfUrl,
     previewTitle: pdfMerge.previewTitle,

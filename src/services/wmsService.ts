@@ -964,6 +964,7 @@ export interface OrderAttachmentInfo {
     qty: number;
     title?: string;
   }>;
+  skuGroup?: string;
   hasAttachment: boolean;
   attachmentFileName?: string;
   attachmentUrl?: string;
@@ -1453,6 +1454,7 @@ export interface MergeOrderInputItem {
   attachmentUrl?: string;
   oatId?: string;
   items?: Array<{ sku: string; qty: number; title?: string }>;
+  skuGroup?: string;
 }
 
 function isShopeeOrder(order: MergeOrderInputItem): boolean {
@@ -1894,17 +1896,37 @@ export async function mergeOrderPdfs(
     runNext();
   });
 
-  const separatorPageIndices = new Set<number>();
+  let orderCounter = 0;
+  let currentSkuGroup: string | null = null;
+  const pageNumberMode = options?.pageNumberMode || 'CONTINUOUS';
 
   // 2. Gộp tuần tự các file PDF vào tài liệu hoàn chỉnh (xử lý bộ nhớ nhanh < 0.5s)
   for (const item of items) {
     // Nếu là phần tử phân tách giữa các nhóm SKU: Thêm đúng 2 trang trắng chuẩn kích cỡ
     if (item.isSeparator) {
-      mergedPdf.addPage([lastPageWidth, lastPageHeight]);
-      separatorPageIndices.add(mergedPdf.getPageCount() - 1);
-      mergedPdf.addPage([lastPageWidth, lastPageHeight]);
-      separatorPageIndices.add(mergedPdf.getPageCount() - 1);
+      if (pageNumberMode === 'PER_SKU') {
+        orderCounter = 0;
+      }
+      currentSkuGroup = null;
+
+      const p1 = mergedPdf.addPage([lastPageWidth, lastPageHeight]);
+      if (drawPageNumbers && fontBold) {
+        drawPageNumberOnPage(p1, 0, fontBold, true);
+      }
+
+      const p2 = mergedPdf.addPage([lastPageWidth, lastPageHeight]);
+      if (drawPageNumbers && fontBold) {
+        drawPageNumberOnPage(p2, 0, fontBold, true);
+      }
       continue;
+    }
+
+    const itemSkuGroup = item.skuGroup || (item.items && item.items[0]?.sku) || '';
+    if (pageNumberMode === 'PER_SKU' && itemSkuGroup) {
+      if (currentSkuGroup !== null && currentSkuGroup !== itemSkuGroup) {
+        orderCounter = 0; // Đổi sang nhóm SKU mới: reset số thứ tự bắt đầu lại từ 1
+      }
+      currentSkuGroup = itemSkuGroup;
     }
 
     const cacheKey = item.attachmentUrl || item.oatId || item.orderNo || '';
@@ -1920,6 +1942,8 @@ export async function mergeOrderPdfs(
           lastPageWidth = sz.width;
           lastPageHeight = sz.height;
         }
+
+        orderCounter++;
         
         copiedPages.forEach((p, pageIdx) => {
           // Vẽ overlay thông tin đóng gói lên trang đầu tiên của đơn nếu được bật
@@ -1930,30 +1954,20 @@ export async function mergeOrderPdfs(
               console.warn(`[mergeOrderPdfs] Lỗi vẽ overlay cho đơn ${item.orderNo}:`, overlayErr?.message);
             }
           }
+
+          // Vẽ số thứ tự đơn hàng lên góc nhãn nếu được bật
+          if (drawPageNumbers && fontBold) {
+            try {
+              drawPageNumberOnPage(p, orderCounter, fontBold, false);
+            } catch (pNumErr: any) {
+              console.warn(`[mergeOrderPdfs] Lỗi vẽ số thứ tự cho đơn ${item.orderNo}:`, pNumErr?.message);
+            }
+          }
+
           mergedPdf.addPage(p);
         });
       } catch (docErr: any) {
         console.warn(`[mergeOrderPdfs] Lỗi nạp PDF của đơn ${item.orderNo}:`, docErr?.message);
-      }
-    }
-  }
-
-  // 3. Đánh số thứ tự đơn hàng (toàn bộ 1..N hoặc riêng lẻ từng SKU 1..n) lên từng nhãn
-  if (drawPageNumbers && fontBold) {
-    let orderCounter = 0;
-    const pageNumberMode = options?.pageNumberMode || 'CONTINUOUS';
-    const totalPages = mergedPdf.getPageCount();
-    for (let pIdx = 0; pIdx < totalPages; pIdx++) {
-      const p = mergedPdf.getPage(pIdx);
-      const isSep = separatorPageIndices.has(pIdx);
-      if (isSep) {
-        if (pageNumberMode === 'PER_SKU') {
-          orderCounter = 0; // Reset số thứ tự bắt đầu lại từ 1 cho mã SKU tiếp theo
-        }
-        drawPageNumberOnPage(p, 0, fontBold, true);
-      } else {
-        orderCounter++;
-        drawPageNumberOnPage(p, orderCounter, fontBold, false);
       }
     }
   }

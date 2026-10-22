@@ -8,7 +8,8 @@ import { PrintableOrderItem } from '../types';
 export function organizeOrdersBySkuWithSeparators(
   targetOrders: OrderAttachmentInfo[],
   skuSummaryList: SkuPickingSummaryItem[],
-  selectedSkus?: Set<string>
+  selectedSkus?: Set<string>,
+  options?: { disableSeparators?: boolean }
 ): { printableItems: PrintableOrderItem[]; skuCount: number; validOrdersCount: number } {
   // 1. Chỉ lấy những đơn hàng thực sự có file PDF nhãn
   const validOrders = targetOrders.filter((o) => o.hasAttachment);
@@ -80,28 +81,24 @@ export function organizeOrdersBySkuWithSeparators(
 
   const skuCount = skuGroups.length;
 
-  // 5. Nếu chỉ có 1 nhóm SKU duy nhất:
-  // In liên tục tất cả đơn của SKU đó, KHÔNG chèn trang trắng ngăn cách
-  if (skuCount <= 1) {
-    const items = skuCount === 1 ? skuGroups[0].orders : [];
-    return { printableItems: items, skuCount, validOrdersCount: items.length };
-  }
-
-  // 6. Nếu có từ 2 mã SKU trở lên hoặc in toàn bộ:
-  // Sắp xếp đơn của từng SKU, chèn đúng 2 trang trắng (isSeparator: true) giữa các nhóm SKU
+  // 5. Gom danh sách đơn in: gắn tag skuGroup để đồng bộ thứ tự in
+  // Nếu có từ 2 mã SKU trở lên VÀ không bị tắt (disableSeparators): chèn đúng 2 trang trắng ngăn cách
   const printableItems: PrintableOrderItem[] = [];
   let totalValidOrders = 0;
+  const useSeparators = !options?.disableSeparators && skuCount > 1;
 
   for (let i = 0; i < skuGroups.length; i++) {
-    if (i > 0) {
+    const group = skuGroups[i];
+    if (i > 0 && useSeparators) {
       // Đánh dấu chèn 2 trang trắng ngăn cách giữa 2 mã SKU
       printableItems.push({
         isSeparator: true,
-        separatorLabel: `Ngăn cách sang SKU: ${skuGroups[i].sku}`
+        separatorLabel: `Ngăn cách sang SKU: ${group.sku}`
       });
     }
-    printableItems.push(...skuGroups[i].orders);
-    totalValidOrders += skuGroups[i].orders.length;
+    const taggedOrders = group.orders.map((o) => ({ ...o, skuGroup: group.sku }));
+    printableItems.push(...taggedOrders);
+    totalValidOrders += group.orders.length;
   }
 
   return { printableItems, skuCount, validOrdersCount: totalValidOrders };
