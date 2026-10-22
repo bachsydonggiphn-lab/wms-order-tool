@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { OrderPdfBatchPrintViewProps } from './types';
 import { useOrderPdfBatch } from './hooks/useOrderPdfBatch';
 import { useAutoShipOrder } from './hooks/useAutoShipOrder';
+import { useTodayPickingLists } from './hooks/useTodayPickingLists';
 import { printPickingSlipWindow } from './utils/pickingSlipPrinter';
 import { OrderAttachmentInfo } from '../../services/wmsService';
 
@@ -21,6 +22,13 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
   skuGroups = {}
 }) => {
   const [shippedOrdersSet, setShippedOrdersSet] = useState<Set<string>>(new Set());
+  const {
+    todayPickingLists,
+    todayTotal,
+    isLoadingToday,
+    fetchTodayLists
+  } = useTodayPickingLists('7');
+
   const {
     autoShipOnPrint,
     setAutoShipOnPrint,
@@ -118,6 +126,10 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
         inputText={inputText}
         setInputText={setInputText}
         distinctPickingLists={distinctPickingLists}
+        todayPickingLists={todayPickingLists}
+        todayTotal={todayTotal}
+        isLoadingToday={isLoadingToday}
+        onRefreshTodayPickingLists={fetchTodayLists}
         parsedCodesCount={parsedCodes.length}
         isSearching={isSearching}
         searchError={searchError}

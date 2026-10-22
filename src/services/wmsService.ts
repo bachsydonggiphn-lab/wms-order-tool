@@ -2134,4 +2134,119 @@ export async function batchShipWmsOrders(
   }
 }
 
+export interface TodayPickingListItem {
+  pl: string;
+  orderCount: number;
+  totalQty: number;
+  binCount: number;
+  createdTime: string;
+  updateTime: string;
+  pickingStatus: string;
+  packStatus: string;
+  creator: string;
+  carrier: string;
+}
 
+export interface TodayPickingListsResult {
+  success: boolean;
+  total: number;
+  date: string;
+  pickingLists: TodayPickingListItem[];
+  message?: string;
+}
+
+/**
+ * Lấy danh sách Khai Báo Picking List No. hôm nay từ YunWMS (kho VN02)
+ */
+export async function fetchTodayPickingLists(options?: {
+  warehouse?: string;
+  date?: string;
+  username?: string;
+  password?: string;
+}): Promise<TodayPickingListsResult> {
+  const warehouse = options?.warehouse || '7'; // 7 = VN02 HCM
+  const username = options?.username || 'David';
+  const password = options?.password || '12345abc';
+
+  // Lấy ngày hôm nay theo múi giờ Việt Nam (UTC+7)
+  const targetDate = options?.date || new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+
+  try {
+    const sessionCookie = await getWmsSessionCookie(username, password);
+    const dateStart = `${targetDate} 00:00:00`;
+    const dateEnd = `${targetDate} 23:59:59`;
+    const postBody = `E1=${encodeURIComponent(warehouse)}&dateFor=${encodeURIComponent(dateStart)}&dateTo=${encodeURIComponent(dateEnd)}`;
+
+    const res = await httpsRequest({
+      hostname: 'czwh.wms.yunwms.com',
+      path: '/shipment/picking/list/page/1/pageSize/100',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Cookie': sessionCookie,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://czwh.wms.yunwms.com/shipment/picking/list',
+        'Content-Length': Buffer.byteLength(postBody)
+      }
+    }, postBody);
+
+    if (res.statusCode !== 200) {
+      return {
+        success: false,
+        total: 0,
+        date: targetDate,
+        pickingLists: [],
+        message: `HTTP ${res.statusCode} từ YunWMS`
+      };
+    }
+
+    let json: any = {};
+    try {
+      json = JSON.parse(res.body);
+    } catch {
+      return {
+        success: false,
+        total: 0,
+        date: targetDate,
+        pickingLists: [],
+        message: 'Không parse được JSON từ YunWMS'
+      };
+    }
+
+    const rawList = Array.isArray(json.data) ? json.data : [];
+    const pickingLists: TodayPickingListItem[] = rawList.map((d: any) => {
+      const carrier = Array.isArray(d.pdScIdArr)
+        ? d.pdScIdArr.map((c: any) => c.sc_code || c.sp_name).filter(Boolean).join(', ')
+        : '';
+      return {
+        pl: String(d.E2 || '').trim(),
+        orderCount: parseInt(d.E5, 10) || 0,
+        totalQty: parseInt(d.E7, 10) || 0,
+        binCount: parseInt(d.E6, 10) || 0,
+        createdTime: String(d.E11 || '').trim(),
+        updateTime: String(d.E12 || '').trim(),
+        pickingStatus: String(d.E15 || '').trim(),
+        packStatus: String(d.E8 || '').trim(),
+        creator: String(d.createName || '').trim(),
+        carrier
+      };
+    }).filter((it: TodayPickingListItem) => Boolean(it.pl));
+
+    return {
+      success: true,
+      total: typeof json.total === 'number' ? json.total : pickingLists.length,
+      date: targetDate,
+      pickingLists
+    };
+  } catch (err: any) {
+    console.error('[fetchTodayPickingLists] Error:', err);
+    return {
+      success: false,
+      total: 0,
+      date: targetDate,
+      pickingLists: [],
+      message: err.message || 'Lỗi kết nối YunWMS'
+    };
+  }
+}

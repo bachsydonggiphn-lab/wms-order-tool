@@ -28,5 +28,18 @@ export interface SeparatorItem {
   separatorLabel?: string;
 }
 
+export interface TodayPickingListItem {
+  pl: string;
+  orderCount: number;
+  totalQty: number;
+  binCount: number;
+  createdTime: string;
+  updateTime: string;
+  pickingStatus: string;
+  packStatus: string;
+  creator: string;
+  carrier: string;
+}
+
 export type PrintableOrderItem = OrderAttachmentInfo | SeparatorItem;
 

@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest, searchOrdersWithAttachments, mergeOrderPdfs, batchShipWmsOrders } from '../services/wmsService';
+import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest, searchOrdersWithAttachments, mergeOrderPdfs, batchShipWmsOrders, fetchTodayPickingLists } from '../services/wmsService';
 import { fetchGHNLive, fetchJNTLive, fetchJNTBatchLive, fetchSPXLive, fetchNinjaVanLive } from './trackingBackend';
 import {
   getShippedSyncMeta,
@@ -267,6 +267,42 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       sendJson(res, 500, {
         success: false,
         message: err?.message || 'Lỗi khi kéo tồn kho từ YunWMS'
+      });
+    });
+    return;
+  }
+
+  // 5a. Endpoint Lấy Danh Sách Khai Báo Picking List No. Hôm Nay Từ YunWMS
+  if (pathname === '/api/wms/today-picking-lists' && (req.method === 'GET' || req.method === 'POST')) {
+    const handleGetTodayPickingLists = async () => {
+      let options: any = {};
+      if (req.method === 'POST') {
+        options = await parseJsonBody(req);
+      } else {
+        options = parsedUrl.query;
+      }
+
+      const warehouse = String(options.warehouse ?? '7');
+      const date = options.date ? String(options.date) : undefined;
+      const username = String(options.username || 'David');
+      const password = String(options.password || '12345abc');
+
+      const result = await fetchTodayPickingLists({
+        warehouse,
+        date,
+        username,
+        password
+      });
+
+      sendJson(res, 200, result);
+    };
+
+    handleGetTodayPickingLists().catch((err) => {
+      sendJson(res, 500, {
+        success: false,
+        total: 0,
+        pickingLists: [],
+        message: err?.message || 'Lỗi lấy danh sách Picking List hôm nay'
       });
     });
     return;

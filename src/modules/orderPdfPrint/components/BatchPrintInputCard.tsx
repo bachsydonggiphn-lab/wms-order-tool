@@ -1,6 +1,7 @@
 import React from 'react';
 import { ListOrdered, Search, X, RefreshCw, Boxes, AlertCircle } from 'lucide-react';
-import { DistinctPickingListItem } from '../types';
+import { DistinctPickingListItem, TodayPickingListItem } from '../types';
+import { TodayPickingListsBanner } from './TodayPickingListsBanner';
 
 interface BatchPrintInputCardProps {
   inputMode: 'PICKING_LIST' | 'ORDER_CODES';
@@ -10,6 +11,10 @@ interface BatchPrintInputCardProps {
   inputText: string;
   setInputText: (val: string) => void;
   distinctPickingLists: DistinctPickingListItem[];
+  todayPickingLists?: TodayPickingListItem[];
+  todayTotal?: number;
+  isLoadingToday?: boolean;
+  onRefreshTodayPickingLists?: () => void;
   parsedCodesCount: number;
   isSearching: boolean;
   searchError: string | null;
@@ -26,6 +31,10 @@ export const BatchPrintInputCard: React.FC<BatchPrintInputCardProps> = ({
   inputText,
   setInputText,
   distinctPickingLists,
+  todayPickingLists = [],
+  todayTotal = 0,
+  isLoadingToday = false,
+  onRefreshTodayPickingLists = () => {},
   parsedCodesCount,
   isSearching,
   searchError,
@@ -48,11 +57,15 @@ export const BatchPrintInputCard: React.FC<BatchPrintInputCardProps> = ({
         >
           <ListOrdered className="w-4 h-4 text-indigo-600" />
           <span>Khai Báo Picking List No.:</span>
-          {distinctPickingLists.length > 0 && (
+          {todayTotal > 0 ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-indigo-600 text-white font-black shadow-2xs">
+              Hôm nay: {todayTotal} List
+            </span>
+          ) : distinctPickingLists.length > 0 ? (
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 text-indigo-800">
               {distinctPickingLists.length} List có sẵn
             </span>
-          )}
+          ) : null}
         </button>
 
         <button
@@ -117,6 +130,16 @@ export const BatchPrintInputCard: React.FC<BatchPrintInputCardProps> = ({
               )}
             </button>
           </div>
+
+          {/* GỢI Ý DANH SÁCH PICKING LIST HÔM NAY TỪ YUNWMS (CLICK ĐỂ CHỌN NGAY) */}
+          <TodayPickingListsBanner
+            todayPickingLists={todayPickingLists}
+            todayTotal={todayTotal}
+            isLoading={isLoadingToday}
+            activePickingList={pickingListInput}
+            onRefresh={onRefreshTodayPickingLists}
+            onSelectPickingList={onSelectPickingListChip}
+          />
 
           {/* Danh sách chọn nhanh các Picking List có sẵn từ các đơn đang mở trong hệ thống */}
           {distinctPickingLists.length > 0 && (
