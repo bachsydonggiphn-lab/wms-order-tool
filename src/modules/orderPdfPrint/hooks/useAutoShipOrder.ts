@@ -55,15 +55,17 @@ export function useAutoShipOrder(): UseAutoShipOrderReturn {
 
     const payloadOrders = ordersToShip
       .map(o => ({
-        orderCode: o.orderNo || o.platformOrderNo || '',
-        trackingNo: o.trackingNo || o.orderAttachment?.fileName?.replace(/\.pdf$/i, '') || '',
+        orderCode: (o.orderNo || o.refNo || '').trim(),
+        trackingNo: (o.trackingNo || o.attachmentFileName?.replace(/\.pdf$/i, '') || '').trim(),
         weight: '0.2'
       }))
-      .filter(o => o.orderCode.trim() !== '');
+      .filter(o => o.orderCode !== '');
 
     if (payloadOrders.length === 0) {
       return { success: false, message: 'Không tìm thấy mã đơn hợp lệ để ký xuất', count: 0 };
     }
+
+    const targetWarehouse = ordersToShip.find(o => o.warehouseId)?.warehouseId || '7';
 
     setIsShipping(true);
     try {
@@ -74,7 +76,7 @@ export function useAutoShipOrder(): UseAutoShipOrderReturn {
         },
         body: JSON.stringify({
           orders: payloadOrders,
-          warehouse: '7'
+          warehouse: targetWarehouse
         })
       });
 

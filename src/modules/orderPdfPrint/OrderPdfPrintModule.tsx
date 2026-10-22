@@ -59,6 +59,15 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
         shippedCodes.forEach(c => next.add(c));
         return next;
       });
+      if (searchResults?.orders) {
+        const shippedCodeSet = new Set(shippedCodes);
+        searchResults.orders.forEach(o => {
+          if (shippedCodeSet.has(o.orderNo) || (o.refNo && shippedCodeSet.has(o.refNo))) {
+            o.statusCode = '8';
+            o.status = 'Shipped';
+          }
+        });
+      }
     });
   };
 
@@ -67,7 +76,7 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
     await handleDownloadMergedPdf(targetItems, prefix);
     if (autoShipOnPrint) {
       const realOrders = (targetItems || []).filter(
-        it => !('isSeparator' in it && it.isSeparator) && Boolean(it.hasAttachment)
+        (it: any) => !('isSeparator' in it && it.isSeparator) && Boolean(it.orderNo || it.refNo)
       ) as OrderAttachmentInfo[];
       if (realOrders.length > 0) {
         handleBatchShipOrders(realOrders);
@@ -80,7 +89,7 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
     await handlePrintMergedPdfForOrders(targetItems, title);
     if (autoShipOnPrint) {
       const realOrders = (targetItems || []).filter(
-        it => !('isSeparator' in it && it.isSeparator) && Boolean(it.hasAttachment)
+        (it: any) => !('isSeparator' in it && it.isSeparator) && Boolean(it.orderNo || it.refNo)
       ) as OrderAttachmentInfo[];
       if (realOrders.length > 0) {
         handleBatchShipOrders(realOrders);
@@ -135,9 +144,14 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
             onDeselectAllSkus={deselectAllSkus}
             onCopySkuTable={handleCopySkuTable}
             onPrintPickingSlip={() => printPickingSlipWindow(searchResults)}
-            onPrintOrders={handlePrintMergedPdfForOrders}
+            onPrintOrders={handlePrintAndAutoShip}
             onPreviewOrders={handlePreviewMergedPdfForOrders}
             copiedSkuTable={copiedSkuTable}
+            autoShipOnPrint={autoShipOnPrint}
+            setAutoShipOnPrint={setAutoShipOnPrint}
+            isShipping={isShipping}
+            shippedOrdersSet={shippedOrdersSet}
+            lastShipResult={lastShipResult}
           />
 
           {/* BẢNG 2: Danh Sách Đơn Hàng & File PDF Nhãn */}
