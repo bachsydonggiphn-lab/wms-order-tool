@@ -1348,19 +1348,67 @@ export async function searchOrdersWithAttachments(options: {
     }
   }
 
+  // 1. Tổng hợp & sắp xếp SKU: SKU nhiều đơn / sản phẩm nhất đứng đầu
   const skuSummary: SkuPickingSummaryItem[] = Array.from(skuMap.entries())
-    .map(([sku, info]) => ({
-      sku,
-      group: layNhomTuSKU(sku, skuGroups),
-      totalQty: info.totalQty,
-      orderCount: info.orderCount,
-      orderNos: Array.from(info.orderNos)
-    }))
-    .sort((a, b) => b.totalQty - a.totalQty || a.sku.localeCompare(b.sku));
+    .map(([sku, info]) => {
+      // Sắp xếp các mã đơn trong từng SKU từ thấp đến cao (numeric ascending)
+      const sortedNos = Array.from(info.orderNos).sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+      );
+      return {
+        sku,
+        group: layNhomTuSKU(sku, skuGroups),
+        totalQty: info.totalQty,
+        orderCount: info.orderCount,
+        orderNos: sortedNos
+      };
+    })
+    .sort((a, b) => b.totalQty - a.totalQty || b.orderCount - a.orderCount || a.sku.localeCompare(b.sku));
+
+  // 2. Sắp xếp toàn bộ danh sách đơn hàng đồng bộ tuyệt đối với thứ tự in:
+  // - Đi theo từng nhóm SKU (SKU nhiều đứng trước)
+  // - Trong từng SKU, sắp xếp mã đơn từ thấp đến cao (YD-.....-... từ thấp đến cao)
+  const orderLookupMap = new Map<string, OrderAttachmentInfo>();
+  processedOrders.forEach((o) => {
+    if (o.orderNo) orderLookupMap.set(o.orderNo.trim().toUpperCase(), o);
+    if (o.trackingNo) orderLookupMap.set(o.trackingNo.trim().toUpperCase(), o);
+  });
+
+  const sortedOrders: OrderAttachmentInfo[] = [];
+  const assignedKeys = new Set<string>();
+
+  for (const s of skuSummary) {
+    const skuOrders: OrderAttachmentInfo[] = [];
+    for (const no of s.orderNos) {
+      const upper = (no || '').trim().toUpperCase();
+      if (orderLookupMap.has(upper) && !assignedKeys.has(upper)) {
+        const ord = orderLookupMap.get(upper)!;
+        skuOrders.push(ord);
+        if (ord.orderNo) assignedKeys.add(ord.orderNo.trim().toUpperCase());
+        if (ord.trackingNo) assignedKeys.add(ord.trackingNo.trim().toUpperCase());
+      }
+    }
+    skuOrders.sort((a, b) =>
+      (a.orderNo || '').localeCompare(b.orderNo || '', undefined, { numeric: true, sensitivity: 'base' })
+    );
+    sortedOrders.push(...skuOrders);
+  }
+
+  // Đơn hàng còn lại chưa thuộc SKU chính (nếu có)
+  const remainingOrders = processedOrders
+    .filter((o) => {
+      const k1 = o.orderNo && assignedKeys.has(o.orderNo.trim().toUpperCase());
+      const k2 = o.trackingNo && assignedKeys.has(o.trackingNo.trim().toUpperCase());
+      return !k1 && !k2;
+    })
+    .sort((a, b) =>
+      (a.orderNo || '').localeCompare(b.orderNo || '', undefined, { numeric: true, sensitivity: 'base' })
+    );
+  sortedOrders.push(...remainingOrders);
 
   // Xác định mã đơn nào trong danh sách tìm kiếm chưa tìm thấy
   const foundCodeSet = new Set<string>();
-  for (const o of processedOrders) {
+  for (const o of sortedOrders) {
     if (o.orderNo) foundCodeSet.add(o.orderNo.toUpperCase());
     if (o.trackingNo) foundCodeSet.add(o.trackingNo.toUpperCase());
     if (o.refNo) foundCodeSet.add(o.refNo.toUpperCase());
@@ -1369,14 +1417,14 @@ export async function searchOrdersWithAttachments(options: {
   plCodes.forEach((pl) => foundCodeSet.add(pl.toUpperCase()));
 
   const missingCodes = uniqueCodes.filter((c) => !foundCodeSet.has(c.toUpperCase()));
-  const totalWithPdf = processedOrders.filter((o) => o.hasAttachment).length;
+  const totalWithPdf = sortedOrders.filter((o) => o.hasAttachment).length;
 
   return {
     success: true,
     totalInputCodes: uniqueCodes.length,
-    totalFound: processedOrders.length,
+    totalFound: sortedOrders.length,
     totalWithPdf,
-    orders: processedOrders,
+    orders: sortedOrders,
     skuSummary,
     totalPcs,
     missingCodes
@@ -1693,23 +1741,21 @@ function drawPackingOverlayOnPage(
 }
 
 /**
- * Vẽ huy hiệu số trang (Trang X/Y) tương ứng với từng tờ in hệ thống
+ * Vẽ số thứ tự đơn hàng (1, 2, ..., 111) tương ứng 1-1 với cột STT trong bảng danh sách
  * Giúp nhân viên kho dễ dàng kiểm đếm, tìm thứ tự đơn hàng khi thiếu giấy hoặc mất đơn
  */
 function drawPageNumberOnPage(
   page: PDFPage,
-  pageNum: number,
-  totalPages: number,
+  orderSeq: number,
   fontBold: PDFFont,
   isSeparator: boolean = false
 ) {
   const { width, height } = page.getSize();
 
-
   if (isSeparator) {
     // Với trang phân cách giữa các SKU: in dòng thông báo rõ ràng ở giữa trang
-    const sepText = `--- TRANG PHAN CACH SKU [Trang ${pageNum}/${totalPages}] ---`;
-    const sepFontSize = 10.5;
+    const sepText = `--- TRANG PHAN CACH SKU ---`;
+    const sepFontSize = 11;
     const sepTextW = fontBold.widthOfTextAtSize(sepText, sepFontSize);
     page.drawText(sepText, {
       x: Math.max(10, (width - sepTextW) / 2),
@@ -1718,15 +1764,17 @@ function drawPageNumberOnPage(
       font: fontBold,
       color: rgb(0.2, 0.2, 0.2)
     });
+    return;
   }
 
-  // Huy hiệu số trang ở góc bên phải phía dưới cùng (Bottom-Right): Trang X/Y
-  const badgeText = `Trang ${pageNum}/${totalPages}`;
-  const fontSize = 9;
+  // Vẽ mỗi số thứ tự đơn hàng (1, 2, ..., 111) ở góc bên phải dưới cùng
+  const badgeText = String(orderSeq);
+  const fontSize = 11;
   const textWidth = fontBold.widthOfTextAtSize(badgeText, fontSize);
-  const padX = 7;
+  const minW = Math.max(22, textWidth + 14);
+  const padX = (minW - textWidth) / 2;
   const padY = 4;
-  const badgeW = textWidth + (padX * 2);
+  const badgeW = minW;
   const badgeH = fontSize + (padY * 2);
 
   // Đặt ở góc bên phải phía dưới cùng: cách mép phải 8pt, mép dưới 10pt (chuẩn máy in nhiệt 4x6)
@@ -1741,10 +1789,10 @@ function drawPageNumberOnPage(
     height: badgeH,
     color: rgb(1, 1, 1),
     borderColor: rgb(0, 0, 0),
-    borderWidth: 1.2
+    borderWidth: 1.3
   });
 
-  // 2. Chữ "Trang X/Y" màu đen đậm
+  // 2. Chữ số thứ tự màu đen đậm sắc nét
   page.drawText(badgeText, {
     x: badgeX + padX,
     y: badgeY + padY + 0.5,
@@ -1906,13 +1954,19 @@ export async function mergeOrderPdfs(
     }
   }
 
-  // 3. Đánh số trang lên toàn bộ tài liệu theo thứ tự trang in hệ thống (Trang X/Y)
-  const totalPages = mergedPdf.getPageCount();
-  if (drawPageNumbers && fontBold && totalPages > 0) {
+  // 3. Đánh số thứ tự đơn hàng (1, 2, ..., 111) lên từng nhãn, khớp 1-1 với cột STT bảng danh sách
+  if (drawPageNumbers && fontBold) {
+    let orderCounter = 0;
+    const totalPages = mergedPdf.getPageCount();
     for (let pIdx = 0; pIdx < totalPages; pIdx++) {
       const p = mergedPdf.getPage(pIdx);
       const isSep = separatorPageIndices.has(pIdx);
-      drawPageNumberOnPage(p, pIdx + 1, totalPages, fontBold, isSep);
+      if (isSep) {
+        drawPageNumberOnPage(p, 0, fontBold, true);
+      } else {
+        orderCounter++;
+        drawPageNumberOnPage(p, orderCounter, fontBold, false);
+      }
     }
   }
 

@@ -186,9 +186,9 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
                 className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer accent-sky-600"
               />
               <span className="flex items-center gap-1.5">
-                <span>Đánh dấu số trang (Trang X/Y)</span>
+                <span>Đánh số thứ tự in (1, 2, ... Khớp STT)</span>
                 <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-sky-200 text-sky-900">
-                  Chuẩn Tờ In
+                  Chuẩn Khay
                 </span>
               </span>
             </label>

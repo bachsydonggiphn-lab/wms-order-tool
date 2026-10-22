@@ -27,11 +27,13 @@ export function organizeOrdersBySkuWithSeparators(
   const skuGroups: Array<{ sku: string; orders: OrderAttachmentInfo[] }> = [];
   const assignedOrderKeys = new Set<string>();
 
-  // Lọc danh sách SKU cần in
-  const targetSkus = skuSummaryList.filter((s) => {
-    if (!selectedSkus || selectedSkus.size === 0) return true;
-    return selectedSkus.has(s.sku);
-  });
+  // Lọc và sắp xếp danh sách SKU cần in: SKU nhiều đơn / số lượng nhất xếp trước
+  const targetSkus = skuSummaryList
+    .filter((s) => {
+      if (!selectedSkus || selectedSkus.size === 0) return true;
+      return selectedSkus.has(s.sku);
+    })
+    .sort((a, b) => b.totalQty - a.totalQty || b.orderCount - a.orderCount || a.sku.localeCompare(b.sku));
 
   for (const s of targetSkus) {
     const groupOrders: OrderAttachmentInfo[] = [];
@@ -44,17 +46,25 @@ export function organizeOrdersBySkuWithSeparators(
         if (ord.trackingNo) assignedOrderKeys.add(ord.trackingNo.trim().toUpperCase());
       }
     }
+    // Sắp xếp các đơn trong SKU theo thứ tự mã đơn từ thấp đến cao (numeric ascending)
+    groupOrders.sort((a, b) =>
+      (a.orderNo || '').localeCompare(b.orderNo || '', undefined, { numeric: true, sensitivity: 'base' })
+    );
     if (groupOrders.length > 0) {
       skuGroups.push({ sku: s.sku, orders: groupOrders });
     }
   }
 
   // 4. Nếu còn đơn hàng nào chưa được gom theo SKU ở trên, gom vào nhóm cuối
-  const remainingOrders = validOrders.filter((o) => {
-    const k1 = o.orderNo && assignedOrderKeys.has(o.orderNo.trim().toUpperCase());
-    const k2 = o.trackingNo && assignedOrderKeys.has(o.trackingNo.trim().toUpperCase());
-    return !k1 && !k2;
-  });
+  const remainingOrders = validOrders
+    .filter((o) => {
+      const k1 = o.orderNo && assignedOrderKeys.has(o.orderNo.trim().toUpperCase());
+      const k2 = o.trackingNo && assignedOrderKeys.has(o.trackingNo.trim().toUpperCase());
+      return !k1 && !k2;
+    })
+    .sort((a, b) =>
+      (a.orderNo || '').localeCompare(b.orderNo || '', undefined, { numeric: true, sensitivity: 'base' })
+    );
   if (remainingOrders.length > 0) {
     skuGroups.push({ sku: 'KHAC', orders: remainingOrders });
   }
