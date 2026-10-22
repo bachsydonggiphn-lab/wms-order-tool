@@ -1719,18 +1719,18 @@ function drawPageNumberOnPage(
     });
   }
 
-  // Huy hiệu số trang ở góc trên bên phải (Top-Right): Trang X/Y
+  // Huy hiệu số trang ở góc bên phải phía dưới cùng (Bottom-Right): Trang X/Y
   const badgeText = `Trang ${pageNum}/${totalPages}`;
-  const fontSize = 8.5;
+  const fontSize = 9;
   const textWidth = fontBold.widthOfTextAtSize(badgeText, fontSize);
-  const padX = 6;
-  const padY = 3.5;
+  const padX = 7;
+  const padY = 4;
   const badgeW = textWidth + (padX * 2);
   const badgeH = fontSize + (padY * 2);
 
-  // Cách mép phải 8pt, mép trên an toàn 6pt (phù hợp tuyệt đối với lề in nhiệt XP-D465B, Xprinter...)
+  // Đặt ở góc bên phải phía dưới cùng: cách mép phải 8pt, mép dưới 8pt (chuẩn máy in nhiệt 4x6)
   const badgeX = width - badgeW - 8;
-  const badgeY = height - badgeH - 6;
+  const badgeY = 8;
 
   // 1. Nền trắng viền đen sắc nét
   page.drawRectangle({
@@ -1740,7 +1740,7 @@ function drawPageNumberOnPage(
     height: badgeH,
     color: rgb(1, 1, 1),
     borderColor: rgb(0, 0, 0),
-    borderWidth: 1.1
+    borderWidth: 1.2
   });
 
   // 2. Chữ "Trang X/Y" màu đen đậm
