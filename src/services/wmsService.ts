@@ -1705,6 +1705,7 @@ function drawPageNumberOnPage(
 ) {
   const { width, height } = page.getSize();
 
+
   if (isSeparator) {
     // Với trang phân cách giữa các SKU: in dòng thông báo rõ ràng ở giữa trang
     const sepText = `--- TRANG PHAN CACH SKU [Trang ${pageNum}/${totalPages}] ---`;
@@ -1728,9 +1729,9 @@ function drawPageNumberOnPage(
   const badgeW = textWidth + (padX * 2);
   const badgeH = fontSize + (padY * 2);
 
-  // Đặt ở góc bên phải phía dưới cùng: cách mép phải 8pt, mép dưới 8pt (chuẩn máy in nhiệt 4x6)
+  // Đặt ở góc bên phải phía dưới cùng: cách mép phải 8pt, mép dưới 10pt (chuẩn máy in nhiệt 4x6)
   const badgeX = width - badgeW - 8;
-  const badgeY = 8;
+  const badgeY = 10;
 
   // 1. Nền trắng viền đen sắc nét
   page.drawRectangle({
