@@ -1775,9 +1775,9 @@ function drawPageNumberOnPage(
   const fontSize = 9;
   const textWidth = fontBold.widthOfTextAtSize(numText, fontSize);
 
-  // Đặt ở mép ngoài phía dưới góc phải: cách mép phải 5pt, mép đáy 2pt
-  const numX = width - textWidth - 5;
-  const numY = 2.0;
+  // Đặt ở mép ngoài phía dưới góc phải: cách mép phải 6pt, mép đáy 3.5pt
+  const numX = width - textWidth - 6;
+  const numY = 3.5;
 
   page.drawText(numText, {
     x: numX,
@@ -1940,7 +1940,7 @@ export async function mergeOrderPdfs(
         if (copiedPages.length > 0) {
           const sz = copiedPages[0].getSize();
           lastPageWidth = sz.width;
-          lastPageHeight = sz.height;
+          lastPageHeight = sz.height + (drawPageNumbers && fontBold ? 12 : 0);
         }
 
         orderCounter++;
@@ -1955,8 +1955,13 @@ export async function mergeOrderPdfs(
             }
           }
 
-          // Vẽ số thứ tự đơn hàng lên góc nhãn nếu được bật
+          // Dịch toàn bộ nội dung nhãn lên 12pt và mở rộng lề đáy trang thêm 12pt
+          // Đảm bảo số thứ tự nằm 100% ở mép ngoài lề dưới, tuyệt đối không đè vào khung nhãn
           if (drawPageNumbers && fontBold) {
+            const sz = p.getSize();
+            p.translateContent(0, 12);
+            p.setSize(sz.width, sz.height + 12);
+
             try {
               drawPageNumberOnPage(p, orderCounter, fontBold, false);
             } catch (pNumErr: any) {
