@@ -321,7 +321,11 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       }
 
       const drawPackingOverlay = options.drawPackingOverlay !== false;
-      const pdfUint8 = await mergeOrderPdfs(items, username, password, { drawPackingOverlay });
+      const drawPageNumbers = options.drawPageNumbers !== false;
+      const pdfUint8 = await mergeOrderPdfs(items, username, password, {
+        drawPackingOverlay,
+        drawPageNumbers
+      });
       const pdfBuffer = Buffer.from(pdfUint8);
 
       res.writeHead(200, {

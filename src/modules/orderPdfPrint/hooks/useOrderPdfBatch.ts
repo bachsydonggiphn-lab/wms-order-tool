@@ -174,13 +174,9 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
   };
 
   const selectAllSkus = () => {
-    if (!searchResults) return;
-    setSelectedSkus(new Set(searchResults.skuSummary.map((s) => s.sku)));
+    if (searchResults) setSelectedSkus(new Set(searchResults.skuSummary.map((s) => s.sku)));
   };
-
-  const deselectAllSkus = () => {
-    setSelectedSkus(new Set());
-  };
+  const deselectAllSkus = () => setSelectedSkus(new Set());
 
   // Sao chép bảng SKU ra clipboard
   const handleCopySkuTable = () => {
@@ -284,6 +280,8 @@ export function useOrderPdfBatch({ orders = [], skuGroups = {} }: UseOrderPdfBat
     mergeError: pdfMerge.mergeError,
     drawPackingOverlay: pdfMerge.drawPackingOverlay,
     setDrawPackingOverlay: pdfMerge.setDrawPackingOverlay,
+    drawPageNumbers: pdfMerge.drawPageNumbers,
+    setDrawPageNumbers: pdfMerge.setDrawPageNumbers,
     previewPdfUrl: pdfMerge.previewPdfUrl,
     setPreviewPdfUrl: pdfMerge.setPreviewPdfUrl,
     previewTitle: pdfMerge.previewTitle,

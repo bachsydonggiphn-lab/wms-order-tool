@@ -1693,23 +1693,85 @@ function drawPackingOverlayOnPage(
 }
 
 /**
+ * Vẽ huy hiệu số trang (Trang X/Y) tương ứng với từng tờ in hệ thống
+ * Giúp nhân viên kho dễ dàng kiểm đếm, tìm thứ tự đơn hàng khi thiếu giấy hoặc mất đơn
+ */
+function drawPageNumberOnPage(
+  page: PDFPage,
+  pageNum: number,
+  totalPages: number,
+  fontBold: PDFFont,
+  isSeparator: boolean = false
+) {
+  const { width, height } = page.getSize();
+
+  if (isSeparator) {
+    // Với trang phân cách giữa các SKU: in dòng thông báo rõ ràng ở giữa trang
+    const sepText = `--- TRANG PHAN CACH SKU [Trang ${pageNum}/${totalPages}] ---`;
+    const sepFontSize = 10.5;
+    const sepTextW = fontBold.widthOfTextAtSize(sepText, sepFontSize);
+    page.drawText(sepText, {
+      x: Math.max(10, (width - sepTextW) / 2),
+      y: height / 2,
+      size: sepFontSize,
+      font: fontBold,
+      color: rgb(0.2, 0.2, 0.2)
+    });
+  }
+
+  // Huy hiệu số trang ở góc trên bên phải (Top-Right): Trang X/Y
+  const badgeText = `Trang ${pageNum}/${totalPages}`;
+  const fontSize = 8.5;
+  const textWidth = fontBold.widthOfTextAtSize(badgeText, fontSize);
+  const padX = 6;
+  const padY = 3.5;
+  const badgeW = textWidth + (padX * 2);
+  const badgeH = fontSize + (padY * 2);
+
+  // Cách mép phải 8pt, mép trên an toàn 6pt (phù hợp tuyệt đối với lề in nhiệt XP-D465B, Xprinter...)
+  const badgeX = width - badgeW - 8;
+  const badgeY = height - badgeH - 6;
+
+  // 1. Nền trắng viền đen sắc nét
+  page.drawRectangle({
+    x: badgeX,
+    y: badgeY,
+    width: badgeW,
+    height: badgeH,
+    color: rgb(1, 1, 1),
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 1.1
+  });
+
+  // 2. Chữ "Trang X/Y" màu đen đậm
+  page.drawText(badgeText, {
+    x: badgeX + padX,
+    y: badgeY + padY + 0.5,
+    size: fontSize,
+    font: fontBold,
+    color: rgb(0, 0, 0)
+  });
+}
+
+/**
  * Tải các file PDF nhãn đơn hàng và gộp thành 1 file PDF duy nhất để người dùng in một lần
- * Hỗ trợ tự động vẽ overlay thông tin SKU đóng gói ở chân trang (đặc biệt cho đơn J&T / TikTok Shop)
+ * Hỗ trợ tự động vẽ overlay thông tin SKU đóng gói ở chân trang và đánh số trang in hệ thống
  */
 export async function mergeOrderPdfs(
   items: Array<MergeOrderInputItem>,
   username: string = 'David',
   password: string = '12345abc',
-  options?: { drawPackingOverlay?: boolean }
+  options?: { drawPackingOverlay?: boolean; drawPageNumbers?: boolean }
 ): Promise<Uint8Array> {
   const mergedPdf = await PDFDocument.create();
   let sessionCookie = '';
 
   const drawPackingOverlay = options?.drawPackingOverlay !== false;
+  const drawPageNumbers = options?.drawPageNumbers !== false;
   let fontBold: PDFFont | null = null;
   let fontRegular: PDFFont | null = null;
 
-  if (drawPackingOverlay) {
+  if (drawPackingOverlay || drawPageNumbers) {
     try {
       fontBold = await mergedPdf.embedFont(StandardFonts.HelveticaBold);
       fontRegular = await mergedPdf.embedFont(StandardFonts.Helvetica);
@@ -1799,12 +1861,16 @@ export async function mergeOrderPdfs(
     runNext();
   });
 
+  const separatorPageIndices = new Set<number>();
+
   // 2. Gộp tuần tự các file PDF vào tài liệu hoàn chỉnh (xử lý bộ nhớ nhanh < 0.5s)
   for (const item of items) {
     // Nếu là phần tử phân tách giữa các nhóm SKU: Thêm đúng 2 trang trắng chuẩn kích cỡ
     if (item.isSeparator) {
       mergedPdf.addPage([lastPageWidth, lastPageHeight]);
+      separatorPageIndices.add(mergedPdf.getPageCount() - 1);
       mergedPdf.addPage([lastPageWidth, lastPageHeight]);
+      separatorPageIndices.add(mergedPdf.getPageCount() - 1);
       continue;
     }
 
@@ -1836,6 +1902,16 @@ export async function mergeOrderPdfs(
       } catch (docErr: any) {
         console.warn(`[mergeOrderPdfs] Lỗi nạp PDF của đơn ${item.orderNo}:`, docErr?.message);
       }
+    }
+  }
+
+  // 3. Đánh số trang lên toàn bộ tài liệu theo thứ tự trang in hệ thống (Trang X/Y)
+  const totalPages = mergedPdf.getPageCount();
+  if (drawPageNumbers && fontBold && totalPages > 0) {
+    for (let pIdx = 0; pIdx < totalPages; pIdx++) {
+      const p = mergedPdf.getPage(pIdx);
+      const isSep = separatorPageIndices.has(pIdx);
+      drawPageNumberOnPage(p, pIdx + 1, totalPages, fontBold, isSep);
     }
   }
 

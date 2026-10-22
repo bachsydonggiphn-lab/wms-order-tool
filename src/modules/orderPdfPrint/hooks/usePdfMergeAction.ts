@@ -6,6 +6,7 @@ export function usePdfMergeAction() {
   const [isMergingPdf, setIsMergingPdf] = useState<boolean>(false);
   const [mergeError, setMergeError] = useState<string | null>(null);
   const [drawPackingOverlay, setDrawPackingOverlay] = useState<boolean>(true);
+  const [drawPageNumbers, setDrawPageNumbers] = useState<boolean>(true);
 
   // Modal xem trước PDF
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
@@ -48,7 +49,8 @@ export function usePdfMergeAction() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: payloadItems,
-        drawPackingOverlay
+        drawPackingOverlay,
+        drawPageNumbers
       })
     });
 
@@ -145,6 +147,8 @@ export function usePdfMergeAction() {
     mergeError,
     drawPackingOverlay,
     setDrawPackingOverlay,
+    drawPageNumbers,
+    setDrawPageNumbers,
     previewPdfUrl,
     setPreviewPdfUrl,
     previewTitle,

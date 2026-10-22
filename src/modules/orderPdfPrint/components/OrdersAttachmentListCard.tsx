@@ -11,6 +11,8 @@ interface OrdersAttachmentListCardProps {
   setOrderTableFilter: (filter: 'ALL' | 'SELECTED_SKUS') => void;
   drawPackingOverlay: boolean;
   setDrawPackingOverlay: (val: boolean) => void;
+  drawPageNumbers?: boolean;
+  setDrawPageNumbers?: (val: boolean) => void;
   isMergingPdf: boolean;
   mergeError: string | null;
   onPreviewOrders: (orders: OrderAttachmentInfo[], title: string) => void;
@@ -38,6 +40,8 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
   setOrderTableFilter,
   drawPackingOverlay,
   setDrawPackingOverlay,
+  drawPageNumbers = true,
+  setDrawPageNumbers,
   isMergingPdf,
   mergeError,
   onPreviewOrders,
@@ -156,7 +160,7 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
           </button>
         </div>
 
-        {/* Thanh tuỳ chọn In Kèm Overlay Đóng Gói & Tự Động Chuyển Shipped */}
+        {/* Thanh tuỳ chọn In Kèm Overlay Đóng Gói, Số Trang & Tự Động Chuyển Shipped */}
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-indigo-950 select-none">
             <input
@@ -172,6 +176,23 @@ export const OrdersAttachmentListCard: React.FC<OrdersAttachmentListCardProps> =
               </span>
             </span>
           </label>
+
+          {setDrawPageNumbers && (
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-sky-950 select-none bg-sky-50/80 border border-sky-300/80 px-2.5 py-1 rounded-lg shadow-2xs hover:bg-sky-100/60 transition-colors">
+              <input
+                type="checkbox"
+                checked={drawPageNumbers}
+                onChange={(e) => setDrawPageNumbers(e.target.checked)}
+                className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer accent-sky-600"
+              />
+              <span className="flex items-center gap-1.5">
+                <span>Đánh dấu số trang (Trang X/Y)</span>
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-sky-200 text-sky-900">
+                  Chuẩn Tờ In
+                </span>
+              </span>
+            </label>
+          )}
 
           {setAutoShipOnPrint && (
             <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-emerald-950 select-none bg-emerald-50/80 border border-emerald-300/80 px-2.5 py-1 rounded-lg shadow-2xs hover:bg-emerald-100/60 transition-colors">
