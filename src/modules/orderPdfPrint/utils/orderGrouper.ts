@@ -27,9 +27,18 @@ export function organizeOrdersBySkuWithSeparators(
   const skuGroups: Array<{ sku: string; orders: OrderAttachmentInfo[] }> = [];
   const assignedOrderKeys = new Set<string>();
 
+  // Xác định các SKU thực tế xuất hiện trong tập targetOrders cần in
+  const activeSkusInOrders = new Set<string>();
+  validOrders.forEach((o) => {
+    (o.items || []).forEach((it) => {
+      if (it.sku) activeSkusInOrders.add(it.sku);
+    });
+  });
+
   // Lọc và sắp xếp danh sách SKU cần in: SKU nhiều đơn / số lượng nhất xếp trước
   const targetSkus = skuSummaryList
     .filter((s) => {
+      if (activeSkusInOrders.size > 0) return activeSkusInOrders.has(s.sku);
       if (!selectedSkus || selectedSkus.size === 0) return true;
       return selectedSkus.has(s.sku);
     })
