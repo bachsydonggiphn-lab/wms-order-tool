@@ -18,6 +18,8 @@ import {
   Tag,
   ListOrdered,
   Calendar,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { RawOrderRow, SkuGroupsMap, CarrierCode } from '../types';
 import { xuLyGopPCS, layNhomTuSKU, CARRIER_CONFIG, locDonHang } from '../utils/orderProcessor';
@@ -36,6 +38,7 @@ interface PrintPickingModalProps {
 type PaperSizeType = '100x150' | 'a4';
 type PrintScopeType = 'current' | 'all_batch' | 'aggregate';
 type FontSizeOption = 'normal' | 'large';
+type RowDensityOption = 'compact' | 'ultra_compact' | 'normal';
 
 interface LabelPageData {
   pickingListNo: string;
@@ -68,6 +71,7 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
   const [showOrderList, setShowOrderList] = useState<boolean>(false);
   const [showSignatures, setShowSignatures] = useState<boolean>(true);
   const [fontSize, setFontSize] = useState<FontSizeOption>('normal');
+  const [rowDensity, setRowDensity] = useState<RowDensityOption>('compact');
   const [activePickingList, setActivePickingList] = useState<string>(selectedPickingList || '');
   const [selectedBatchPls, setSelectedBatchPls] = useState<Set<string>>(new Set());
   const [previewPageIndex, setPreviewPageIndex] = useState<number>(0);
@@ -116,8 +120,15 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
     return CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier;
   }, [selectedCarrier]);
 
-  // Số lượng SKU tối đa trên 1 tem 100x150 mm trước khi ngắt trang
-  const MAX_SKU_PER_LABEL = fontSize === 'large' ? 12 : 16;
+  // Số lượng SKU tối đa trên 1 tem 100x150 mm trước khi ngắt trang (phụ thuộc độ gọn dòng và có chữ ký/chân tem hay không)
+  const MAX_SKU_PER_LABEL = useMemo(() => {
+    if (paperSize === 'a4') return 30;
+    // Khi ẩn chữ ký & chân tem, nhãn có thêm không gian chứa thêm 3-4 dòng SKU
+    const extraRows = !showSignatures ? 3 : 0;
+    if (rowDensity === 'ultra_compact') return 18 + extraRows;
+    if (rowDensity === 'compact') return 16 + extraRows;
+    return 13 + extraRows; // normal
+  }, [paperSize, rowDensity, showSignatures]);
 
   // Tính toán danh sách các trang nhãn (Labels) cần in
   const labelPages: LabelPageData[] = useMemo(() => {
@@ -272,7 +283,7 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
         <style>
           @page {
             size: ${is100x150 ? '100mm 150mm' : 'A4 portrait'};
-            margin: ${is100x150 ? '2mm 3mm' : '6mm'};
+            margin: 0 !important;
           }
           *, *::before, *::after {
             box-sizing: border-box;
@@ -298,6 +309,31 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
             break-inside: avoid !important;
             margin: 0 auto !important;
             padding: 0 !important;
+          }
+          .picking-label-card {
+            width: ${is100x150 ? '100mm' : '210mm'} !important;
+            height: ${is100x150 ? '148mm' : 'auto'} !important;
+            max-height: ${is100x150 ? '148mm' : 'none'} !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+          }
+          table.picking-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+          }
+          table.picking-table th,
+          table.picking-table td {
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .signature-box {
+            margin-top: auto !important;
+            background-color: #ffffff !important;
           }
         </style>
       `;
@@ -377,7 +413,7 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
         @media print {
           @page {
             size: ${paperSize === '100x150' ? '100mm 150mm' : 'A4 portrait'};
-            margin: ${paperSize === '100x150' ? '2mm 3mm' : '8mm'};
+            margin: 0 !important;
           }
           html, body {
             width: 100% !important;
@@ -423,6 +459,31 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             margin: 0 auto !important;
+          }
+          .picking-label-card {
+            width: ${paperSize === '100x150' ? '100mm' : '210mm'} !important;
+            height: ${paperSize === '100x150' ? '148mm' : 'auto'} !important;
+            max-height: ${paperSize === '100x150' ? '148mm' : 'none'} !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+          }
+          table.picking-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+          }
+          table.picking-table th,
+          table.picking-table td {
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .signature-box {
+            margin-top: auto !important;
+            background-color: #ffffff !important;
           }
         }
       `}</style>
@@ -568,6 +629,30 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
               <span className="text-[11px]">Khu Vực Kho</span>
             </label>
 
+            {/* Nút Ẩn/Hiện Chữ Ký & Chân Tem */}
+            <button
+              type="button"
+              onClick={() => setShowSignatures(!showSignatures)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
+                showSignatures
+                  ? 'bg-indigo-50 border border-indigo-300 text-indigo-900 hover:bg-indigo-100'
+                  : 'bg-amber-500 border border-amber-600 text-white hover:bg-amber-600'
+              }`}
+              title="Bấm để ẩn hoặc hiện Người Nhặt Hàng, Người Kiểm Gói và dòng Khổ Tem 100x150mm"
+            >
+              {showSignatures ? (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Chữ Ký & Chân Tem: Đang Hiện</span>
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-3.5 h-3.5 text-white" />
+                  <span>Đã Ẩn Chữ Ký & Chân Tem</span>
+                </>
+              )}
+            </button>
+
             <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-slate-700 font-semibold cursor-pointer shadow-2xs">
               <input
                 type="checkbox"
@@ -578,24 +663,41 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
               <span className="text-[11px]">Kèm Mã Đơn (Order No)</span>
             </label>
 
+            {/* Chiều cao dòng (Độ gọn bảng SKU) */}
             <div className="flex items-center bg-white border border-slate-300 rounded-lg p-0.5 shadow-2xs">
+              <span className="text-[10px] font-bold text-slate-500 px-1.5">Chiều cao dòng:</span>
               <button
-                onClick={() => setFontSize('normal')}
-                className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                  fontSize === 'normal' ? 'bg-slate-800 text-white' : 'text-slate-600'
+                onClick={() => setRowDensity('compact')}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                  rowDensity === 'compact'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
-                title="Cỡ chữ tiêu chuẩn (chứa được nhiều SKU)"
+                title="Dòng ngắn gọn (~18px), chứa tối đa 16 SKU/tem, không bị tràn hay đè chữ ký"
               >
-                Chữ Vừa
+                Gọn (16 SKU)
               </button>
               <button
-                onClick={() => setFontSize('large')}
-                className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                  fontSize === 'large' ? 'bg-slate-800 text-white' : 'text-slate-600'
+                onClick={() => setRowDensity('ultra_compact')}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                  rowDensity === 'ultra_compact'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
-                title="Cỡ chữ lớn (dễ đọc trong kho)"
+                title="Dòng siêu ngắn (~16px), chứa tối đa 18 SKU/tem"
               >
-                Chữ To
+                Siêu gọn (18 SKU)
+              </button>
+              <button
+                onClick={() => setRowDensity('normal')}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                  rowDensity === 'normal'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+                title="Dòng vừa (~22px), chứa 13 SKU/tem"
+              >
+                Vừa (13 SKU)
               </button>
             </div>
           </div>
@@ -738,56 +840,56 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                       <div
                         style={{
                           width: paperSize === '100x150' ? '100mm' : '210mm',
-                          minHeight: paperSize === '100x150' ? '148mm' : '297mm',
-                          maxHeight: paperSize === '100x150' ? '150mm' : 'auto',
+                          height: paperSize === '100x150' ? '148mm' : 'auto',
+                          maxHeight: paperSize === '100x150' ? '148mm' : 'auto',
                           boxSizing: 'border-box',
                         }}
-                        className={`bg-white text-black font-sans shadow-xl print:shadow-none border border-black/80 print:border-black overflow-hidden flex flex-col justify-between ${
+                        className={`picking-label-card bg-white text-black font-sans shadow-xl print:shadow-none border border-black/80 print:border-black overflow-hidden flex flex-col ${
                           paperSize === '100x150'
-                            ? 'p-[3mm] text-[11px] leading-tight rounded-sm'
-                            : 'p-[10mm] text-xs rounded-none'
+                            ? 'p-[2.5mm] text-[10px] leading-tight rounded-sm'
+                            : 'p-[8mm] text-xs rounded-none'
                         }`}
                       >
                         {/* 1. Header Khổ In: Tiêu Đề + Mã Picking List + Barcode */}
-                        <div className="border-b-2 border-black pb-1 mb-1.5 shrink-0">
-                          <div className="flex items-center justify-between border-b border-black/60 pb-1">
-                            <span className="font-black text-[11px] uppercase tracking-wider">
+                        <div className="border-b-2 border-black pb-0.5 mb-1 shrink-0">
+                          <div className="flex items-center justify-between border-b border-black/60 pb-0.5">
+                            <span className="font-black text-[10.5px] uppercase tracking-wider">
                               PHIẾU NHẶT HÀNG KHO
                             </span>
                             <div className="flex items-center gap-1.5">
-                              <span className="px-1.5 py-0.2 text-[9px] font-bold bg-black text-white rounded-xs">
+                              <span className="px-1.5 py-0.2 text-[8.5px] font-black bg-black text-white rounded-xs">
                                 {label.carrierLabel}
                               </span>
                               {label.totalPages > 1 && (
-                                <span className="text-[10px] font-black border border-black px-1 rounded-xs">
+                                <span className="text-[9.5px] font-black border border-black px-1 rounded-xs">
                                   Trang {label.pageIndex}/{label.totalPages}
                                 </span>
                               )}
                             </div>
                           </div>
 
-                          {/* Mã Picking List Rất To */}
-                          <div className="mt-1 text-center">
-                            <div className="text-[9px] font-bold uppercase text-neutral-600">
+                          {/* Mã Picking List */}
+                          <div className="mt-0.5 text-center">
+                            <div className="text-[8px] font-bold uppercase text-neutral-600 leading-tight">
                               MÃ PICKING LIST (ĐỢT NHẶT)
                             </div>
-                            <div className="font-mono font-black text-lg sm:text-xl tracking-tight leading-none my-0.5">
+                            <div className="font-mono font-black text-base sm:text-lg tracking-tight leading-none my-0.5">
                               {label.pickingListNo}
                             </div>
 
                             {/* Mã Vạch Barcode Code 128 Chuẩn Sắc Nét */}
                             {showBarcode && (
-                              <div className="flex justify-center my-1">
+                              <div className="flex justify-center my-0.5">
                                 <BarcodeView
                                   value={label.pickingListNo}
-                                  height={paperSize === '100x150' ? 26 : 38}
-                                  barWidth={paperSize === '100x150' ? 1.4 : 1.8}
+                                  height={paperSize === '100x150' ? 22 : 36}
+                                  barWidth={paperSize === '100x150' ? 1.35 : 1.75}
                                   showText={false}
                                 />
                               </div>
                             )}
 
-                            <div className="flex items-center justify-between text-[9px] text-neutral-600 pt-0.5">
+                            <div className="flex items-center justify-between text-[8px] text-neutral-600 pt-0.5 leading-none">
                               <span>Ngày in: {new Date().toLocaleDateString('vi-VN')} {new Date().toLocaleTimeString('vi-VN')}</span>
                               <span>In từ Warehouse.matrix</span>
                             </div>
@@ -795,25 +897,25 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                         </div>
 
                         {/* 2. Thống Kê Nhanh (KPI Gom Hàng) */}
-                        <div className="grid grid-cols-3 gap-1 border border-black p-1 text-center bg-neutral-100/60 mb-1.5 shrink-0">
-                          <div className="border-r border-black/40 pr-1">
-                            <div className="text-[8px] uppercase font-bold text-neutral-600">Tổng Đơn</div>
-                            <div className="font-black text-xs sm:text-sm">{label.ordersCount} đơn</div>
+                        <div className="grid grid-cols-3 gap-1 border border-black py-0.5 px-1 text-center bg-neutral-100/70 mb-1 shrink-0">
+                          <div className="border-r border-black/40 pr-0.5">
+                            <div className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Tổng Đơn</div>
+                            <div className="font-black text-xs leading-none">{label.ordersCount} đơn</div>
                           </div>
-                          <div className="border-r border-black/40 pr-1">
-                            <div className="text-[8px] uppercase font-bold text-neutral-600">Mã SKU</div>
-                            <div className="font-black text-xs sm:text-sm">{label.skuCount} mã</div>
+                          <div className="border-r border-black/40 pr-0.5">
+                            <div className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Mã SKU</div>
+                            <div className="font-black text-xs leading-none">{label.skuCount} mã</div>
                           </div>
                           <div>
-                            <div className="text-[8px] uppercase font-bold text-neutral-600">Tổng PCS</div>
-                            <div className="font-black text-xs sm:text-sm text-black underline">
+                            <div className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Tổng PCS</div>
+                            <div className="font-black text-xs leading-none text-black underline">
                               {label.totalPcs} cái
                             </div>
                           </div>
                         </div>
 
                         {/* Phân bổ đơn theo PCS gọn gàng */}
-                        <div className="flex items-center justify-between text-[9px] font-bold border-b border-black/60 pb-1 mb-1.5 px-0.5 shrink-0">
+                        <div className="flex items-center justify-between text-[8px] font-bold border-b border-black/60 pb-0.5 mb-1 px-0.5 shrink-0 leading-none">
                           <span>Phân loại:</span>
                           <span>1 PCS: <strong>{label.pcsSummary['1 PCS'] || 0}đ</strong></span>
                           <span>2 PCS: <strong>{label.pcsSummary['2 PCS'] || 0}đ</strong></span>
@@ -821,50 +923,67 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                         </div>
 
                         {/* 3. Bảng Danh Sách SKU Cần Nhặt */}
-                        <div className="flex-1 overflow-hidden">
-                          <table className="w-full border-collapse border border-black text-black">
+                        <div className="w-full shrink-0">
+                          <table className="picking-table w-full border-collapse border border-black text-black table-fixed">
                             <thead>
-                              <tr className="bg-black text-white text-[9px] font-black uppercase">
-                                <th className="border border-black py-1 px-1 w-6 text-center">STT</th>
+                              <tr className="bg-black text-white text-[8px] font-black uppercase leading-tight">
+                                <th className="border border-black py-0.5 px-0.5 w-[26px] text-center">STT</th>
                                 {showWarehouseArea && (
-                                  <th className="border border-black py-1 px-1 w-14 text-center">KỆ/KV</th>
+                                  <th className="border border-black py-0.5 px-1 w-[56px] text-center">KỆ/KV</th>
                                 )}
-                                <th className="border border-black py-1 px-1.5 text-left">MÃ SKU</th>
-                                <th className="border border-black py-1 px-1 w-14 text-center">SL</th>
-                                <th className="border border-black py-1 px-1 w-8 text-center">[✓]</th>
+                                <th className="border border-black py-0.5 px-1 text-left">MÃ SKU</th>
+                                <th className="border border-black py-0.5 px-0.5 w-[36px] text-center">SL</th>
+                                <th className="border border-black py-0.5 px-0.5 w-[26px] text-center">[✓]</th>
                               </tr>
                             </thead>
                             <tbody>
                               {label.skuList.map((item, rowIdx) => {
                                 const stt =
                                   (label.pageIndex - 1) * MAX_SKU_PER_LABEL + rowIdx + 1;
+                                const isUltra = rowDensity === 'ultra_compact';
+                                const isSpacious = rowDensity === 'normal';
 
                                 return (
                                   <tr
                                     key={item.sku}
-                                    className="border-b border-black/80 hover:bg-neutral-50"
+                                    style={{
+                                      height: isUltra ? '16px' : isSpacious ? '22px' : '18px',
+                                      maxHeight: isUltra ? '16px' : isSpacious ? '22px' : '18px',
+                                    }}
+                                    className="border-b border-black hover:bg-neutral-50"
                                   >
-                                    <td className="border-r border-black p-0.5 text-center font-mono text-[9px] font-bold">
+                                    <td className="border-r border-black px-0.5 py-0 text-center font-mono text-[8px] font-bold leading-none">
                                       {stt}
                                     </td>
                                     {showWarehouseArea && (
-                                      <td className="border-r border-black p-0.5 text-center font-bold text-[9px] truncate max-w-[55px]">
+                                      <td className="border-r border-black px-0.5 py-0 text-center font-bold text-[8px] truncate leading-tight max-w-[56px]">
                                         {item.area}
                                       </td>
                                     )}
                                     <td
-                                      className={`border-r border-black p-0.5 font-mono font-black truncate max-w-[130px] ${
-                                        fontSize === 'large' ? 'text-[11px]' : 'text-[10px]'
+                                      className={`border-r border-black px-1 py-0 font-mono font-bold truncate leading-tight ${
+                                        isUltra
+                                          ? 'text-[8px] max-w-[130px]'
+                                          : isSpacious
+                                          ? 'text-[9.5px] max-w-[130px]'
+                                          : 'text-[8.5px] max-w-[130px]'
                                       }`}
                                     >
                                       {item.sku}
                                     </td>
-                                    <td className="border-r border-black p-0.5 text-center font-mono font-black text-[12px] sm:text-[13px]">
+                                    <td className="border-r border-black px-0.5 py-0 text-center font-mono font-black text-[10.5px] leading-none">
                                       {item.qty}
                                     </td>
-                                    <td className="p-0.5 text-center">
-                                      {/* Ô tích kiểm bút chì/bi to rõ */}
-                                      <div className="w-4 h-4 border-2 border-black rounded-xs mx-auto"></div>
+                                    <td className="px-0.5 py-0 text-center">
+                                      <div
+                                        className={`border border-black rounded-[2px] mx-auto ${
+                                          isUltra
+                                            ? 'w-2.5 h-2.5'
+                                            : isSpacious
+                                            ? 'w-3.5 h-3.5'
+                                            : 'w-3 h-3'
+                                        }`}
+                                      ></div>
                                     </td>
                                   </tr>
                                 );
@@ -875,7 +994,7 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
 
                         {/* 4. Danh Sách Order No (Nếu bật tùy chọn) */}
                         {showOrderList && (
-                          <div className="mt-1 p-1 bg-neutral-50 border border-black/60 rounded-xs text-[8px] font-mono leading-tight max-h-16 overflow-hidden">
+                          <div className="mt-1 p-1 bg-neutral-50 border border-black/60 rounded-xs text-[8px] font-mono leading-tight max-h-14 overflow-hidden shrink-0">
                             <div className="font-bold uppercase text-[7px] text-neutral-600 mb-0.5">
                               DANH SÁCH MÃ ĐƠN ({label.orders.length} ĐƠN):
                             </div>
@@ -889,32 +1008,34 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                           </div>
                         )}
 
-                        {/* 5. Chân Tem & Chữ Ký Xác Nhận */}
+                        {/* 5. Chân Tem & Chữ Ký Xác Nhận (Có thể ẩn/hiện) */}
                         {showSignatures && (
-                          <div className="border-t border-black pt-1 mt-1 shrink-0">
-                            <div className="grid grid-cols-2 text-center text-[9px] font-bold">
-                              <div>
-                                <span>Người Nhặt Hàng</span>
-                                <div className="h-6"></div>
-                                <span className="text-[8px] text-neutral-500 font-normal">
-                                  (Ký, ghi họ tên)
-                                </span>
-                              </div>
-                              <div>
-                                <span>Người Kiểm & Gói</span>
-                                <div className="h-6"></div>
-                                <span className="text-[8px] text-neutral-500 font-normal">
-                                  (Ký, ghi họ tên)
-                                </span>
+                          <>
+                            <div className="signature-box border-t border-black pt-1 mt-auto shrink-0 bg-white">
+                              <div className="grid grid-cols-2 text-center text-[8.5px] font-bold">
+                                <div>
+                                  <span>Người Nhặt Hàng</span>
+                                  <div className="h-4"></div>
+                                  <span className="text-[7.5px] text-neutral-500 font-normal">
+                                    (Ký, ghi họ tên)
+                                  </span>
+                                </div>
+                                <div>
+                                  <span>Người Kiểm & Gói</span>
+                                  <div className="h-4"></div>
+                                  <span className="text-[7.5px] text-neutral-500 font-normal">
+                                    (Ký, ghi họ tên)
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
 
-                        {/* Footer nhỏ định danh khổ giấy */}
-                        <div className="text-[7px] text-neutral-400 text-center pt-0.5">
-                          Khổ tem: 100mm × 150mm • Máy in nhiệt vận đơn
-                        </div>
+                            {/* Footer nhỏ định danh khổ giấy */}
+                            <div className="text-[7px] text-neutral-400 text-center pt-0.5 shrink-0">
+                              Khổ tem: 100mm × 150mm • Máy in nhiệt vận đơn
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
