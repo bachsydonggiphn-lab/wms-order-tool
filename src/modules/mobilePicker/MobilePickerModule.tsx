@@ -10,14 +10,14 @@ import {
 import { AdminLockModal } from './components/AdminLockModal';
 import { AdminDispatchSettings } from './components/AdminDispatchSettings';
 import { PickerMobileView } from './components/PickerMobileView';
-import { layNhomTuSKU } from '../../utils/orderProcessor';
+import { layNhomTuSKU, parsePieceText } from '../../utils/orderProcessor';
 import { DEFAULT_AREA_ORDER } from '../../utils/skuData';
 import { PrintPickingModal } from '../../components/PrintPickingModal';
 import { ShieldCheck, Smartphone, CheckCircle2, RefreshCw } from 'lucide-react';
 
 const STORAGE_KEY_CONFIG = 'wms_picker_admin_config_v1';
 const STORAGE_KEY_ACCOUNTS = 'wms_picker_accounts_v1';
-const STORAGE_KEY_BATCHES = 'wms_picker_batches_v1';
+const STORAGE_KEY_BATCHES = 'wms_picker_batches_v2';
 
 const DEFAULT_CONFIG: AdminDispatchConfig = {
   adminPin: '8888',
@@ -107,8 +107,16 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
   // 3. Quản lý các đợt nhặt hàng (Batches)
   const [batches, setBatches] = useState<PickingBatch[]>(() => {
     try {
+      localStorage.removeItem('wms_picker_batches_v1'); // Dọn dẹp cache cũ bị lỗi
       const saved = localStorage.getItem(STORAGE_KEY_BATCHES);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: PickingBatch[] = JSON.parse(saved);
+        // Kiểm tra xem có batch nào bị lỗi SKU nhầm thành mã đơn (orderNo) không:
+        const isCorrupted = parsed.some(b =>
+          b.items && b.items.some(it => it.sku.startsWith('YD-26') && b.orderNos.includes(it.sku))
+        );
+        if (!isCorrupted && parsed.length > 0) return parsed;
+      }
     } catch (e) {}
     return [];
   });
@@ -191,68 +199,81 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
     return pending || batches[0] || null;
   }, [batches, activeAccount, selectedBatchId]);
 
-  // HÀM NẠP NGUYÊN BẢN CÁC PICKING LIST TỪ TAB 1 (HỌC TẬP TAB 1)
-  const handleImportBatchesFromTab1 = useCallback(() => {
-    if (tab1PickingLists.length === 0) {
-      alert('Không tìm thấy mã Picking List (PL...) nào trong danh sách đơn hàng đã nạp của Tab 1.');
-      return;
+  /**
+   * Helper: Bóc tách danh sách SKU thực tế từ 1 đơn hàng (Ưu tiên order.items, sau đó parsePieceText của Cột G)
+   */
+  const extractItemsFromOrder = useCallback((order: RawOrderRow): { sku: string; qty: number }[] => {
+    if (Array.isArray(order.items) && order.items.length > 0) {
+      return order.items.filter(it => it && it.sku && it.sku.trim() !== '');
     }
+    if (order.rawPieceText) {
+      const parsed = parsePieceText(order.rawPieceText);
+      if (parsed.length > 0) return parsed;
+    }
+    if (order.rawOrderText) {
+      const parsed = parsePieceText(order.rawOrderText);
+      if (parsed.length > 0) return parsed;
+    }
+    return [];
+  }, []);
 
-    const newBatches: PickingBatch[] = [];
-    const activeAccountsList = accounts.filter(a => a.isActive);
+  /**
+   * Helper: Tạo 1 PickingBatch chuẩn từ 1 danh sách đơn hàng (Giữ nguyên số đơn của list pick, gom nhóm SKU chính xác)
+   */
+  const createBatchFromOrders = useCallback((
+    batchId: string,
+    pickingCode: string,
+    ords: RawOrderRow[],
+    assignedAccount?: PickerAccount | null,
+    customStrategyLabel?: string
+  ): PickingBatch => {
+    const skuMap: Record<string, { qty: number; orderNos: Set<string> }> = {};
+    const pcsMap: Record<string, number> = { '1 PCS': 0, '2 PCS': 0, 'Multi': 0 };
+    const orderNos: string[] = [];
 
-    tab1PickingLists.forEach((plGroup, idx) => {
-      const { plNo, orders: ords } = plGroup;
-      const skuMap: Record<string, { qty: number; orderNos: Set<string>; productTitle?: string }> = {};
-      const pcsMap: Record<string, number> = { '1 PCS': 0, '2 PCS': 0, 'Multi': 0 };
-      const orderNos: string[] = [];
+    ords.forEach((ord) => {
+      orderNos.push(ord.orderNo);
+      const items = extractItemsFromOrder(ord);
+      const ordQty = items.reduce((sum, it) => sum + it.qty, 0) || Number(ord.totalQty) || 1;
 
-      ords.forEach(o => {
-        orderNos.push(o.orderNo);
-        let ordQty = 0;
-        if (o.items && o.items.length > 0) {
-          o.items.forEach(it => {
-            if (!skuMap[it.sku]) {
-              skuMap[it.sku] = { qty: 0, orderNos: new Set(), productTitle: it.sku };
-            }
-            skuMap[it.sku].qty += it.qty;
-            skuMap[it.sku].orderNos.add(o.orderNo);
-            ordQty += it.qty;
-          });
-        } else {
-          const s = o.orderNo;
-          const q = Number(o.totalQty) || 1;
-          if (!skuMap[s]) skuMap[s] = { qty: 0, orderNos: new Set(), productTitle: s };
-          skuMap[s].qty += q;
-          skuMap[s].orderNos.add(o.orderNo);
-          ordQty += q;
+      if (ordQty === 1) pcsMap['1 PCS'] = (pcsMap['1 PCS'] || 0) + 1;
+      else if (ordQty === 2) pcsMap['2 PCS'] = (pcsMap['2 PCS'] || 0) + 1;
+      else pcsMap['Multi'] = (pcsMap['Multi'] || 0) + 1;
+
+      items.forEach((it) => {
+        const cleanSku = (it.sku || '').trim();
+        if (!cleanSku) return;
+        if (!skuMap[cleanSku]) {
+          skuMap[cleanSku] = { qty: 0, orderNos: new Set() };
         }
-
-        if (ordQty === 1) pcsMap['1 PCS']++;
-        else if (ordQty === 2) pcsMap['2 PCS']++;
-        else pcsMap['Multi']++;
+        skuMap[cleanSku].qty += (it.qty || 1);
+        skuMap[cleanSku].orderNos.add(ord.orderNo);
       });
+    });
 
-      // Kiểm tra đặc tính để gắn nhãn chiến lược
-      let strategy: PickingStrategyType = 'ALL';
-      let strategyLabel = 'Đợt Nhặt Tổng Hợp';
+    // Xác định chiến lược & nhãn hiển thị
+    let strategy: PickingStrategyType = 'ALL';
+    let strategyLabel = customStrategyLabel || 'Đợt Nhặt Tổng Hợp';
+    if (!customStrategyLabel) {
       if (pcsMap['1 PCS'] === ords.length) {
         strategy = 'SINGLE_PCS';
-        strategyLabel = '1 PCS (Nhặt Nhanh)';
+        strategyLabel = '⚡ 1 PCS (Nhặt Nhanh)';
       } else if (pcsMap['2 PCS'] === ords.length) {
         strategy = 'MULTI_PCS_SAME_AREA';
-        strategyLabel = '2 PCS Cùng Kệ';
+        strategyLabel = '📦 2 PCS Cùng Kệ';
       } else if (pcsMap['Multi'] > 0) {
         strategy = 'MIX_MULTI_AREA';
-        strategyLabel = 'Mix Đa Khu Vực';
+        strategyLabel = '🔀 Mix Đa Khu Vực';
       }
+    }
 
-      // Sắp xếp SKU theo Kệ/Khu vực chuẩn DEFAULT_AREA_ORDER
-      const items: PickingItemDetail[] = Object.entries(skuMap).map(([sku, data]) => {
+    // Sắp xếp SKU theo thứ tự Kệ/Khu vực chuẩn DEFAULT_AREA_ORDER
+    const items: PickingItemDetail[] = Object.entries(skuMap)
+      .map(([sku, data]) => {
         const area = layNhomTuSKU(sku, skuGroups, DEFAULT_AREA_ORDER);
         return {
           sku,
-          productTitle: data.productTitle || sku,
+          productTitle: sku,
           area,
           location: area,
           quantityNeeded: data.qty,
@@ -260,41 +281,67 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
           isPicked: false,
           orderNos: Array.from(data.orderNos),
         };
-      }).sort((a, b) => {
+      })
+      .sort((a, b) => {
         if (a.area !== b.area) return a.area.localeCompare(b.area);
         return a.sku.localeCompare(b.sku);
       });
 
-      const totalPcs = items.reduce((sum, it) => sum + it.quantityNeeded, 0);
+    const totalPcs = items.reduce((sum, item) => sum + item.quantityNeeded, 0);
 
-      // Phân bổ vòng tròn cho các account active
+    return {
+      id: batchId,
+      pickingCode: pickingCode || batchId,
+      pickerId: assignedAccount ? assignedAccount.id : 'unassigned',
+      pickerName: assignedAccount ? assignedAccount.name : 'Chưa gán',
+      strategy,
+      strategyLabel,
+      status: 'PENDING',
+      createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+      totalOrders: ords.length,
+      totalItems: items.length,
+      totalPcs,
+      pickedPcs: 0,
+      pcsSummary: pcsMap,
+      items,
+      orderNos,
+    };
+  }, [extractItemsFromOrder, skuGroups]);
+
+  // HÀM NẠP NGUYÊN BẢN CÁC PICKING LIST TỪ TAB 1 (KHÔNG CHIA NHỎ, ĐỦ SỐ ĐƠN CỦA LIST PICK)
+  const handleImportBatchesFromTab1 = useCallback(() => {
+    if (tab1PickingLists.length === 0) {
+      alert('Không tìm thấy mã Picking List (PL...) nào trong danh sách đơn hàng đã nạp của Tab 1.');
+      return;
+    }
+
+    const activeAccountsList = accounts.filter(a => a.isActive);
+    const newBatches: PickingBatch[] = tab1PickingLists.map((plGroup, idx) => {
       const assignedAccount = activeAccountsList.length > 0 ? activeAccountsList[idx % activeAccountsList.length] : null;
-
-      newBatches.push({
-        id: plNo,
-        pickingCode: plNo,
-        pickerId: assignedAccount ? assignedAccount.id : 'unassigned',
-        pickerName: assignedAccount ? assignedAccount.name : 'Chưa gán',
-        strategy,
-        strategyLabel,
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-        totalOrders: ords.length,
-        totalItems: items.length,
-        totalPcs,
-        pickedPcs: 0,
-        pcsSummary: pcsMap,
-        items,
-        orderNos,
-      });
+      // Mỗi Picking List từ WMS giữ nguyên toàn bộ số đơn của nó (ví dụ PL72610250044 có 50 đơn thì đúng 50 đơn)
+      return createBatchFromOrders(plGroup.plNo, plGroup.plNo, plGroup.orders, assignedAccount);
     });
 
     setBatches(newBatches);
     if (newBatches.length > 0) {
       setSelectedBatchId(newBatches[0].id);
     }
-    showToast(`Đã nạp thành công ${newBatches.length} Picking List từ Tab 1!`);
-  }, [tab1PickingLists, accounts, skuGroups]);
+    showToast(`Đã nạp thành công ${newBatches.length} Picking List từ Tab 1 với đầy đủ SKU & số đơn!`);
+  }, [tab1PickingLists, accounts, createBatchFromOrders]);
+
+  // TỰ ĐỘNG LÀM SẠCH VÀ ĐỒNG BỘ NẾU BATCHES BỊ LỖI LẶP MÃ HOẶC BỊ CHIA NHỎ
+  useEffect(() => {
+    if (tab1PickingLists.length > 0) {
+      const isCorrupted = batches.length === 0 || batches.some(b =>
+        (b.items && b.items.some(it => it.sku.startsWith('YD-26') && b.orderNos.includes(it.sku))) ||
+        batches.filter(x => (x.pickingCode || x.id) === (b.pickingCode || b.id)).length > 1
+      );
+
+      if (isCorrupted) {
+        handleImportBatchesFromTab1();
+      }
+    }
+  }, [tab1PickingLists.length, batches.length, handleImportBatchesFromTab1]);
 
   // HÀM TỰ ĐỘNG PHÂN BỔ ĐƠN THÀNH CÁC PHIẾU NHẶT (BATCH GENERATOR)
   const handleGenerateBatches = useCallback(() => {
@@ -303,28 +350,22 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
       return;
     }
 
-    // 1. Phân loại đơn hàng theo chuẩn YunWMS Lifecycle:
-    // - singlePcsOrders: Đơn 1 PCS (Nhặt siêu nhanh)
-    // - yogaOrders: Thảm Yoga & cồng kềnh
-    // - sameAreaMultiPcsMap: Đơn >= 2 PCS nhưng CÙNG 1 KHU VỰC KỆ KHO
-    // - mixMultiAreaOrders: Đơn mix liên khu vực
+    // Nếu đơn hàng đã có sẵn các mã Picking List từ WMS (như PL7261...), nạp nguyên bản theo từng List Pick
+    if (tab1PickingLists.length > 0) {
+      handleImportBatchesFromTab1();
+      return;
+    }
+
+    // Nếu là đơn lẻ chưa có Picking List: phân bổ thông minh theo PCS & khu vực
     const singlePcsOrders: RawOrderRow[] = [];
     const yogaOrders: RawOrderRow[] = [];
     const sameAreaMultiPcsMap: Record<string, RawOrderRow[]> = {};
     const mixMultiAreaOrders: RawOrderRow[] = [];
 
-    // Chỉ lấy đơn đang chờ xuất (Submitted E11=4 hoặc chưa có PL)
-    const submittedOrders = orders.filter(o => {
-      const status = String(o.orderStatus || '');
-      return status === '4' || status === 'Submitted' || status === 'Submitted.' || !o.pickingList;
-    });
-
-    const targetOrders = submittedOrders.length > 0 ? submittedOrders : orders;
-
-    targetOrders.forEach(order => {
-      const totalPcs = Number(order.totalQuantity) || 1;
-      const rawText = (order.rawOrderText || '').toUpperCase();
-      const isYoga = rawText.includes('THẢM YOGA') || rawText.includes('YOGA') || (order.skus || []).some(s => s.sku.toUpperCase().includes('YOGA'));
+    orders.forEach(order => {
+      const items = extractItemsFromOrder(order);
+      const totalPcs = items.reduce((sum, it) => sum + it.qty, 0) || Number(order.totalQty) || 1;
+      const isYoga = order.hasYoga || items.some(it => layNhomTuSKU(it.sku, skuGroups, DEFAULT_AREA_ORDER) === 'Thảm Yoga');
 
       if (isYoga) {
         yogaOrders.push(order);
@@ -336,10 +377,7 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
         return;
       }
 
-      // Đơn >= 2 PCS: Kiểm tra khu vực kệ
-      const skuList = order.skus && order.skus.length > 0 ? order.skus.map(s => s.sku) : [order.sku || order.orderNo];
-      const areaSet = new Set(skuList.map(sku => layNhomTuSKU(sku.trim(), skuGroups)));
-
+      const areaSet = new Set(items.map(it => layNhomTuSKU(it.sku, skuGroups, DEFAULT_AREA_ORDER)));
       if (areaSet.size === 1) {
         const area = [...areaSet][0];
         if (!sameAreaMultiPcsMap[area]) sameAreaMultiPcsMap[area] = [];
@@ -352,112 +390,30 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
     const newBatches: PickingBatch[] = [];
     let batchCounter = 1;
 
-    // Helper tạo batch từ danh sách đơn
-    const createBatchList = (
-      orderList: RawOrderRow[],
-      strategy: PickingStrategyType,
-      strategyLabel: string,
-      targetPickerId: string,
-      targetPickerName: string,
-      batchSize: number
-    ) => {
-      for (let i = 0; i < orderList.length; i += batchSize) {
-        const slice = orderList.slice(i, i + batchSize);
-        // Gom SKU lại thành danh sách cần nhặt
-        const skuMap: Record<string, PickingItemDetail> = {};
-
-        slice.forEach(order => {
-          if (order.skus && order.skus.length > 0) {
-            order.skus.forEach(s => {
-              const cleanSku = s.sku.trim();
-              const area = layNhomTuSKU(cleanSku, skuGroups);
-              if (!skuMap[cleanSku]) {
-                skuMap[cleanSku] = {
-                  sku: cleanSku,
-                  productTitle: s.productTitle || order.productTitle || '',
-                  area,
-                  location: `${area}-T01-01`,
-                  quantityNeeded: 0,
-                  quantityPicked: 0,
-                  isPicked: false,
-                  orderNos: [],
-                };
-              }
-              skuMap[cleanSku].quantityNeeded += s.quantity;
-              skuMap[cleanSku].orderNos.push(order.orderNo);
-            });
-          } else {
-            const cleanSku = (order.sku || order.orderNo).trim();
-            const area = layNhomTuSKU(cleanSku, skuGroups);
-            if (!skuMap[cleanSku]) {
-              skuMap[cleanSku] = {
-                sku: cleanSku,
-                productTitle: order.productTitle || '',
-                area,
-                location: `${area}-T01-01`,
-                quantityNeeded: 0,
-                quantityPicked: 0,
-                isPicked: false,
-                orderNos: [],
-              };
-            }
-            skuMap[cleanSku].quantityNeeded += Number(order.totalQuantity) || 1;
-            skuMap[cleanSku].orderNos.push(order.orderNo);
-          }
-        });
-
-        // Sắp xếp SKU theo khu vực kệ để tối ưu đường đi nhặt (Walking path)
-        const items = Object.values(skuMap).sort((a, b) => a.area.localeCompare(b.area));
-        const totalPcs = items.reduce((sum, item) => sum + item.quantityNeeded, 0);
-
-        newBatches.push({
-          id: `PL-BATCH-${String(batchCounter++).padStart(3, '0')}`,
-          pickingCode: slice[0]?.pickingList || undefined,
-          pickerId: targetPickerId,
-          pickerName: targetPickerName,
-          strategy,
-          strategyLabel,
-          status: newBatches.length === 0 ? 'IN_PROGRESS' : 'PENDING',
-          createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-          totalOrders: slice.length,
-          totalItems: items.length,
-          totalPcs,
-          pickedPcs: 0,
-          items,
-          orderNos: slice.map(o => o.orderNo),
-        });
-      }
-    };
-
-    // Phân bổ thông minh cho các tài khoản theo chuyên môn
     const tkSingle = accounts.find(a => a.assignedStrategy === 'SINGLE_PCS') || accounts[0];
     const tkYoga = accounts.find(a => a.assignedStrategy === 'YOGA_ONLY') || accounts[1] || accounts[0];
     const tkMultiArea = accounts.find(a => a.assignedStrategy === 'MULTI_PCS_SAME_AREA' || a.assignedStrategy === 'MULTI_PCS') || accounts[0];
     const tkMix = accounts.find(a => a.assignedStrategy === 'MIX_ONLY' || a.assignedStrategy === 'MIX_MULTI_AREA') || accounts[2] || accounts[0];
 
-    // 1. Nhóm 1 PCS
-    if (singlePcsOrders.length > 0) {
-      createBatchList(singlePcsOrders, 'SINGLE_PCS', '⚡ Đơn 1 PCS (Nhặt Nhanh)', tkSingle.id, tkSingle.name, tkSingle.maxOrdersPerBatch || 25);
-    }
+    const sliceAndPush = (list: RawOrderRow[], size: number, account: PickerAccount, label: string) => {
+      for (let i = 0; i < list.length; i += size) {
+        const slice = list.slice(i, i + size);
+        const bId = `PL-BATCH-${String(batchCounter++).padStart(3, '0')}`;
+        newBatches.push(createBatchFromOrders(bId, bId, slice, account, label));
+      }
+    };
 
-    // 2. Nhóm Đơn >= 2 PCS CÙNG KHU VỰC KỆ
-    Object.entries(sameAreaMultiPcsMap).forEach(([area, areaOrders]) => {
-      createBatchList(areaOrders, 'MULTI_PCS_SAME_AREA', `📦 Đơn ≥2 PCS Cùng ${area}`, tkMultiArea.id, tkMultiArea.name, 20);
+    if (singlePcsOrders.length > 0) sliceAndPush(singlePcsOrders, config.defaultBatchSize || 25, tkSingle, '⚡ Đơn 1 PCS (Nhặt Nhanh)');
+    Object.entries(sameAreaMultiPcsMap).forEach(([area, ords]) => {
+      sliceAndPush(ords, 20, tkMultiArea, `📦 Đơn ≥2 PCS Cùng ${area}`);
     });
-
-    // 3. Nhóm Thảm Yoga
-    if (yogaOrders.length > 0) {
-      createBatchList(yogaOrders, 'YOGA_ONLY', '🧘 Thảm Yoga & Cồng Kềnh', tkYoga.id, tkYoga.name, tkYoga.maxOrdersPerBatch || 20);
-    }
-
-    // 4. Nhóm Đơn Mix Liên Khu Vực
-    if (mixMultiAreaOrders.length > 0) {
-      createBatchList(mixMultiAreaOrders, 'MIX_MULTI_AREA', '🔀 Đơn Mix Liên Khu Vực', tkMix.id, tkMix.name, tkMix.maxOrdersPerBatch || 15);
-    }
+    if (yogaOrders.length > 0) sliceAndPush(yogaOrders, 20, tkYoga, '🧘 Thảm Yoga & Cồng Kềnh');
+    if (mixMultiAreaOrders.length > 0) sliceAndPush(mixMultiAreaOrders, 15, tkMix, '🔀 Đơn Mix Liên Khu Vực');
 
     setBatches(newBatches);
-    showToast(`Đã phân bổ thành công ${newBatches.length} phiếu nhặt hàng (1 PCS, Cùng Kệ, Thảm Yoga, Mix)!`);
-  }, [orders, skuGroups, accounts]);
+    if (newBatches.length > 0) setSelectedBatchId(newBatches[0].id);
+    showToast(`Đã phân bổ thành công ${newBatches.length} đợt nhặt hàng với SKU chính xác!`);
+  }, [orders, tab1PickingLists, handleImportBatchesFromTab1, extractItemsFromOrder, skuGroups, accounts, config.defaultBatchSize, createBatchFromOrders]);
 
   // HÀM GỌI API WMS THẬT: TẠO PICKING LIST & CHUYỂN TRẠNG THÁI SUBMITTED (4) -> SHELVED (5)
   const handleSyncWmsPickingList = useCallback(async (batchId: string) => {

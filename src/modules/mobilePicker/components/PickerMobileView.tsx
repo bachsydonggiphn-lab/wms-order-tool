@@ -151,11 +151,11 @@ export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
 
       {/* 2. THANH CHỌN PICKING LIST NHANH (Học tập Tab 1) */}
       {batches.length > 0 ? (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-2xs">
-          <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 pl-1">
-            <Package className="w-3.5 h-3.5 text-indigo-500" /> List:
-          </span>
-          <div className="flex items-center gap-1.5">
+        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shadow-2xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 pl-1">
+              <Package className="w-3.5 h-3.5 text-indigo-500" /> List:
+            </span>
             {batches.map(b => {
               const isActive = currentBatch?.id === b.id;
               const isDone = b.status === 'COMPLETED' || (b.items.length > 0 && b.items.every(i => i.isPicked));
@@ -185,6 +185,18 @@ export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
               );
             })}
           </div>
+
+          {onImportTab1Pls && (
+            <button
+              type="button"
+              onClick={onImportTab1Pls}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all cursor-pointer shrink-0 ml-2 whitespace-nowrap shadow-2xs"
+              title="Đồng bộ nạp lại danh sách Picking List chuẩn từ Tab 1"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
+              <span className="hidden sm:inline">Nạp Lại Từ Tab 1</span>
+            </button>
+          )}
         </div>
       ) : tab1PlCount > 0 ? (
         /* Gợi ý nạp trực tiếp Picking List từ Tab 1 */
