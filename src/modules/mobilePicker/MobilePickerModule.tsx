@@ -556,7 +556,7 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
     };
 
     setAutoDispatchLogs(prev => [logEntry, ...prev.slice(0, 49)]);
-    showToast(`⚡ [Tự Động Hóa ${slotTime}]: Đã tạo thành công ${newBatches.length} Picking List cho ${candidateOrders.length} đơn!`);
+    showToast(`⚡ [Tự Động Hóa ${slotTime}]: Đã tạo thành công ${newBatches.length} Picking List & sẵn sàng in Phiếu Nhặt Hàng (Không in đơn lẻ)!`);
 
     return {
       success: true,
@@ -709,6 +709,25 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
     showToast('🎉 Xuất sắc! Bạn đã hoàn thành toàn bộ đợt nhặt hàng này.');
   }, [activeAccount, batches, showToast]);
 
+  // Đồng bộ mã Picking List của các Batches vào danh sách đơn hàng để in Phiếu Nhặt Hàng (Picking List)
+  const ordersWithBatchPl = useMemo(() => {
+    const ordToPlMap = new Map<string, string>();
+    batches.forEach(b => {
+      const plCode = b.pickingCode || b.id;
+      b.orderNos.forEach(oNo => ordToPlMap.set(oNo, plCode));
+    });
+
+    if (ordToPlMap.size === 0) return orders;
+
+    return orders.map(ord => {
+      const pl = ordToPlMap.get(ord.orderNo);
+      if (pl) {
+        return { ...ord, pickingList: pl };
+      }
+      return ord;
+    });
+  }, [orders, batches]);
+
   return (
     <div className="space-y-4">
       {/* Toast Notification */}
@@ -808,11 +827,11 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
         currentAdminPin={config.adminPin}
       />
 
-      {/* MODAL IN PHIẾU NHẶT HÀNG TEM NHIỆT 100x150 mm (HỌC TẬP TAB 1) */}
+      {/* MODAL IN PHIẾU NHẶT HÀNG TEM NHIỆT 100x150 mm (CHỈ IN LIST NHẶT, KHÔNG IN ĐƠN LẺ) */}
       <PrintPickingModal
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
-        orders={orders}
+        orders={ordersWithBatchPl}
         selectedPickingList={printPickingCode}
         selectedCarrier="ALL"
         skuGroups={skuGroups}

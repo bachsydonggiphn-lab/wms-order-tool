@@ -330,7 +330,7 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
               </span>
             </div>
             <p className="text-xs text-indigo-200 mt-0.5">
-              Tự động hóa in đơn mỗi 8:00 AM (hoặc giờ tùy chỉnh), phân bổ thông minh 1 PCS (75%), 2 PCS (14%), Multi (5%)
+              Tự động tạo Picking List & in Phiếu Nhặt Hàng mỗi 8:00 AM — Chỉ in List nhặt hàng theo kệ, không in đơn lẻ
             </p>
           </div>
         </div>
@@ -358,7 +358,7 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
           }`}
         >
           <Clock className="w-4 h-4" />
-          <span>⚡ Tự Động Hóa In Đơn ({config.scheduleSlots?.filter(s => s.enabled).length || 0} Giờ)</span>
+          <span>⚡ Tự Động Tạo & In Picking List ({config.scheduleSlots?.filter(s => s.enabled).length || 0} Giờ)</span>
         </button>
 
         <button
@@ -430,14 +430,17 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-black text-base text-amber-950">
-                      Tự Động Hóa Tạo List & In Đơn Theo Giờ Cài Đặt
+                      Tự Động Hóa Tạo Picking List & In Phiếu Nhặt Hàng
                     </h3>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 border border-amber-300">
                       Học hỏi từ 16,693 đơn (4 ngày qua)
                     </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-300">
+                      🚫 Không in đơn lẻ — Chỉ in List nhặt hàng
+                    </span>
                   </div>
                   <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
-                    Hệ thống tự động canh giờ trên máy local, quét đơn <strong>Submitted (E11=4)</strong>, gom thuần nhất theo 1 PCS (75%), 2 PCS (14%), Multi, chia cho các tài khoản và tự động in tem nhiệt 100x150 mm.
+                    Hệ thống tự động canh giờ trên máy local, quét đơn <strong>Submitted (E11=4)</strong>, gom thông minh thành các Picking List chuẩn theo kệ (Bulk ≥20 PCS, YD-H không giới hạn, 1 PCS, 2 PCS, Multi), gán cho thợ và tự động in <strong>Phiếu Nhặt Hàng (Picking List)</strong> khổ tem nhiệt 100x150 mm để thợ cầm đi lấy hàng.
                   </p>
                 </div>
               </div>
@@ -790,9 +793,9 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
                   <Printer className="w-5 h-5" />
                 </div>
                 <div>
-                  <h5 className="font-bold text-xs text-slate-900">Tự Động Mở In Tem Nhiệt 100×150 mm Khi Đến Giờ</h5>
+                  <h5 className="font-bold text-xs text-slate-900">Tự Động Mở In Phiếu Nhặt Hàng (Picking List) Tem Nhiệt 100×150 mm</h5>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Hệ thống sẽ tự động tổng hợp và mở tem in nhặt hàng cho các Picking List vừa tạo.
+                    Hệ thống chỉ in Phiếu Nhặt Hàng (Picking List) tổng hợp theo kệ & SKU để thợ đi nhặt nhanh — Hoàn toàn KHÔNG in các nhãn đơn hàng lẻ.
                   </p>
                 </div>
               </div>
