@@ -94,6 +94,33 @@ const DEFAULT_ACCOUNTS: PickerAccount[] = [
   },
 ];
 
+// Helper kiểm tra đơn hàng đã chuyển qua shipper / đã xuất kho hay chưa
+export const isOrderShippedToCarrier = (o: RawOrderRow): boolean => {
+  if (!o) return false;
+  const e11 = (o.statusE11 || '').trim().toLowerCase();
+  // E11 = '8' là Shipped (Đã giao shipper), 6/7 là đã đóng gói/vận chuyển
+  if (
+    e11 === '8' ||
+    e11 === 'shipped' ||
+    e11 === '6' ||
+    e11 === '7' ||
+    e11.includes('shipped') ||
+    e11.includes('xuất') ||
+    e11.includes('giao shipper')
+  ) {
+    return true;
+  }
+  // Có thời gian xuất kho thực tế
+  if (o.shippedTime && o.shippedTime.trim() !== '') {
+    return true;
+  }
+  // Trong rawOrderText có thông tin xuất kho
+  if (o.rawOrderText && /Shipped\s*Time\s*:\s*\d{4}-\d{2}-\d{2}/i.test(o.rawOrderText)) {
+    return true;
+  }
+  return false;
+};
+
 interface MobilePickerModuleProps {
   orders: RawOrderRow[];
   skuGroups: SkuGroupsMap;
@@ -222,17 +249,26 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
   }, [batches, selectedBatchId, activeAccount]);
 
   // Nhóm các đơn theo Picking List No. có sẵn từ WMS
+  // CHỈ LẤY CÁC ĐƠN CHƯA GIAO SHIPPER (Submitted = 4 hoặc Shelved = 5)
+  // BỎ QUA HOÀN TOÀN CÁC ĐƠN ĐÃ GIAO SHIPPER (E11 = 8 / Shipped)!
   const tab1PickingLists = useMemo(() => {
     const plMap = new Map<string, RawOrderRow[]>();
     orders.forEach((o) => {
+      // ĐƠN ĐÃ CHUYỂN QUA SHIPPER THÌ BỎ QUA NGAY!
+      if (isOrderShippedToCarrier(o)) {
+        return;
+      }
+
       const pl = (o.pickingList || '').trim();
       if (pl && pl !== 'Chưa gán PL') {
         if (!plMap.has(pl)) plMap.set(pl, []);
         plMap.get(pl)!.push(o);
       }
     });
+
     return Array.from(plMap.entries())
       .map(([plNo, ords]) => ({ plNo, orders: ords }))
+      .filter(item => item.orders.length > 0)
       .sort((a, b) => a.plNo.localeCompare(b.plNo));
   }, [orders]);
 
@@ -379,27 +415,78 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
     showToast(`Đã nạp thành công ${newBatches.length} Picking List từ Tab 1 với đầy đủ SKU & số đơn!`);
   }, [tab1PickingLists, accounts, createBatchFromOrders, showToast]);
 
-  // TỰ ĐỘNG LÀM SẠCH VÀ ĐỒNG BỘ NẾU BATCHES BỊ LỖI
-  useEffect(() => {
-    if (tab1PickingLists.length > 0) {
-      const isCorrupted = batches.length === 0 || batches.some(b =>
-        (b.items && b.items.some(it => it.sku.startsWith('YD-26') && b.orderNos.includes(it.sku))) ||
-        batches.filter(x => (x.pickingCode || x.id) === (b.pickingCode || b.id)).length > 1
-      );
+  // Helper dọn dẹp các batch đã chuyển qua shipper
+  const handleCleanShippedBatches = useCallback(() => {
+    const shippedOrderNos = new Set<string>();
+    orders.forEach(o => {
+      if (isOrderShippedToCarrier(o)) {
+        shippedOrderNos.add(o.orderNo);
+      }
+    });
 
-      if (isCorrupted) {
-        handleImportBatchesFromTab1();
+    const remainingBatches = batches.filter(b => {
+      if (!b.orderNos || b.orderNos.length === 0) return false;
+      // Nếu tất cả đơn trong batch đều đã giao shipper -> Bỏ qua
+      const allShipped = b.orderNos.every(oNo => shippedOrderNos.has(oNo));
+      return !allShipped;
+    });
+
+    const removedCount = batches.length - remainingBatches.length;
+    setBatches(remainingBatches);
+    if (remainingBatches.length > 0) {
+      if (!selectedBatchId || !remainingBatches.some(b => b.id === selectedBatchId)) {
+        setSelectedBatchId(remainingBatches[0].id);
+      }
+    } else {
+      setSelectedBatchId(null);
+    }
+
+    if (removedCount > 0) {
+      showToast(`🧹 Đã bỏ qua & dọn dẹp ${removedCount} Picking List đã chuyển qua shipper!`);
+    } else {
+      showToast('Hiện tại không có Picking List nào đã chuyển qua shipper.');
+    }
+  }, [orders, batches, selectedBatchId, showToast]);
+
+  // Tự động loại bỏ các batch đã chuyển qua shipper khỏi danh sách đang treo khi tải trang hoặc dữ liệu thay đổi
+  useEffect(() => {
+    if (orders.length === 0 || batches.length === 0) return;
+
+    const shippedOrderNos = new Set<string>();
+    orders.forEach(o => {
+      if (isOrderShippedToCarrier(o)) {
+        shippedOrderNos.add(o.orderNo);
+      }
+    });
+
+    if (shippedOrderNos.size === 0) return;
+
+    const remainingBatches = batches.filter(b => {
+      if (!b.orderNos || b.orderNos.length === 0) return false;
+      const allShipped = b.orderNos.every(oNo => shippedOrderNos.has(oNo));
+      return !allShipped;
+    });
+
+    if (remainingBatches.length < batches.length) {
+      console.log(`[Picker] Tự động bỏ qua ${batches.length - remainingBatches.length} Picking List đã chuyển qua shipper.`);
+      setBatches(remainingBatches);
+      if (remainingBatches.length > 0) {
+        if (!selectedBatchId || !remainingBatches.some(b => b.id === selectedBatchId)) {
+          setSelectedBatchId(remainingBatches[0].id);
+        }
+      } else {
+        setSelectedBatchId(null);
       }
     }
-  }, [tab1PickingLists.length, batches.length, handleImportBatchesFromTab1]);
+  }, [orders, batches, selectedBatchId]);
 
   // ==============================================================================
   // HÀM TỰ ĐỘNG HÓA TẠO LIST & IN ĐƠN (8:00 AM HOẶC GIỜ DO NGƯỜI DÙNG CÀI ĐẶT)
   // ==============================================================================
   const handleExecuteAutoDispatch = useCallback(async (slotTime: string = '08:00', label?: string) => {
-    // 1. Tìm các đơn Submitted (E11=4)
+    // 1. Tìm các đơn Submitted (E11=4), BỎ QUA TOÀN BỘ ĐƠN ĐÃ GIAO SHIPPER
     let candidateOrders = orders.filter(
-      o => !o.statusE11 || o.statusE11 === '4' || o.statusE11.includes('4') || o.statusE11.includes('Submitted')
+      o => !isOrderShippedToCarrier(o) && (!o.statusE11 || o.statusE11 === '4' || o.statusE11.includes('4') || o.statusE11.includes('Submitted'))
     );
 
     // Nếu trong orders hiện tại chưa có, thử kéo trực tiếp từ YunWMS
@@ -812,6 +899,7 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
           onOpenPrintModal={handleOpenPrintModal}
           tab1PlCount={tab1PickingLists.length}
           onImportTab1Pls={handleImportBatchesFromTab1}
+          onCleanShippedBatches={handleCleanShippedBatches}
         />
       )}
 

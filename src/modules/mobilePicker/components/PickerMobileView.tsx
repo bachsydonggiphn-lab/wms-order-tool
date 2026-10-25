@@ -20,6 +20,7 @@ import {
   X,
   ExternalLink,
   Barcode as BarcodeIcon,
+  Trash2,
 } from 'lucide-react';
 import { PickerAccount, PickingBatch, PickingItemDetail } from '../types';
 import { SkuDetailModal } from './SkuDetailModal';
@@ -39,6 +40,7 @@ interface PickerMobileViewProps {
   onOpenPrintModal?: (pickingCode: string) => void;
   tab1PlCount?: number;
   onImportTab1Pls?: () => void;
+  onCleanShippedBatches?: () => void;
 }
 
 export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
@@ -54,6 +56,7 @@ export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
   onOpenPrintModal,
   tab1PlCount = 0,
   onImportTab1Pls,
+  onCleanShippedBatches,
 }) => {
   const [filterMode, setFilterMode] = useState<'ALL' | 'UNPICKED' | 'PICKED'>('ALL');
   const [viewMode, setViewMode] = useState<'TABLE' | 'CARDS'>('TABLE');
@@ -209,17 +212,31 @@ export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
             })}
           </div>
 
-          {onImportTab1Pls && (
-            <button
-              type="button"
-              onClick={onImportTab1Pls}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all cursor-pointer shrink-0 ml-2 whitespace-nowrap shadow-2xs"
-              title="Đồng bộ nạp lại danh sách Picking List chuẩn từ Tab 1"
-            >
-              <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
-              <span className="hidden sm:inline">Nạp Lại Từ Tab 1</span>
-            </button>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+            {onCleanShippedBatches && (
+              <button
+                type="button"
+                onClick={onCleanShippedBatches}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                title="Bỏ qua và loại bỏ các Picking List đã giao cho shipper"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span className="hidden sm:inline">Dọn List Đã Giao Shipper</span>
+              </button>
+            )}
+
+            {onImportTab1Pls && (
+              <button
+                type="button"
+                onClick={onImportTab1Pls}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                title="Đồng bộ nạp lại danh sách Picking List chuẩn từ Tab 1 (đã tự động lọc đơn đã giao shipper)"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden sm:inline">Nạp Lại Từ Tab 1</span>
+              </button>
+            )}
+          </div>
         </div>
       ) : tab1PlCount > 0 ? (
         /* Gợi ý nạp trực tiếp Picking List từ Tab 1 */
