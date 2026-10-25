@@ -1,5 +1,4 @@
-import React from 'react';
-import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck, Flame, Warehouse, Printer } from 'lucide-react';
+import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck, Flame, Warehouse, Printer, Smartphone } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
 import { GKP_LOGO_PNG_BASE64 } from '../utils/logoBase64';
 import { ActiveTabType } from './Toolbar';
@@ -31,7 +30,11 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   lastOrderSubTab = 'sku_pcs',
 }) => {
-  const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && activeTab !== 'order_pdf_print';
+  const isOrderOps =
+    activeTab !== 'hot_sku_slotting' &&
+    activeTab !== 'inventory_query' &&
+    activeTab !== 'order_pdf_print' &&
+    activeTab !== 'mobile_picker_app';
 
   return (
     <header className="bg-white border-b border-gray-200 shrink-0 sticky top-0 z-30 shadow-xs">
@@ -149,6 +152,28 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 Tìm & In 1 Lần
+              </span>
+            </button>
+
+            {/* 5. Chế Độ Đi Nhặt Kho (Mobile Picker App) */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('mobile_picker_app')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0 ${
+                activeTab === 'mobile_picker_app'
+                  ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-sm ring-2 ring-purple-200'
+                  : 'text-slate-700 hover:text-purple-900 hover:bg-white/80'
+              }`}
+            >
+              <Smartphone className="w-4 h-4 shrink-0" />
+              <span className="sm:hidden">5. Đi Nhặt</span>
+              <span className="hidden sm:inline">5. Chế Độ Đi Nhặt Kho (Mobile App)</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
+                  activeTab === 'mobile_picker_app' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
+                }`}
+              >
+                App Kho
               </span>
             </button>
           </div>

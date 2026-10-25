@@ -32,6 +32,7 @@ export type ActiveTabType =
   | 'order_pdf_print'
   | 'hot_sku_slotting'
   | 'inventory_query'
+  | 'mobile_picker_app'
   | 'shipped_tracking'
   | 'picking_detail'
   | 'area_group'

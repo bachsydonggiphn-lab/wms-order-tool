@@ -14,6 +14,7 @@ import { OrderOperationsModule } from './modules/orderOperations';
 import { HotSkuSlottingModule } from './modules/hotSkuSlotting';
 import { WmsInventoryModule } from './modules/wmsInventory';
 import { OrderPdfBatchPrintView } from './components/views/OrderPdfBatchPrintView';
+import { MobilePickerModule } from './modules/mobilePicker';
 import { ArrowUp } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_SKU = 'warehouse_sku_groups_v1';
@@ -102,10 +103,19 @@ export default function App() {
     });
   }, []);
 
-  const isOrderOps = activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && activeTab !== 'order_pdf_print';
+  const isOrderOps =
+    activeTab !== 'hot_sku_slotting' &&
+    activeTab !== 'inventory_query' &&
+    activeTab !== 'order_pdf_print' &&
+    activeTab !== 'mobile_picker_app';
 
   useEffect(() => {
-    if (activeTab !== 'hot_sku_slotting' && activeTab !== 'inventory_query' && activeTab !== 'order_pdf_print') {
+    if (
+      activeTab !== 'hot_sku_slotting' &&
+      activeTab !== 'inventory_query' &&
+      activeTab !== 'order_pdf_print' &&
+      activeTab !== 'mobile_picker_app'
+    ) {
       setLastOrderSubTab(activeTab);
     }
   }, [activeTab]);
@@ -280,6 +290,16 @@ export default function App() {
         {visitedTabs.has('order_pdf_print') && (
           <div className={activeTab === 'order_pdf_print' ? 'block' : 'hidden'}>
             <OrderPdfBatchPrintView
+              orders={orders}
+              skuGroups={skuGroups}
+            />
+          </div>
+        )}
+
+        {/* PHÂN HỆ 5: CHẾ ĐỘ ĐI NHẶT KHO (MOBILE PICKER APP) */}
+        {visitedTabs.has('mobile_picker_app') && (
+          <div className={activeTab === 'mobile_picker_app' ? 'block' : 'hidden'}>
+            <MobilePickerModule
               orders={orders}
               skuGroups={skuGroups}
             />
