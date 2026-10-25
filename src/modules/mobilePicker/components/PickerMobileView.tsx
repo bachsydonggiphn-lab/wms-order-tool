@@ -24,6 +24,7 @@ import {
 import { PickerAccount, PickingBatch, PickingItemDetail } from '../types';
 import { SkuDetailModal } from './SkuDetailModal';
 import { BarcodeView } from '../../../components/BarcodeView';
+import { getCachedInventory } from '../../../services/inventoryService';
 
 interface PickerMobileViewProps {
   accounts: PickerAccount[];
@@ -60,6 +61,28 @@ export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
   const [selectedModalItem, setSelectedModalItem] = useState<PickingItemDetail | null>(null);
   const [isOrderListModalOpen, setIsOrderListModalOpen] = useState(false);
   const [copiedOrderNos, setCopiedOrderNos] = useState(false);
+
+  // Bản đồ tra cứu tồn kho nhanh từ cache (0ms)
+  const inventoryCacheMap = useMemo(() => {
+    try {
+      const cached = getCachedInventory();
+      const map = new Map<string, { inUsed: number; sellable: number }>();
+      if (cached && Array.isArray(cached.items)) {
+        cached.items.forEach((it: any) => {
+          const sku = (it.sku || it.productBarcode || '').trim().toUpperCase();
+          if (sku) {
+            map.set(sku, {
+              inUsed: it.inUsed ?? it.sellable ?? 0,
+              sellable: it.sellable ?? 0,
+            });
+          }
+        });
+      }
+      return map;
+    } catch (e) {
+      return new Map<string, { inUsed: number; sellable: number }>();
+    }
+  }, []);
 
   // Tính toán tiến độ nhặt
   const stats = useMemo(() => {
@@ -508,8 +531,28 @@ export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
                                 }`}>
                                   {item.sku}
                                 </span>
+                                {(() => {
+                                  const stock = inventoryCacheMap.get(item.sku.trim().toUpperCase())?.inUsed ?? item.inventoryOnHand;
+                                  if (stock !== undefined) {
+                                    return (
+                                      <span
+                                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md border flex items-center gap-0.5 ${
+                                          stock <= 0
+                                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                            : stock < item.quantityNeeded
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                            : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                        }`}
+                                        title="Tồn kho thực tế (inUsed)"
+                                      >
+                                        Tồn: {stock.toLocaleString()}
+                                      </span>
+                                    );
+                                  }
+                                  return null;
+                                })()}
                                 <span className="text-[10px] text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                                  <ImageIcon className="w-3 h-3" /> Xem ảnh
+                                  <ImageIcon className="w-3 h-3" /> Xem ảnh & tồn kho
                                 </span>
                               </div>
                               <p className="text-[11px] text-slate-500 truncate max-w-xs sm:max-w-md mt-0.5">
@@ -583,6 +626,26 @@ export const PickerMobileView: React.FC<PickerMobileViewProps> = ({
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
                         {item.area}
                       </span>
+                      {(() => {
+                        const stock = inventoryCacheMap.get(item.sku.trim().toUpperCase())?.inUsed ?? item.inventoryOnHand;
+                        if (stock !== undefined) {
+                          return (
+                            <span
+                              className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md border shrink-0 ${
+                                stock <= 0
+                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                  : stock < item.quantityNeeded
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              }`}
+                              title="Tồn kho thực tế (inUsed)"
+                            >
+                              Tồn: {stock.toLocaleString()}
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
 
                     <p className="text-xs text-slate-500 truncate mt-0.5">
