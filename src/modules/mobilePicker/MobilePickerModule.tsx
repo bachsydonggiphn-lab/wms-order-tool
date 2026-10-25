@@ -11,6 +11,8 @@ import { AdminLockModal } from './components/AdminLockModal';
 import { AdminDispatchSettings } from './components/AdminDispatchSettings';
 import { PickerMobileView } from './components/PickerMobileView';
 import { layNhomTuSKU } from '../../utils/orderProcessor';
+import { DEFAULT_AREA_ORDER } from '../../utils/skuData';
+import { PrintPickingModal } from '../../components/PrintPickingModal';
 import { ShieldCheck, Smartphone, CheckCircle2, RefreshCw } from 'lucide-react';
 
 const STORAGE_KEY_CONFIG = 'wms_picker_admin_config_v1';
@@ -115,7 +117,17 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
   const [isLocked, setIsLocked] = useState<boolean>(true); // Mặc định ở chế độ nhân viên
   const [isAdminLockModalOpen, setIsAdminLockModalOpen] = useState<boolean>(false);
   const [activeAccountId, setActiveAccountId] = useState<string>(() => accounts[0]?.id || 'tk1');
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Quản lý Modal In Phiếu Nhặt Hàng Tem Nhiệt 100x150 mm (Học tập Tab 1)
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
+  const [printPickingCode, setPrintPickingCode] = useState<string>('');
+
+  const handleOpenPrintModal = (code: string) => {
+    setPrintPickingCode(code);
+    setIsPrintModalOpen(true);
+  };
 
   // Lưu cấu hình vào localStorage
   useEffect(() => {
@@ -145,9 +157,29 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
     return accounts.find(a => a.id === activeAccountId) || accounts[0] || null;
   }, [accounts, activeAccountId]);
 
+  // Trích xuất danh sách các Picking List (PL...) có sẵn trong đơn hàng từ Tab 1
+  const tab1PickingLists = useMemo(() => {
+    if (!orders || orders.length === 0) return [];
+    const map = new Map<string, RawOrderRow[]>();
+    orders.forEach((o) => {
+      const pl = o.pickingList && o.pickingList.trim() !== '' ? o.pickingList.trim() : '';
+      if (pl && pl !== 'Chưa gán PL') {
+        if (!map.has(pl)) map.set(pl, []);
+        map.get(pl)!.push(o);
+      }
+    });
+    return Array.from(map.entries())
+      .map(([plNo, ords]) => ({ plNo, orders: ords }))
+      .sort((a, b) => a.plNo.localeCompare(b.plNo));
+  }, [orders]);
+
   // Batch hiện tại đang được thực hiện bởi tài khoản này
   const currentBatch = useMemo(() => {
-    if (!activeAccount) return null;
+    if (selectedBatchId) {
+      const found = batches.find(b => b.id === selectedBatchId);
+      if (found) return found;
+    }
+    if (!activeAccount) return batches[0] || null;
     // Tìm batch đang IN_PROGRESS của account
     const inProgress = batches.find(b => b.pickerId === activeAccount.id && b.status === 'IN_PROGRESS');
     if (inProgress) return inProgress;
@@ -156,8 +188,113 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
     const pending = batches.find(
       b => (b.pickerId === activeAccount.id || b.strategy === activeAccount.assignedStrategy || b.strategy === 'ALL') && b.status === 'PENDING'
     );
-    return pending || null;
-  }, [batches, activeAccount]);
+    return pending || batches[0] || null;
+  }, [batches, activeAccount, selectedBatchId]);
+
+  // HÀM NẠP NGUYÊN BẢN CÁC PICKING LIST TỪ TAB 1 (HỌC TẬP TAB 1)
+  const handleImportBatchesFromTab1 = useCallback(() => {
+    if (tab1PickingLists.length === 0) {
+      alert('Không tìm thấy mã Picking List (PL...) nào trong danh sách đơn hàng đã nạp của Tab 1.');
+      return;
+    }
+
+    const newBatches: PickingBatch[] = [];
+    const activeAccountsList = accounts.filter(a => a.isActive);
+
+    tab1PickingLists.forEach((plGroup, idx) => {
+      const { plNo, orders: ords } = plGroup;
+      const skuMap: Record<string, { qty: number; orderNos: Set<string>; productTitle?: string }> = {};
+      const pcsMap: Record<string, number> = { '1 PCS': 0, '2 PCS': 0, 'Multi': 0 };
+      const orderNos: string[] = [];
+
+      ords.forEach(o => {
+        orderNos.push(o.orderNo);
+        let ordQty = 0;
+        if (o.items && o.items.length > 0) {
+          o.items.forEach(it => {
+            if (!skuMap[it.sku]) {
+              skuMap[it.sku] = { qty: 0, orderNos: new Set(), productTitle: it.sku };
+            }
+            skuMap[it.sku].qty += it.qty;
+            skuMap[it.sku].orderNos.add(o.orderNo);
+            ordQty += it.qty;
+          });
+        } else {
+          const s = o.orderNo;
+          const q = Number(o.totalQty) || 1;
+          if (!skuMap[s]) skuMap[s] = { qty: 0, orderNos: new Set(), productTitle: s };
+          skuMap[s].qty += q;
+          skuMap[s].orderNos.add(o.orderNo);
+          ordQty += q;
+        }
+
+        if (ordQty === 1) pcsMap['1 PCS']++;
+        else if (ordQty === 2) pcsMap['2 PCS']++;
+        else pcsMap['Multi']++;
+      });
+
+      // Kiểm tra đặc tính để gắn nhãn chiến lược
+      let strategy: PickingStrategyType = 'ALL';
+      let strategyLabel = 'Đợt Nhặt Tổng Hợp';
+      if (pcsMap['1 PCS'] === ords.length) {
+        strategy = 'SINGLE_PCS';
+        strategyLabel = '1 PCS (Nhặt Nhanh)';
+      } else if (pcsMap['2 PCS'] === ords.length) {
+        strategy = 'MULTI_PCS_SAME_AREA';
+        strategyLabel = '2 PCS Cùng Kệ';
+      } else if (pcsMap['Multi'] > 0) {
+        strategy = 'MIX_MULTI_AREA';
+        strategyLabel = 'Mix Đa Khu Vực';
+      }
+
+      // Sắp xếp SKU theo Kệ/Khu vực chuẩn DEFAULT_AREA_ORDER
+      const items: PickingItemDetail[] = Object.entries(skuMap).map(([sku, data]) => {
+        const area = layNhomTuSKU(sku, skuGroups, DEFAULT_AREA_ORDER);
+        return {
+          sku,
+          productTitle: data.productTitle || sku,
+          area,
+          location: area,
+          quantityNeeded: data.qty,
+          quantityPicked: 0,
+          isPicked: false,
+          orderNos: Array.from(data.orderNos),
+        };
+      }).sort((a, b) => {
+        if (a.area !== b.area) return a.area.localeCompare(b.area);
+        return a.sku.localeCompare(b.sku);
+      });
+
+      const totalPcs = items.reduce((sum, it) => sum + it.quantityNeeded, 0);
+
+      // Phân bổ vòng tròn cho các account active
+      const assignedAccount = activeAccountsList.length > 0 ? activeAccountsList[idx % activeAccountsList.length] : null;
+
+      newBatches.push({
+        id: plNo,
+        pickingCode: plNo,
+        pickerId: assignedAccount ? assignedAccount.id : 'unassigned',
+        pickerName: assignedAccount ? assignedAccount.name : 'Chưa gán',
+        strategy,
+        strategyLabel,
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+        totalOrders: ords.length,
+        totalItems: items.length,
+        totalPcs,
+        pickedPcs: 0,
+        pcsSummary: pcsMap,
+        items,
+        orderNos,
+      });
+    });
+
+    setBatches(newBatches);
+    if (newBatches.length > 0) {
+      setSelectedBatchId(newBatches[0].id);
+    }
+    showToast(`Đã nạp thành công ${newBatches.length} Picking List từ Tab 1!`);
+  }, [tab1PickingLists, accounts, skuGroups]);
 
   // HÀM TỰ ĐỘNG PHÂN BỔ ĐƠN THÀNH CÁC PHIẾU NHẶT (BATCH GENERATOR)
   const handleGenerateBatches = useCallback(() => {
@@ -502,6 +639,9 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
           onGenerateBatchesFromOrders={handleGenerateBatches}
           onSyncWmsPickingList={handleSyncWmsPickingList}
           onExitAdminMode={() => setIsLocked(true)}
+          tab1PlCount={tab1PickingLists.length}
+          onImportTab1Pls={handleImportBatchesFromTab1}
+          onOpenPrintModal={handleOpenPrintModal}
         />
       ) : (
         /* CHẾ ĐỘ NHÂN VIÊN: Giao diện Mobile Picker tối ưu cho điện thoại */
@@ -509,10 +649,15 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
           accounts={accounts}
           activeAccount={activeAccount}
           onSelectAccount={(acc) => setActiveAccountId(acc.id)}
+          batches={batches}
           currentBatch={currentBatch}
+          onSelectBatch={(bId) => setSelectedBatchId(bId)}
           onToggleItemPicked={handleToggleItemPicked}
           onCompleteBatch={handleCompleteBatch}
           onRequestAdminMode={() => setIsAdminLockModalOpen(true)}
+          onOpenPrintModal={handleOpenPrintModal}
+          tab1PlCount={tab1PickingLists.length}
+          onImportTab1Pls={handleImportBatchesFromTab1}
         />
       )}
 
@@ -526,6 +671,16 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
           showToast('✅ Đã xác thực thành công quyền Quản Trị Viên!');
         }}
         currentAdminPin={config.adminPin}
+      />
+
+      {/* MODAL IN PHIẾU NHẶT HÀNG TEM NHIỆT 100x150 mm (HỌC TẬP TAB 1) */}
+      <PrintPickingModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        orders={orders}
+        selectedPickingList={printPickingCode}
+        selectedCarrier="ALL"
+        skuGroups={skuGroups}
       />
     </div>
   );

@@ -18,7 +18,9 @@ import {
   Check,
   ChevronRight,
   LogOut,
-  Smartphone
+  Smartphone,
+  Printer,
+  Package,
 } from 'lucide-react';
 import { PickerAccount, AdminDispatchConfig, PickingStrategyType, PickingBatch } from '../types';
 
@@ -31,6 +33,9 @@ interface AdminDispatchSettingsProps {
   onGenerateBatchesFromOrders: () => void;
   onSyncWmsPickingList?: (batchId: string) => void;
   onExitAdminMode: () => void;
+  tab1PlCount?: number;
+  onImportTab1Pls?: () => void;
+  onOpenPrintModal?: (pickingCode: string) => void;
 }
 
 export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
@@ -42,6 +47,9 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
   onGenerateBatchesFromOrders,
   onSyncWmsPickingList,
   onExitAdminMode,
+  tab1PlCount = 0,
+  onImportTab1Pls,
+  onOpenPrintModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'RULES' | 'ACCOUNTS' | 'MONITOR' | 'SECURITY'>('RULES');
   const [newPin, setNewPin] = useState(config.adminPin);
@@ -242,11 +250,43 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
       {/* TAB 1: CÀI ĐẶT QUY TẮC PHÂN BỔ ĐƠN NHẶT HÀNG */}
       {activeTab === 'RULES' && (
         <div className="p-5 sm:p-6 space-y-6">
+          {/* Card Nạp Picking List Từ Tab 1 */}
+          {tab1PlCount > 0 && onImportTab1Pls && (
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 p-4 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-sm text-emerald-950">
+                      Phát Hiện {tab1PlCount} Picking List (PL...) Từ Tab 1
+                    </h4>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">
+                      Khuyên Dùng
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-700 mt-0.5">
+                    Hệ thống sẽ nạp nguyên bản toàn bộ các mã PL WMS thực tế (như PL7261...), giữ nguyên phân loại 1 PCS / 2 PCS / Multi, và chia đều cho các tài khoản đang hoạt động.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onImportTab1Pls}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 shrink-0 active:scale-95 cursor-pointer whitespace-nowrap"
+              >
+                <Package className="w-4 h-4" />
+                <span>Nạp {tab1PlCount} Picking List Tab 1</span>
+              </button>
+            </div>
+          )}
+
           <div className="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h4 className="font-bold text-sm text-indigo-950">Sinh Danh Sách Nhặt Hàng Tự Động Từ Đơn Hiện Có</h4>
+              <h4 className="font-bold text-sm text-indigo-950">Phân Bổ Tự Động Từ Đơn Chưa Có PL</h4>
               <p className="text-xs text-indigo-700 mt-0.5">
-                Hệ thống sẽ quét toàn bộ danh sách đơn hàng đã nạp, phân bổ thành các lượt nhặt cho từng tài khoản con.
+                Hệ thống sẽ gom các đơn lẻ (Submitted E11=4) theo quy tắc 1 PCS, $\ge$ 2 PCS cùng kệ, hoặc Thảm Yoga để tạo các đợt mới.
               </p>
             </div>
             <button
@@ -255,7 +295,7 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
               className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 shrink-0 active:scale-95 cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>Phân Bổ & Tạo Batch Ngay</span>
+              <span>Tạo Batch Đơn Mới</span>
             </button>
           </div>
 
@@ -545,8 +585,20 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
                       </div>
                     </div>
 
-                    {/* Trạng thái WMS & Nút gọi API tạo phiếu */}
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    {/* Trạng thái WMS, In Tem & Nút gọi API tạo phiếu */}
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                      {onOpenPrintModal && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenPrintModal(batch.pickingCode || batch.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold border border-slate-200 transition-all cursor-pointer shadow-2xs"
+                          title="In phiếu nhặt hàng tem nhiệt 100x150 mm hoặc khổ A4"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>In Tem (100x150)</span>
+                        </button>
+                      )}
+
                       {batch.pickingCode ? (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />

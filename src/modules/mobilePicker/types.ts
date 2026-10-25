@@ -69,6 +69,7 @@ export interface PickingBatch {
   totalItems: number;
   totalPcs: number;
   pickedPcs: number;
+  pcsSummary?: Record<string, number>; // { '1 PCS': 0, '2 PCS': 6, 'Multi': 0 }
   items: PickingItemDetail[];
   orderNos: string[];
 }
