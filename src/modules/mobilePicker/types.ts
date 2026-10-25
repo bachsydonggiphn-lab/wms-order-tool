@@ -64,6 +64,11 @@ export interface AdminDispatchConfig {
   batchSize2Pcs: number;                // Quy mô list 2 PCS (Mặc định 50 đơn)
   batchSizeMultiPcs: number;            // Quy mô list Multi (Mặc định 25 đơn)
   lastAutoRunTime?: string;
+
+  // Quy tắc nâng cao: Đơn trên 20 PCS (YD-W/Bulk) & YD-H không giới hạn đơn
+  enableBulkOrderSplit: boolean;        // Tách đơn >= 20 PCS (YD-W / Đơn sỉ) thành list riêng
+  bulkPcsThreshold: number;             // Ngưỡng PCS đơn lớn (Mặc định 20 PCS)
+  unlimitedYdH: boolean;                // Dòng YD-H & đơn 1 vị trí kệ: Không giới hạn số đơn / list
 }
 
 export interface PickingItemDetail {

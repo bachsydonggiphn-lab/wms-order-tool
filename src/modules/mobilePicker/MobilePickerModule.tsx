@@ -41,6 +41,9 @@ const DEFAULT_CONFIG: AdminDispatchConfig = {
   batchSize1Pcs: 150,
   batchSize2Pcs: 50,
   batchSizeMultiPcs: 25,
+  enableBulkOrderSplit: true,
+  bulkPcsThreshold: 20,
+  unlimitedYdH: true,
 };
 
 const DEFAULT_ACCOUNTS: PickerAccount[] = [
@@ -440,17 +443,41 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
       };
     }
 
-    // 2. Phân loại chuẩn xác theo quy luật học từ 4 ngày qua:
+    // 2. Phân loại chuẩn xác theo quy luật học từ 4 ngày qua (16,693 đơn):
+    // - Quy tắc 1: Đơn lớn >= 20 PCS hoặc YD-W >= 20 PCS -> Tách riêng từng Picking List độc lập (hoặc xe đẩy riêng)
+    // - Quy tắc 2: Dòng YD-H (1 vị trí kệ) -> KHÔNG GIỚI HẠN số đơn (Unlimited) vì nhân viên đứng tại 1 chỗ lấy siêu nhanh
     // - Nhóm 1 PCS (~75% tổng đơn): chunk thành các batch lớn (config.batchSize1Pcs || 150)
     // - Nhóm 2 PCS (~14% tổng đơn): chunk thành các batch vừa (config.batchSize2Pcs || 50)
     // - Nhóm Multi / 3+ PCS: chunk thành các batch nhỏ (config.batchSizeMultiPcs || 25)
+    const bulkOrders: RawOrderRow[] = [];
+    const ordersYdH: RawOrderRow[] = [];
     const orders1Pcs: RawOrderRow[] = [];
     const orders2Pcs: RawOrderRow[] = [];
     const ordersMulti: RawOrderRow[] = [];
 
+    const bulkThreshold = config.bulkPcsThreshold || 20;
+    const splitBulk = config.enableBulkOrderSplit ?? true;
+    const allowUnlimitedYdH = config.unlimitedYdH ?? true;
+
     candidateOrders.forEach(ord => {
       const items = extractItemsFromOrder(ord);
       const totalPcs = items.reduce((sum, it) => sum + (it.qty || 1), 0);
+      const hasYdW = items.some(it => (it.sku || '').toUpperCase().includes('YD-W'));
+      const hasYdH = items.some(it => (it.sku || '').toUpperCase().includes('YD-H'));
+
+      // 1. Kiểm tra đơn lớn / bulk (>= 20 PCS hoặc dòng YD-W >= 20 PCS)
+      if (splitBulk && (totalPcs >= bulkThreshold || (hasYdW && totalPcs >= bulkThreshold))) {
+        bulkOrders.push(ord);
+        return;
+      }
+
+      // 2. Kiểm tra dòng YD-H (hoặc các đơn cùng 1 vị trí kệ) -> Gom không giới hạn
+      if (allowUnlimitedYdH && (hasYdH && (totalPcs === 1 || items.every(it => (it.sku || '').toUpperCase().includes('YD-H'))))) {
+        ordersYdH.push(ord);
+        return;
+      }
+
+      // 3. Phân loại theo số lượng PCS thông thường
       if (totalPcs === 1) orders1Pcs.push(ord);
       else if (totalPcs === 2) orders2Pcs.push(ord);
       else ordersMulti.push(ord);
@@ -477,12 +504,28 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
       }
     };
 
+    // Tạo Picking Lists theo đúng logic học từ thực tế kho:
+    // a. Đơn lớn >= 20 PCS / YD-W: Mỗi đơn tạo 1 list riêng (hoặc chunk 1-2 đơn) để đi xe đẩy/thùng riêng
+    if (bulkOrders.length > 0) {
+      createChunks(bulkOrders, 1, '📦 Đơn Lớn ≥20 PCS (YD-W / Sỉ Riêng)');
+    }
+
+    // b. Dòng YD-H: Gom toàn bộ vào 1 list duy nhất KHÔNG GIỚI HẠN đơn (nhân viên đứng 1 kệ lấy siêu tốc)
+    if (ordersYdH.length > 0) {
+      createChunks(ordersYdH, ordersYdH.length, '🎯 Dòng YD-H (1 Vị Trí Kệ - Không Giới Hạn Đơn)');
+    }
+
+    // c. 1 PCS thông thường: Chunk theo quy mô lớn (mặc định 150 đơn/list)
     if (orders1Pcs.length > 0) {
       createChunks(orders1Pcs, config.batchSize1Pcs || 150, '⚡ 1 PCS (Nhặt Nhanh)');
     }
+
+    // d. 2 PCS thông thường: Chunk theo quy mô vừa (mặc định 50 đơn/list)
     if (orders2Pcs.length > 0) {
       createChunks(orders2Pcs, config.batchSize2Pcs || 50, '📦 2 PCS (Cùng Kệ)');
     }
+
+    // e. Multi PCS: Chunk theo quy mô nhỏ (mặc định 25 đơn/list)
     if (ordersMulti.length > 0) {
       createChunks(ordersMulti, config.batchSizeMultiPcs || 25, '🔀 Multi / Mix Đa Khu Vực');
     }
@@ -502,12 +545,14 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
       totalOrdersFetched: candidateOrders.length,
       batchesCreated: newBatches.length,
       pcsSummary: {
+        'Bulk ≥20 PCS': bulkOrders.length,
+        'YD-H (1 Kệ)': ordersYdH.length,
         '1 PCS': orders1Pcs.length,
         '2 PCS': orders2Pcs.length,
         'Multi': ordersMulti.length,
       },
       status: 'SUCCESS',
-      message: `Đợt ${slotTime}: Tự động gom ${candidateOrders.length} đơn thành ${newBatches.length} Picking List (1 PCS: ${orders1Pcs.length}đ, 2 PCS: ${orders2Pcs.length}đ, Multi: ${ordersMulti.length}đ).`,
+      message: `Đợt ${slotTime}: Gom ${candidateOrders.length} đơn thành ${newBatches.length} Picking List (Đơn lớn ≥20 PCS: ${bulkOrders.length}đ, YD-H không giới hạn: ${ordersYdH.length}đ, 1 PCS: ${orders1Pcs.length}đ, 2 PCS: ${orders2Pcs.length}đ, Multi: ${ordersMulti.length}đ).`,
     };
 
     setAutoDispatchLogs(prev => [logEntry, ...prev.slice(0, 49)]);

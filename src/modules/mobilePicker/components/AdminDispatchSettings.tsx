@@ -697,6 +697,92 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
               </div>
             </div>
 
+            {/* KHỐI 2.1: QUY TẮC ĐẶC BIỆT (HỌC HỎI 4 NGÀY QUA: ĐƠN LỚN ≥20 PCS & YD-H 1 VỊ TRÍ) */}
+            <div className="p-4 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/60 rounded-2xl border border-indigo-200/90 shadow-2xs space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-bold text-xs text-indigo-950 uppercase flex items-center gap-2">
+                    <Package className="w-4 h-4 text-indigo-600" />
+                    <span>Quy Tắc Tối Ưu Nâng Cao: Đơn ≥ 20 PCS (YD-W) & Dòng YD-H</span>
+                  </h5>
+                  <p className="text-[11px] text-indigo-900/80 mt-0.5">
+                    Học từ dữ liệu thực tế 4 ngày qua: Tách đơn sỉ lớn ra xe riêng & gom không giới hạn đơn cùng 1 vị trí kệ để nhân viên lấy nhanh gấp nhiều lần.
+                  </p>
+                </div>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                  AI Learned
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {/* Rule 1: Đơn Lớn >= 20 PCS / YD-W */}
+                <div className="p-3.5 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          📦 Đơn Lớn ≥ 20 PCS (YD-W / Sỉ) ➔ List Riêng
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                        Tự động tách các đơn từ 20 PCS trở lên (hoặc dòng YD-W sỉ) thành Picking List riêng biệt. Nhân viên kéo xe đẩy/bốc nguyên thùng riêng, không làm đầy giỏ chia đơn lẻ.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={config.enableBulkOrderSplit ?? true}
+                      onChange={e => onUpdateConfig({ ...config, enableBulkOrderSplit: e.target.checked })}
+                      className="w-5 h-5 rounded text-indigo-600 cursor-pointer mt-0.5 shrink-0"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <span className="text-[11px] font-semibold text-slate-700">Ngưỡng PCS để tách list riêng:</span>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="5"
+                        max="100"
+                        value={config.bulkPcsThreshold || 20}
+                        onChange={e => onUpdateConfig({ ...config, bulkPcsThreshold: parseInt(e.target.value, 10) || 20 })}
+                        className="w-16 px-2 py-1 rounded-lg border border-slate-300 font-mono font-bold text-xs text-center bg-slate-50"
+                      />
+                      <span className="text-xs font-bold text-slate-500">PCS</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rule 2: YD-H Không Giới Hạn Đơn */}
+                <div className="p-3.5 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          🎯 Dòng YD-H & 1 Vị Trí Kệ ➔ Không Giới Hạn Đơn
+                        </span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                          Siêu Tốc
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                        Gom toàn bộ đơn YD-H vào 1 Picking List duy nhất (kể cả 200 - 800 đơn) không bị giới hạn số lượng. 1 lần đi lấy 1 vị trí kệ, nhân viên đứng một chỗ bốc hàng siêu nhanh!
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={config.unlimitedYdH ?? true}
+                      onChange={e => onUpdateConfig({ ...config, unlimitedYdH: e.target.checked })}
+                      className="w-5 h-5 rounded text-amber-600 cursor-pointer mt-0.5 shrink-0"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-emerald-700 font-medium">
+                    <span>⚡ Trạng thái: {config.unlimitedYdH ? 'Gom toàn bộ vào 1 list duy nhất' : 'Chia nhỏ theo batch 150 đơn'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Tùy chọn In Tem Tự Động */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
