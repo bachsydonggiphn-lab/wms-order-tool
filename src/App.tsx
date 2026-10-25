@@ -86,12 +86,42 @@ export default function App() {
     });
   }, []);
 
-  // 3. Quản lý 3 Tab Lớn (Vận Hành Đơn Hàng | Hàng Bán Chạy & Bố Trí Kho | Tra Cứu Tồn Kho WMS)
-  const [activeTab, setActiveTabRaw] = useState<ActiveTabType>('sku_pcs');
-  const [visitedTabs, setVisitedTabs] = useState<Set<ActiveTabType>>(() => new Set<ActiveTabType>(['sku_pcs']));
+  // 3. Quản lý các Tab (Vận Hành Đơn Hàng | Hàng Bán Chạy | Tồn Kho | In PDF | Đi Nhặt Kho)
+  const getInitialTab = (): ActiveTabType => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qTab = params.get('tab');
+      if (qTab === '5' || qTab === 'mobile_picker_app') return 'mobile_picker_app';
+      if (qTab === '4' || qTab === 'order_pdf_print') return 'order_pdf_print';
+      if (qTab === '3' || qTab === 'inventory_query') return 'inventory_query';
+      if (qTab === '2' || qTab === 'hot_sku_slotting') return 'hot_sku_slotting';
+      if (qTab === '1') return 'sku_pcs';
+
+      const hash = window.location.hash.toLowerCase();
+      if (hash.includes('tab5') || hash.includes('mobile')) return 'mobile_picker_app';
+      if (hash.includes('tab4') || hash.includes('pdf')) return 'order_pdf_print';
+      if (hash.includes('tab3') || hash.includes('inventory')) return 'inventory_query';
+      if (hash.includes('tab2') || hash.includes('hot')) return 'hot_sku_slotting';
+
+      const savedTab = sessionStorage.getItem('warehouse_active_tab') as ActiveTabType;
+      if (savedTab) return savedTab;
+    } catch (e) {}
+    return 'sku_pcs';
+  };
+
+  const [activeTab, setActiveTabRaw] = useState<ActiveTabType>(getInitialTab);
+  const [visitedTabs, setVisitedTabs] = useState<Set<ActiveTabType>>(() => new Set<ActiveTabType>([getInitialTab()]));
   const [lastOrderSubTab, setLastOrderSubTab] = useState<ActiveTabType>('sku_pcs');
 
   const setActiveTab = useCallback((tab: ActiveTabType) => {
+    try {
+      sessionStorage.setItem('warehouse_active_tab', tab);
+      if (tab === 'mobile_picker_app') window.history.replaceState(null, '', '#tab5');
+      else if (tab === 'order_pdf_print') window.history.replaceState(null, '', '#tab4');
+      else if (tab === 'inventory_query') window.history.replaceState(null, '', '#tab3');
+      else if (tab === 'hot_sku_slotting') window.history.replaceState(null, '', '#tab2');
+      else window.history.replaceState(null, '', '#tab1');
+    } catch (e) {}
     React.startTransition(() => {
       setActiveTabRaw(tab);
       setVisitedTabs((prev) => {
@@ -101,6 +131,29 @@ export default function App() {
         return next;
       });
     });
+  }, []);
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash.includes('tab5') || hash.includes('mobile')) {
+        setActiveTabRaw('mobile_picker_app');
+        setVisitedTabs((prev) => new Set(prev).add('mobile_picker_app'));
+      } else if (hash.includes('tab4') || hash.includes('pdf')) {
+        setActiveTabRaw('order_pdf_print');
+        setVisitedTabs((prev) => new Set(prev).add('order_pdf_print'));
+      } else if (hash.includes('tab3') || hash.includes('inventory')) {
+        setActiveTabRaw('inventory_query');
+        setVisitedTabs((prev) => new Set(prev).add('inventory_query'));
+      } else if (hash.includes('tab2') || hash.includes('hot')) {
+        setActiveTabRaw('hot_sku_slotting');
+        setVisitedTabs((prev) => new Set(prev).add('hot_sku_slotting'));
+      } else if (hash.includes('tab1')) {
+        setActiveTabRaw('sku_pcs');
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
   const isOrderOps =
