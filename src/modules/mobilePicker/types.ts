@@ -2,11 +2,13 @@ import { RawOrderRow, SkuGroupsMap } from '../../types';
 
 export type PickingStrategyType =
   | 'ALL'
-  | 'SINGLE_PCS'      // Đơn 1 PCS (Nhặt nhanh)
-  | 'MULTI_PCS'       // Đơn nhiều PCS
-  | 'AREA_GROUP'      // Gom theo khu vực kệ kho
-  | 'MIX_ONLY'        // Nhóm đơn mix nhiều mã
-  | 'YOGA_ONLY';      // Nhóm thảm Yoga & hàng dài
+  | 'SINGLE_PCS'            // Đơn 1 PCS (Nhặt nhanh)
+  | 'MULTI_PCS_SAME_AREA'   // Đơn >= 2 PCS CÙNG KHU VỰC KỆ
+  | 'MULTI_PCS'             // Đơn nhiều PCS chung
+  | 'AREA_GROUP'            // Gom theo khu vực kệ kho
+  | 'YOGA_ONLY'             // Nhóm thảm Yoga & hàng dài
+  | 'MIX_ONLY'              // Nhóm đơn mix nhiều mã
+  | 'MIX_MULTI_AREA';       // Đơn mix liên khu vực kệ
 
 export interface PickerAccount {
   id: string;               // 'tk1', 'tk2', 'tk3'...

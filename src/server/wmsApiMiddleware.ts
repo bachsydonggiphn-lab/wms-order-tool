@@ -128,6 +128,72 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
     return;
   }
 
+  // 1.2 Endpoint Tạo Picking List trên YunWMS (Chuyển trạng thái Submitted E11=4 -> Shelved E11=5)
+  if (pathname === '/api/wms/create-picking-list' && req.method === 'POST') {
+    (async () => {
+      try {
+        const body = await parseJsonBody(req);
+        const orderCodes: string[] = Array.isArray(body.orderCodes) ? body.orderCodes : [];
+        const pickerId = String(body.pickerId || '1'); // user_id WMS
+        const pickingMode = String(body.pickingMode || '1'); // 1 = theo đơn, 2 = gom SKU
+        const orderType = String(body.orderType || '1'); // 1 = đơn chuẩn
+
+        if (orderCodes.length === 0) {
+          sendJson(res, 400, { success: false, message: 'Danh sách mã đơn (orderCodes) không được để trống' });
+          return;
+        }
+
+        const cookie = await getWmsSessionCookie('David', '12345abc');
+
+        // Tạo chuỗi urlencoded: orderCodes[]=SH1&orderCodes[]=SH2&pickerId=117&offShelfFlag=0
+        const params = new URLSearchParams();
+        orderCodes.forEach(code => params.append('orderCodes[]', code));
+        params.append('pickerId', pickerId);
+        params.append('offShelfFlag', '0');
+        const postData = params.toString();
+
+        const urlPath = `/shipment/orders/submit/pickingMode/${pickingMode}/orderType/${orderType}`;
+        const resp = await httpsRequest({
+          hostname: 'czwh.wms.yunwms.com',
+          path: urlPath,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Cookie': cookie,
+            'User-Agent': 'Mozilla/5.0',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://czwh.wms.yunwms.com/shipment/pick/list?quick=101',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }, postData);
+
+        const json = JSON.parse(resp.body);
+        if (json.state === 1 || json.state === '1') {
+          sendJson(res, 200, {
+            success: true,
+            pickCode: json.pick_code,
+            successPickCode: json.success_pick_code,
+            successCount: json.successCount,
+            failCount: json.failCount,
+            message: json.message || 'Tạo phiếu nhặt hàng thành công'
+          });
+        } else {
+          sendJson(res, 200, {
+            success: false,
+            message: json.message || 'Không thể tạo phiếu nhặt hàng trên WMS',
+            detail: json
+          });
+        }
+      } catch (err: any) {
+        sendJson(res, 500, {
+          success: false,
+          message: err?.message || 'Lỗi khi gọi API tạo picking list trên YunWMS'
+        });
+      }
+    })();
+    return;
+  }
+
   // 2. Endpoint lấy danh sách đơn hàng
   if (pathname === '/api/wms/orders' && (req.method === 'POST' || req.method === 'GET')) {
     const handleOrders = async () => {

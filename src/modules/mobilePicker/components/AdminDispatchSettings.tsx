@@ -29,6 +29,7 @@ interface AdminDispatchSettingsProps {
   onUpdateAccounts: (newAccounts: PickerAccount[]) => void;
   batches: PickingBatch[];
   onGenerateBatchesFromOrders: () => void;
+  onSyncWmsPickingList?: (batchId: string) => void;
   onExitAdminMode: () => void;
 }
 
@@ -39,6 +40,7 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
   onUpdateAccounts,
   batches,
   onGenerateBatchesFromOrders,
+  onSyncWmsPickingList,
   onExitAdminMode,
 }) => {
   const [activeTab, setActiveTab] = useState<'RULES' | 'ACCOUNTS' | 'MONITOR' | 'SECURITY'>('RULES');
@@ -500,6 +502,72 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
                 </div>
               );
             })}
+          </div>
+
+          {/* DANH SÁCH CÁC PHIẾU NHẶT HÀNG & NÚT ĐỒNG BỘ WMS */}
+          <div className="mt-6 pt-5 border-t border-slate-200">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h5 className="font-bold text-sm text-slate-900">Danh Sách Các Đợt Nhặt Hàng (Batches)</h5>
+                <p className="text-xs text-slate-500">Tạo Picking List trên WMS để chuyển đơn từ Submitted (4) sang Shelved (5)</p>
+              </div>
+              <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-xl">
+                Tổng cộng: {batches.length} đợt nhặt
+              </span>
+            </div>
+
+            {batches.length === 0 ? (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500">
+                Chưa có đợt nhặt nào. Vui lòng bấm "Phân Bổ & Tạo Batch Ngay" ở Tab 1 (Quy Tắc).
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {batches.map(batch => (
+                  <div
+                    key={batch.id}
+                    className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-indigo-300 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-extrabold text-slate-900 font-mono">{batch.id}</span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          {batch.strategyLabel}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          Thợ: <strong className="text-slate-800">{batch.pickerName}</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-600">
+                        <span>Đơn: <strong>{batch.totalOrders}</strong></span>
+                        <span>SKU: <strong>{batch.totalItems}</strong></span>
+                        <span>Tổng PCS: <strong className="text-indigo-600">{batch.totalPcs}</strong></span>
+                        <span>Đã nhặt: <strong className="text-emerald-600">{batch.pickedPcs} PCS</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Trạng thái WMS & Nút gọi API tạo phiếu */}
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      {batch.pickingCode ? (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>WMS: {batch.pickingCode} (Shelved E11=5)</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onSyncWmsPickingList && onSyncWmsPickingList(batch.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+                          title="Gửi danh sách đơn lên WMS để nhận mã PL và đổi trạng thái sang Shelved"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Tạo PL Trên WMS (E11=5)</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

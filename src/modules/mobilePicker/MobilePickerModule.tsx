@@ -166,25 +166,49 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
       return;
     }
 
-    // 1. Phân loại đơn hàng theo các nhóm chiến lược
+    // 1. Phân loại đơn hàng theo chuẩn YunWMS Lifecycle:
+    // - singlePcsOrders: Đơn 1 PCS (Nhặt siêu nhanh)
+    // - yogaOrders: Thảm Yoga & cồng kềnh
+    // - sameAreaMultiPcsMap: Đơn >= 2 PCS nhưng CÙNG 1 KHU VỰC KỆ KHO
+    // - mixMultiAreaOrders: Đơn mix liên khu vực
     const singlePcsOrders: RawOrderRow[] = [];
     const yogaOrders: RawOrderRow[] = [];
-    const mixOrders: RawOrderRow[] = [];
-    const generalOrders: RawOrderRow[] = [];
+    const sameAreaMultiPcsMap: Record<string, RawOrderRow[]> = {};
+    const mixMultiAreaOrders: RawOrderRow[] = [];
 
-    orders.forEach(order => {
+    // Chỉ lấy đơn đang chờ xuất (Submitted E11=4 hoặc chưa có PL)
+    const submittedOrders = orders.filter(o => {
+      const status = String(o.orderStatus || '');
+      return status === '4' || status === 'Submitted' || status === 'Submitted.' || !o.pickingList;
+    });
+
+    const targetOrders = submittedOrders.length > 0 ? submittedOrders : orders;
+
+    targetOrders.forEach(order => {
       const totalPcs = Number(order.totalQuantity) || 1;
       const rawText = (order.rawOrderText || '').toUpperCase();
       const isYoga = rawText.includes('THẢM YOGA') || rawText.includes('YOGA') || (order.skus || []).some(s => s.sku.toUpperCase().includes('YOGA'));
 
       if (isYoga) {
         yogaOrders.push(order);
-      } else if (totalPcs === 1) {
+        return;
+      }
+
+      if (totalPcs === 1) {
         singlePcsOrders.push(order);
-      } else if ((order.skus && order.skus.length > 1) || rawText.includes('MIX')) {
-        mixOrders.push(order);
+        return;
+      }
+
+      // Đơn >= 2 PCS: Kiểm tra khu vực kệ
+      const skuList = order.skus && order.skus.length > 0 ? order.skus.map(s => s.sku) : [order.sku || order.orderNo];
+      const areaSet = new Set(skuList.map(sku => layNhomTuSKU(sku.trim(), skuGroups)));
+
+      if (areaSet.size === 1) {
+        const area = [...areaSet][0];
+        if (!sameAreaMultiPcsMap[area]) sameAreaMultiPcsMap[area] = [];
+        sameAreaMultiPcsMap[area].push(order);
       } else {
-        generalOrders.push(order);
+        mixMultiAreaOrders.push(order);
       }
     });
 
@@ -245,7 +269,8 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
           }
         });
 
-        const items = Object.values(skuMap);
+        // Sắp xếp SKU theo khu vực kệ để tối ưu đường đi nhặt (Walking path)
+        const items = Object.values(skuMap).sort((a, b) => a.area.localeCompare(b.area));
         const totalPcs = items.reduce((sum, item) => sum + item.quantityNeeded, 0);
 
         newBatches.push({
@@ -267,30 +292,67 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
       }
     };
 
-    // Phân bổ cho từng tài khoản theo chuyên môn
-    const tk1 = accounts.find(a => a.id === 'tk1') || accounts[0];
-    const tk2 = accounts.find(a => a.id === 'tk2') || accounts[1] || accounts[0];
-    const tk3 = accounts.find(a => a.id === 'tk3') || accounts[2] || accounts[0];
+    // Phân bổ thông minh cho các tài khoản theo chuyên môn
+    const tkSingle = accounts.find(a => a.assignedStrategy === 'SINGLE_PCS') || accounts[0];
+    const tkYoga = accounts.find(a => a.assignedStrategy === 'YOGA_ONLY') || accounts[1] || accounts[0];
+    const tkMultiArea = accounts.find(a => a.assignedStrategy === 'MULTI_PCS_SAME_AREA' || a.assignedStrategy === 'MULTI_PCS') || accounts[0];
+    const tkMix = accounts.find(a => a.assignedStrategy === 'MIX_ONLY' || a.assignedStrategy === 'MIX_MULTI_AREA') || accounts[2] || accounts[0];
 
+    // 1. Nhóm 1 PCS
     if (singlePcsOrders.length > 0) {
-      createBatchList(singlePcsOrders, 'SINGLE_PCS', 'Đơn 1 PCS (Nhặt Nhanh)', tk1.id, tk1.name, tk1.maxOrdersPerBatch || 20);
+      createBatchList(singlePcsOrders, 'SINGLE_PCS', '⚡ Đơn 1 PCS (Nhặt Nhanh)', tkSingle.id, tkSingle.name, tkSingle.maxOrdersPerBatch || 25);
     }
 
+    // 2. Nhóm Đơn >= 2 PCS CÙNG KHU VỰC KỆ
+    Object.entries(sameAreaMultiPcsMap).forEach(([area, areaOrders]) => {
+      createBatchList(areaOrders, 'MULTI_PCS_SAME_AREA', `📦 Đơn ≥2 PCS Cùng ${area}`, tkMultiArea.id, tkMultiArea.name, 20);
+    });
+
+    // 3. Nhóm Thảm Yoga
     if (yogaOrders.length > 0) {
-      createBatchList(yogaOrders, 'YOGA_ONLY', 'Thảm Yoga & Cồng Kềnh', tk2.id, tk2.name, tk2.maxOrdersPerBatch || 20);
+      createBatchList(yogaOrders, 'YOGA_ONLY', '🧘 Thảm Yoga & Cồng Kềnh', tkYoga.id, tkYoga.name, tkYoga.maxOrdersPerBatch || 20);
     }
 
-    if (mixOrders.length > 0) {
-      createBatchList(mixOrders, 'MIX_ONLY', 'Đơn Mix Chủng Loại', tk3.id, tk3.name, tk3.maxOrdersPerBatch || 15);
-    }
-
-    if (generalOrders.length > 0) {
-      createBatchList(generalOrders, 'MULTI_PCS', 'Đơn Nhiều PCS', tk1.id, tk1.name, 20);
+    // 4. Nhóm Đơn Mix Liên Khu Vực
+    if (mixMultiAreaOrders.length > 0) {
+      createBatchList(mixMultiAreaOrders, 'MIX_MULTI_AREA', '🔀 Đơn Mix Liên Khu Vực', tkMix.id, tkMix.name, tkMix.maxOrdersPerBatch || 15);
     }
 
     setBatches(newBatches);
-    showToast(`Đã phân bổ thành công ${newBatches.length} phiếu nhặt hàng cho các tài khoản!`);
+    showToast(`Đã phân bổ thành công ${newBatches.length} phiếu nhặt hàng (1 PCS, Cùng Kệ, Thảm Yoga, Mix)!`);
   }, [orders, skuGroups, accounts]);
+
+  // HÀM GỌI API WMS THẬT: TẠO PICKING LIST & CHUYỂN TRẠNG THÁI SUBMITTED (4) -> SHELVED (5)
+  const handleSyncWmsPickingList = useCallback(async (batchId: string) => {
+    const batch = batches.find(b => b.id === batchId);
+    if (!batch) return;
+
+    const account = accounts.find(a => a.id === batch.pickerId) || accounts[0];
+    const pickerId = account.pickerCode || '1'; // user_id WMS (ví dụ 117, 118, 119...)
+
+    try {
+      showToast('Đang gọi API YunWMS tạo Picking List và chuyển trạng thái...');
+      const res = await fetch('/api/wms/create-picking-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderCodes: batch.orderNos,
+          pickerId: pickerId,
+          pickingMode: 1,
+          orderType: 1
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.pickCode) {
+        setBatches(prev => prev.map(b => b.id === batchId ? { ...b, pickingCode: data.pickCode } : b));
+        showToast(`🎉 Thành công! WMS đã cấp mã ${data.pickCode} và chuyển các đơn sang Shelved (E11=5).`);
+      } else {
+        alert(data.message || 'Không thể tạo phiếu trên YunWMS');
+      }
+    } catch (e: any) {
+      alert('Lỗi kết nối YunWMS: ' + e.message);
+    }
+  }, [batches, accounts]);
 
   // Đánh dấu 1 món đã nhặt / chưa nhặt
   const handleToggleItemPicked = useCallback((batchId: string, sku: string) => {
@@ -438,6 +500,7 @@ export const MobilePickerModule: React.FC<MobilePickerModuleProps> = ({
           onUpdateAccounts={setAccounts}
           batches={batches}
           onGenerateBatchesFromOrders={handleGenerateBatches}
+          onSyncWmsPickingList={handleSyncWmsPickingList}
           onExitAdminMode={() => setIsLocked(true)}
         />
       ) : (
