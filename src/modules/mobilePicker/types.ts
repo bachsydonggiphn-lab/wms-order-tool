@@ -28,6 +28,24 @@ export interface PickerAccount {
   lastActiveTime?: string;
 }
 
+export interface AutoScheduleTimeSlot {
+  id: string;
+  time: string;             // '08:00', '13:30', '17:00'...
+  label: string;            // 'Đợt 1 - Sáng Sớm (Chính)', 'Đợt 2 - Chiều'...
+  enabled: boolean;
+}
+
+export interface AutoDispatchLogEntry {
+  id: string;
+  timestamp: string;
+  slotTime: string;
+  totalOrdersFetched: number;
+  batchesCreated: number;
+  pcsSummary: Record<string, number>;
+  status: 'SUCCESS' | 'NO_ORDERS' | 'FAILED';
+  message: string;
+}
+
 export interface AdminDispatchConfig {
   adminPin: string;             // Mật khẩu quản trị viên (Mặc định '8888')
   autoAssignNext: boolean;      // Tự động cấp list tiếp theo khi hoàn thành
@@ -36,6 +54,16 @@ export interface AdminDispatchConfig {
   enableProductImage: boolean;
   warehouseId: string;          // Mặc định '7' (VN02)
   syncToWmsOnComplete: boolean; // Tự động cập nhật WMS khi hoàn thành
+
+  // Cấu hình Tự Động Hóa Giờ In Đơn (8:00 AM hoặc giờ do người dùng cài)
+  enableAutoSchedule: boolean;          // Bật/tắt tự động hóa
+  scheduleSlots: AutoScheduleTimeSlot[];// Danh sách khung giờ người dùng cài
+  autoPrintThermal: boolean;            // Tự động in tem nhiệt 100x150 mm
+  autoSyncWms: boolean;                 // Tự động đồng bộ tạo Picking List trên WMS
+  batchSize1Pcs: number;                // Quy mô list 1 PCS (Mặc định 150 đơn)
+  batchSize2Pcs: number;                // Quy mô list 2 PCS (Mặc định 50 đơn)
+  batchSizeMultiPcs: number;            // Quy mô list Multi (Mặc định 25 đơn)
+  lastAutoRunTime?: string;
 }
 
 export interface PickingItemDetail {
