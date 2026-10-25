@@ -98,6 +98,36 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
     return;
   }
 
+  // 1.1 Endpoint lấy danh sách nhân viên nhặt hàng (Pickers) từ YunWMS
+  if (pathname === '/api/wms/pickers') {
+    const warehouseId = String(parsedUrl.query.warehouse || '7'); // 7 = VN02
+    getWmsSessionCookie('David', '12345abc')
+      .then(async (cookie) => {
+        const resp = await httpsRequest({
+          hostname: 'czwh.wms.yunwms.com',
+          path: `/shipment/pick/get-picker/whId/${warehouseId}`,
+          method: 'POST',
+          headers: {
+            'Cookie': cookie,
+            'User-Agent': 'Mozilla/5.0',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const json = JSON.parse(resp.body);
+        sendJson(res, 200, {
+          success: true,
+          pickers: json.data || []
+        });
+      })
+      .catch((err) => {
+        sendJson(res, 500, {
+          success: false,
+          message: err?.message || 'Không thể lấy danh sách nhân viên từ YunWMS'
+        });
+      });
+    return;
+  }
+
   // 2. Endpoint lấy danh sách đơn hàng
   if (pathname === '/api/wms/orders' && (req.method === 'POST' || req.method === 'GET')) {
     const handleOrders = async () => {

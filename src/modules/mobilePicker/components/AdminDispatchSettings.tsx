@@ -66,6 +66,62 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
     onUpdateAccounts([...accounts, newAcc]);
   };
 
+  const [isSyncingPickers, setIsSyncingPickers] = useState(false);
+
+  // Đồng bộ danh sách nhân viên từ hệ thống YunWMS (Kho VN02)
+  const handleSyncPickersFromWms = async () => {
+    setIsSyncingPickers(true);
+    try {
+      const res = await fetch(`/api/wms/pickers?warehouse=${config.warehouseId || '7'}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.pickers) && data.pickers.length > 0) {
+        const wmsPickers = data.pickers;
+        const newAccounts: PickerAccount[] = wmsPickers.map((p: any, idx: number) => {
+          const code = (p.user_code || '').trim();
+          const name = (p.user_name || code).trim();
+          let strategy: PickingStrategyType = 'ALL';
+          let role = 'Nhặt Chung';
+
+          if (code.toLowerCase().includes('duong') || code.toLowerCase().includes('package1')) {
+            strategy = 'SINGLE_PCS';
+            role = 'Chuyên Đơn 1 PCS';
+          } else if (code.toLowerCase().includes('minh') || code.toLowerCase().includes('package2')) {
+            strategy = 'YOGA_ONLY';
+            role = 'Chuyên Thảm Yoga';
+          } else if (code.toLowerCase().includes('package3') || code.toLowerCase().includes('package4')) {
+            strategy = 'MIX_ONLY';
+            role = 'Chuyên Đơn Mix';
+          }
+
+          return {
+            id: `wms_${p.user_id}`,
+            name: `${name} (${code})`,
+            pickerCode: p.user_id,
+            pin: String(1000 + idx),
+            roleLabel: role,
+            assignedStrategy: strategy,
+            maxOrdersPerBatch: config.defaultBatchSize,
+            maxPcsPerBatch: 30,
+            isActive: true,
+            status: 'IDLE' as const,
+            currentBatchId: null,
+            todayCompletedBatches: 0,
+            todayCompletedPcs: 0,
+          };
+        });
+
+        onUpdateAccounts(newAccounts);
+        alert(`✅ Đã đồng bộ thành công ${newAccounts.length} nhân viên thực tế từ hệ thống YunWMS (Kho VN02)!`);
+      } else {
+        alert(data.message || 'Không tìm thấy danh sách nhân viên trên YunWMS');
+      }
+    } catch (err: any) {
+      alert('Lỗi khi gọi API YunWMS: ' + err.message);
+    } finally {
+      setIsSyncingPickers(false);
+    }
+  };
+
   // Cập nhật từng tài khoản
   const handleAccountChange = (id: string, updates: Partial<PickerAccount>) => {
     onUpdateAccounts(
@@ -279,14 +335,27 @@ export const AdminDispatchSettings: React.FC<AdminDispatchSettingsProps> = ({
               <h4 className="font-bold text-sm text-slate-900">Danh Sách Tài Khoản Con Đi Lấy Hàng</h4>
               <p className="text-xs text-slate-500">Mỗi nhân viên sẽ có 1 tài khoản riêng với quy tắc nhặt chuyên môn</p>
             </div>
-            <button
-              type="button"
-              onClick={handleAddAccount}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Thêm Tài Khoản Mới</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isSyncingPickers}
+                onClick={handleSyncPickersFromWms}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 font-bold text-xs border border-slate-300 transition-all cursor-pointer"
+                title="Lấy danh sách 30 tài khoản nhân viên thật trên YunWMS Kho VN02"
+              >
+                <RefreshCw className={`w-4 h-4 text-indigo-600 ${isSyncingPickers ? 'animate-spin' : ''}`} />
+                <span>{isSyncingPickers ? 'Đang Tải...' : 'Đồng Bộ Từ YunWMS VN02'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddAccount}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Thêm Tài Khoản Mới</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">
