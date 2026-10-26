@@ -105,7 +105,7 @@ export function httpsRequest(options: https.RequestOptions, postData?: string | 
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(45000, () => {
+    req.setTimeout(90000, () => {
       req.destroy(new Error('Request timeout to czwh.wms.yunwms.com'));
     });
 

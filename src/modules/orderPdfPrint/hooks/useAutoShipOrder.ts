@@ -53,7 +53,33 @@ export function useAutoShipOrder(): UseAutoShipOrderReturn {
       return { success: false, message: 'Danh sách đơn rỗng', count: 0 };
     }
 
-    const payloadOrders = ordersToShip
+    // 1. Lọc bỏ các đơn đã có trạng thái Shipped (Đã xuất) từ trước để không gửi thừa gây timeout WMS
+    const unShippedOrders = ordersToShip.filter(o => {
+      const st = (o.status || '').toLowerCase();
+      const code = (o.statusCode || '').trim();
+      if (st.includes('shipped') || st.includes('đã xuất') || code === '8') {
+        return false;
+      }
+      return true;
+    });
+
+    // Nếu tất cả đơn đã chọn đều đã Shipped rồi
+    if (unShippedOrders.length === 0) {
+      const resultObj = {
+        success: true,
+        message: `Tất cả ${ordersToShip.length} đơn đã chọn đều đã ở trạng thái Shipped (Đã xuất kho) từ trước.`,
+        shippedCount: ordersToShip.length,
+        failedCount: 0,
+        timestamp: Date.now()
+      };
+      setLastShipResult(resultObj);
+      if (onSuccessCallback) {
+        onSuccessCallback(ordersToShip.map(p => (p.orderNo || p.refNo || '').trim()).filter(Boolean));
+      }
+      return { success: true, message: resultObj.message, count: ordersToShip.length };
+    }
+
+    const payloadOrders = unShippedOrders
       .map(o => ({
         orderCode: (o.orderNo || o.refNo || '').trim(),
         trackingNo: (o.trackingNo || o.attachmentFileName?.replace(/\.pdf$/i, '') || '').trim(),
@@ -65,7 +91,7 @@ export function useAutoShipOrder(): UseAutoShipOrderReturn {
       return { success: false, message: 'Không tìm thấy mã đơn hợp lệ để ký xuất', count: 0 };
     }
 
-    const targetWarehouse = ordersToShip.find(o => o.warehouseId)?.warehouseId || '7';
+    const targetWarehouse = unShippedOrders.find(o => o.warehouseId)?.warehouseId || '7';
 
     setIsShipping(true);
     try {
