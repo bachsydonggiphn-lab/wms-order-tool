@@ -22,11 +22,11 @@ export interface TelegramBotConfig {
 }
 
 export const DEFAULT_TELEGRAM_CONFIG: TelegramBotConfig = {
-  enabled: false,
+  enabled: true,
   botToken: '8867073708:AAFnVPbjWujCH66ygemKQa2VRKU1y5H6FBA',
   botUsername: 'WMSHCMBOT',
-  chatId: '',
-  chatTitle: '',
+  chatId: '6271188961',
+  chatTitle: 'David (@BachDong_DAVID)',
   intervalMinutes: 30,
   scheduleTimes: ['08:00', '11:30', '14:00', '17:00', '20:00'],
   mode: 'interval',
