@@ -835,16 +835,17 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           </div>
 
           {/* Right: 3 Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 overflow-x-auto no-scrollbar">
             {onOpenWmsSync && (
               <button
                 type="button"
                 onClick={onOpenWmsSync}
                 title="Kết nối trực tiếp YunWMS để lấy đơn Submitted"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-600/30 border border-blue-400/40 transition-all cursor-pointer hover:scale-102 active:scale-98 shrink-0"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-600/30 border border-blue-400/40 transition-all cursor-pointer hover:scale-102 active:scale-98 shrink-0"
               >
                 <span className="text-amber-300">⚡</span>
-                <span>Đồng Bộ YunWMS</span>
+                <span className="hidden sm:inline">Đồng Bộ YunWMS</span>
+                <span className="sm:hidden">YunWMS</span>
               </button>
             )}
 
@@ -853,10 +854,11 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                 type="button"
                 onClick={onLoadSample}
                 title="Tải 22 đơn hàng mẫu để kiểm tra tính năng"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-850 hover:bg-slate-750 text-slate-200 border border-slate-700 transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-850 hover:bg-slate-750 text-slate-200 border border-slate-700 transition-colors cursor-pointer shrink-0"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Dữ liệu mẫu</span>
+                <span className="hidden sm:inline">Dữ liệu mẫu</span>
+                <span className="sm:hidden">Mẫu</span>
               </button>
             )}
 
@@ -865,7 +867,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                 type="button"
                 onClick={onClear}
                 title="Xóa toàn bộ dữ liệu đơn hàng cũ"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 transition-colors cursor-pointer shrink-0"
               >
                 <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                 <span>Xóa</span>
@@ -1001,6 +1003,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             >
               <Settings className={`w-3.5 h-3.5 ${telegramConfig.enabled ? 'animate-spin text-sky-400' : 'text-slate-400'}`} style={{ animationDuration: '6s' }} />
               <span className="hidden sm:inline">Bot Telegram</span>
+              <span className="sm:hidden">Bot</span>
               {telegramConfig.enabled && (
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
               )}

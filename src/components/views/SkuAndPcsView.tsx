@@ -542,11 +542,11 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Action Bar: Search, Export, In Phiếu + Hiện Bảng SKU + Chuyên sâu + Copy */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-2.5">
         {/* Cụm chức năng Trái: Tìm mã đơn, SKU... | Xuất Excel (.xlsx) | In Phiếu 100×150 */}
-        <div className="flex items-center flex-wrap gap-2 w-full md:w-auto">
+        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 w-full sm:w-auto">
           {onSearchChange && (
-            <div className="relative flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:flex-none min-w-[130px]">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
@@ -562,11 +562,12 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
             <button
               type="button"
               onClick={onExportExcel}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
               title="Xuất file Excel (.xlsx)"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Xuất Excel (.xlsx)</span>
+              <span>Xuất Excel</span>
+              <span className="hidden sm:inline"> (.xlsx)</span>
             </button>
           )}
 
@@ -574,7 +575,7 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
             <button
               type="button"
               onClick={onPrintPreview}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer shrink-0"
               title="In phiếu gom hàng 100×150"
             >
               <Printer className="w-3.5 h-3.5 text-indigo-600" />
@@ -587,11 +588,11 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
         </div>
 
         {/* Cụm chức năng Phải: Hiện/Thu gọn Bảng SKU | Chế độ đóng gói chuyên sâu | Sao chép bảng SKU */}
-        <div className="flex items-center flex-wrap gap-2 justify-end w-full md:w-auto">
+        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 justify-start sm:justify-end w-full sm:w-auto">
           <button
             type="button"
             onClick={toggleSkuTableCollapsed}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border shadow-2xs ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border shadow-2xs shrink-0 ${
               isSkuTableCollapsed
                 ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
                 : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200'
@@ -616,20 +617,20 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('single_pcs')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-indigo-950 font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-400 text-indigo-950 font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-xs shrink-0"
             >
               <Zap className="w-3.5 h-3.5" />
-              <span>Chế độ đóng gói chuyên sâu (Cao ➔ Thấp)</span>
+              <span>Chế độ<span className="hidden sm:inline"> đóng gói</span> chuyên sâu</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           )}
 
           <button
             onClick={handleCopySkuTable}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-gray-50 rounded-xl text-xs font-medium text-gray-700 transition-colors cursor-pointer border border-gray-200 shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-gray-50 rounded-xl text-xs font-medium text-gray-700 transition-colors cursor-pointer border border-gray-200 shadow-2xs shrink-0"
           >
             {copiedKey === 'sku_table' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-gray-500" />}
-            <span>{copiedKey === 'sku_table' ? 'Đã sao chép bảng' : 'Sao chép bảng SKU'}</span>
+            <span>{copiedKey === 'sku_table' ? 'Đã sao chép' : 'Sao chép SKU'}</span>
           </button>
         </div>
       </div>

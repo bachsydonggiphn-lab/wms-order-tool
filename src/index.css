@@ -1,32 +1,41 @@
 @import "tailwindcss";
 
-/* ===== Mobile Utilities ===== */
+/* ===== Mobile & Responsive Utilities ===== */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
 /* Ẩn thanh cuộn nhưng vẫn cho phép scroll */
-.scrollbar-none {
+.scrollbar-none, .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-none::-webkit-scrollbar {
+.scrollbar-none::-webkit-scrollbar, .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-/* Cuộn mượt trên iOS / mobile */
+/* Cuộn mượt trên iOS / Android */
 * {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Ngăn zoom khi chạm vào input trên iOS (font-size >= 16px) */
-input[type="text"],
-input[type="search"],
-input[type="number"],
-select,
-textarea {
-  font-size: max(16px, 0.75rem);
-}
-
-/* Tối thiểu touch target 44x44px trên mobile */
+/* Ngăn zoom khó chịu khi chạm vào input trên mobile (font-size >= 16px trên màn hình nhỏ) */
 @media (max-width: 639px) {
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
   button, [role="button"] {
-    min-height: 36px;
+    min-height: 38px;
+    touch-action: manipulation;
   }
 }
+

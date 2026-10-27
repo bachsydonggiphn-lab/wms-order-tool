@@ -482,29 +482,29 @@ export const TelegramBotSettingsModal: React.FC<TelegramBotSettingsModalProps> =
         </div>
 
         {/* FOOTER ACTIONS */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-slate-800 bg-slate-950/70">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-3.5 sm:px-5 sm:py-3 border-t border-slate-800 bg-slate-950/70 gap-2">
           <button
             type="button"
             onClick={handleTestSend}
             disabled={isTesting}
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {isTesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 -rotate-12" />}
             <span>Gửi Tin Nhắn Thử Ngay</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center"
             >
               Đóng
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="px-5 py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-sky-600/30 flex items-center gap-1.5 cursor-pointer"
+              className="flex-1 sm:flex-none px-5 py-2.5 sm:py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-sky-600/30 flex items-center justify-center gap-1.5 cursor-pointer"
             >
               {saveSuccess ? <Check className="w-4 h-4 text-white" /> : null}
               <span>{saveSuccess ? 'Đã Lưu!' : 'Lưu Cài Đặt'}</span>

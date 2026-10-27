@@ -5,7 +5,20 @@ const config = {
   port: 24700,
   username: 'root',
   password: '8QRkN417-)++$JTT>$h@',
-  readyTimeout: 30000,
+  readyTimeout: 60000,
+  keepaliveInterval: 10000,
+  algorithms: {
+    serverHostKey: ['ssh-ed25519', 'ecdsa-sha2-nistp256', 'rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa'],
+    kex: [
+      'curve25519-sha256',
+      'curve25519-sha256@libssh.org',
+      'ecdh-sha2-nistp256',
+      'diffie-hellman-group-exchange-sha256',
+      'diffie-hellman-group14-sha256',
+      'diffie-hellman-group14-sha1'
+    ],
+    cipher: ['chacha20-poly1305@openssh.com', 'aes128-gcm', 'aes128-gcm@openssh.com', 'aes256-gcm', 'aes256-gcm@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr']
+  }
 };
 
 export function runRemoteCommands(commands) {
