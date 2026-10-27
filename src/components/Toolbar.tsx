@@ -32,7 +32,6 @@ export type ActiveTabType =
   | 'order_pdf_print'
   | 'hot_sku_slotting'
   | 'inventory_query'
-  | 'mobile_picker_app'
   | 'shipped_tracking'
   | 'picking_detail'
   | 'area_group'
@@ -549,6 +548,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   }, [carrierCounts, selectedCarrier, orders.length, setSelectedCarrier]);
 
+  // Mặc định luôn là Tất cả: Khi không có Picking List nào (ví dụ trạng thái Submitted E11=4), tự động reset về ''
+  React.useEffect(() => {
+    if (sortedPickingLists.length === 0 && selectedPickingList) {
+      setSelectedPickingList('');
+    } else if (selectedPickingList && !sortedPickingLists.includes(selectedPickingList)) {
+      setSelectedPickingList('');
+    }
+  }, [sortedPickingLists, selectedPickingList, setSelectedPickingList]);
+
   // Phân hệ chính đang mở (1 trong 3 Nút Tổng)
   const isHotSkuSlotting = activeTab === 'hot_sku_slotting';
   const isInventoryQuery = activeTab === 'inventory_query';
@@ -567,102 +575,105 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-xs mb-6 overflow-hidden">
+      {/* Top Filter and Actions Row */}
+      {(sortedPickingLists.length > 0 || activeTab !== 'sku_pcs') && (
+        <div className="p-3 sm:p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col gap-2.5">
+          {/* Picking List Selector - Ẩn hoàn toàn khi không có Picking List nào (ví dụ Submitted E11=4) */}
+          {sortedPickingLists.length > 0 && (
+            <div className="flex items-center flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-white px-2 sm:px-2.5 py-1.5 rounded-xl border border-gray-200 shadow-2xs shrink-0">
+                <Filter className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden sm:inline">Picking List (Ô V1):</span>
+                <span className="sm:hidden">List:</span>
+              </div>
 
-
-
-          {/* Top Filter and Actions Row */}
-          <div className="p-3 sm:p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col gap-2.5">
-        {/* Picking List Selector */}
-        <div className="flex items-center flex-wrap gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-white px-2 sm:px-2.5 py-1.5 rounded-xl border border-gray-200 shadow-2xs shrink-0">
-            <Filter className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="hidden sm:inline">Picking List (Ô V1):</span>
-            <span className="sm:hidden">List:</span>
-          </div>
-
-          <select
-            value={selectedPickingList}
-            onChange={(e) => setSelectedPickingList(e.target.value)}
-            className="flex-1 min-w-[160px] text-xs font-medium bg-white border border-gray-200 rounded-xl px-2 sm:px-3 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer"
-          >
-            <option value="">
-              {selectedCarrier !== 'ALL'
-                ? `-- Tất cả Lists (${currentCarrierTotalOrders} đơn ${activeCarriersSummary}) --`
-                : `-- Tất cả Picking Lists (${orders.length} đơn) --`}
-            </option>
-            {sortedPickingLists.map((pl) => {
-              const stat = pickingListStats[pl] || { totalInList: 0, carrierCount: 0 };
-              const label =
-                selectedCarrier !== 'ALL'
-                  ? `${pl} ➔ ${stat.carrierCount} đơn ${activeCarriersSummary} (${stat.totalInList} tổng)`
-                  : `${pl} ➔ ${stat.totalInList} đơn`;
-              return (
-                <option key={pl} value={pl}>
-                  {label}
+              <select
+                value={selectedPickingList}
+                onChange={(e) => setSelectedPickingList(e.target.value)}
+                className="flex-1 min-w-[160px] text-xs font-medium bg-white border border-gray-200 rounded-xl px-2 sm:px-3 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer"
+              >
+                <option value="">
+                  {selectedCarrier !== 'ALL'
+                    ? `-- Tất cả Lists (${currentCarrierTotalOrders} đơn ${activeCarriersSummary}) --`
+                    : `-- Tất cả Picking Lists (${orders.length} đơn) --`}
                 </option>
-              );
-            })}
-          </select>
+                {sortedPickingLists.map((pl) => {
+                  const stat = pickingListStats[pl] || { totalInList: 0, carrierCount: 0 };
+                  const label =
+                    selectedCarrier !== 'ALL'
+                      ? `${pl} ➔ ${stat.carrierCount} đơn ${activeCarriersSummary} (${stat.totalInList} tổng)`
+                      : `${pl} ➔ ${stat.totalInList} đơn`;
+                  return (
+                    <option key={pl} value={pl}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
 
-          {selectedPickingList && (
-            <button
-              onClick={() => setSelectedPickingList('')}
-              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline px-1 cursor-pointer shrink-0"
-            >
-              Tất cả
-            </button>
+              {selectedPickingList && (
+                <button
+                  onClick={() => setSelectedPickingList('')}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline px-1 cursor-pointer shrink-0"
+                >
+                  Tất cả
+                </button>
+              )}
+
+              {selectedPickingList && sortedPickingLists.includes(selectedPickingList) && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-bold shadow-2xs">
+                  <span>📦 {selectedPickingList}:</span>
+                  <span className="text-indigo-600">
+                    {selectedCarrier !== 'ALL'
+                      ? `${currentFilteredCount} đơn / ${totalInCurrentList} tổng`
+                      : `${totalInCurrentList} đơn`}
+                  </span>
+                </span>
+              )}
+            </div>
           )}
 
-          {selectedPickingList && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-bold shadow-2xs">
-              <span>📦 {selectedPickingList}:</span>
-              <span className="text-indigo-600">
-                {selectedCarrier !== 'ALL'
-                  ? `${currentFilteredCount} đơn / ${totalInCurrentList} tổng`
-                  : `${totalInCurrentList} đơn`}
-              </span>
-            </span>
+          {/* Search & Export Buttons - chỉ hiển thị ở đây khi không phải tab sku_pcs (vì tab sku_pcs đã đưa vào dòng Hiện Bảng SKU) */}
+          {activeTab !== 'sku_pcs' && (
+            <div className="flex items-center gap-2">
+              {/* Quick Search - flex-1 trên mobile */}
+              <div className="relative flex-1 sm:flex-none">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Tìm mã đơn, SKU..."
+                  className="text-xs pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48 md:w-56 shadow-2xs"
+                />
+              </div>
+
+              {/* Export Excel Button - icon only trên mobile nhỏ */}
+              <button
+                onClick={onExportExcel}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
+                title="Xuất file Excel"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Xuất Excel (.xlsx)</span>
+              </button>
+
+              {/* Print Button */}
+              <button
+                onClick={onPrintPreview}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer shrink-0"
+                title="In phiếu gom hàng"
+              >
+                <Printer className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden sm:inline">In Phiếu</span>
+                <span className="hidden lg:inline text-[10px] px-1.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-200">
+                  100×150
+                </span>
+              </button>
+            </div>
           )}
         </div>
-
-        {/* Search & Export Buttons - full width search on mobile */}
-        <div className="flex items-center gap-2">
-          {/* Quick Search - flex-1 trên mobile */}
-          <div className="relative flex-1 sm:flex-none">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm mã đơn, SKU..."
-              className="text-xs pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48 md:w-56 shadow-2xs"
-            />
-          </div>
-
-          {/* Export Excel Button - icon only trên mobile nhỏ */}
-          <button
-            onClick={onExportExcel}
-            className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
-            title="Xuất file Excel"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Xuất Excel (.xlsx)</span>
-          </button>
-
-          {/* Print Button */}
-          <button
-            onClick={onPrintPreview}
-            className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer shrink-0"
-            title="In phiếu gom hàng"
-          >
-            <Printer className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="hidden sm:inline">In Phiếu</span>
-            <span className="hidden lg:inline text-[10px] px-1.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-200">
-              100×150
-            </span>
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Row 2: Chọn Đơn Vị Vận Chuyển */}
       <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-indigo-50/40 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-2 sm:gap-3">
@@ -949,7 +960,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       </div>
 
       {/* Dynamic List & Carrier Breakdown Insights Bar (Thống kê chi tiết List & ĐVVC) */}
-      {(selectedCarrier !== 'ALL' || selectedPickingList) && (
+      {(selectedCarrier !== 'ALL' || (selectedPickingList && sortedPickingLists.includes(selectedPickingList))) && (
         <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-50/80 via-blue-50/50 to-white border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs animate-in fade-in slide-in-from-top-1 duration-150">
           {/* Case A: User selected a Carrier (e.g. SPX or JNT or GHN_ALL or SPX_ALL or multi-carrier merge) */}
           {selectedCarrier !== 'ALL' && (
@@ -1053,7 +1064,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           )}
 
           {/* Case B: Carrier is ALL but a Picking List is selected */}
-          {selectedCarrier === 'ALL' && selectedPickingList && (
+          {selectedCarrier === 'ALL' && selectedPickingList && sortedPickingLists.includes(selectedPickingList) && (
             <div className="flex items-center flex-wrap gap-2">
               <span className="font-bold text-gray-800 flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-amber-600" />

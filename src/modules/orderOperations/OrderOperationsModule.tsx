@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Package, FileSpreadsheet, PlusCircle } from 'lucide-react';
 import { RawOrderRow, SkuGroupsMap, CarrierCode } from '../../types';
@@ -56,9 +56,17 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
   const [selectedCarrier, setSelectedCarrier] = useState<CarrierCode>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
+  const [customPrintOrders, setCustomPrintOrders] = useState<RawOrderRow[] | null>(null);
   const [internalIsClearModalOpen, setInternalIsClearModalOpen] = useState<boolean>(false);
   const [internalIsWmsModalOpen, setInternalIsWmsModalOpen] = useState<boolean>(false);
   const [forceOpenInput, setForceOpenInput] = useState<boolean>(false);
+  const [currentWmsStatus, setCurrentWmsStatus] = useState<string>(() => {
+    try {
+      return localStorage.getItem('wms_auto_refresh_status') || '4';
+    } catch {
+      return '4';
+    }
+  });
 
   const isClearModalOpen = externalIsClearModalOpen !== undefined ? externalIsClearModalOpen : internalIsClearModalOpen;
   const setIsClearModalOpen = externalSetIsClearModalOpen || setInternalIsClearModalOpen;
@@ -76,6 +84,13 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
     });
     return Array.from(set).sort();
   }, [orders]);
+
+  // Mặc định luôn là Tất cả: Tự động reset về '' nếu danh sách đơn không có Picking List nào (chỉ reset khi modal in không mở)
+  useEffect(() => {
+    if (!isPrintModalOpen && selectedPickingList && (pickingLists.length === 0 || !pickingLists.includes(selectedPickingList))) {
+      setSelectedPickingList('');
+    }
+  }, [pickingLists, selectedPickingList, isPrintModalOpen]);
 
   // Thống kê số lượng đơn theo từng ĐVVC
   const carrierCounts = useMemo(() => {
@@ -95,7 +110,7 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
       BEST: 0,
       OTHER: 0,
     };
-    const filtered = selectedPickingList
+    const filtered = selectedPickingList && pickingLists.includes(selectedPickingList)
       ? orders.filter((o) => o.pickingList === selectedPickingList)
       : orders;
 
@@ -167,18 +182,41 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
           onNewOrders={handleNewRealTimeOrders}
           onNewOrdersDetected={handleNewRealTimeOrders}
           onReloadStatusOrders={handleReloadStatusOrders}
+          onSwitchStatus={(targetStatus) => {
+            setCurrentWmsStatus(targetStatus);
+            if (targetStatus === '4') {
+              onSelectSubTab('sku_pcs');
+              setSelectedPickingList('');
+            } else if (targetStatus === '5') {
+              onSelectSubTab('picking_detail');
+              setSelectedPickingList('');
+            } else if (targetStatus === '8') {
+              onSelectSubTab('shipped_tracking');
+              setSelectedPickingList('');
+            }
+          }}
           skuGroups={skuGroups}
+          pickingLists={pickingLists}
+          onLoadSample={onLoadSampleData}
+          onClear={() => setIsClearModalOpen(true)}
+          onOpenWmsSync={() => setIsWmsModalOpen(true)}
         />
 
-        {/* Data Input Section */}
-        <DataInputSection
-          onDataLoaded={handleDataLoaded}
-          skuGroups={skuGroups}
-          onClearData={() => setIsClearModalOpen(true)}
-          ordersCount={orders.length}
-          onOpenWmsModal={() => setIsWmsModalOpen(true)}
-          forceOpen={forceOpenInput}
-        />
+        {/* Data Input Section: Ẩn hoàn toàn khi đã có dữ liệu đơn hàng (người dùng làm việc trực tiếp qua YunWMS) */}
+        {(orders.length === 0 || forceOpenInput) && (
+          <DataInputSection
+            onDataLoaded={(newOrders) => {
+              setForceOpenInput(false);
+              handleDataLoaded(newOrders);
+            }}
+            skuGroups={skuGroups}
+            onClearData={() => setIsClearModalOpen(true)}
+            ordersCount={orders.length}
+            onOpenWmsModal={() => setIsWmsModalOpen(true)}
+            forceOpen={forceOpenInput}
+            onClose={() => setForceOpenInput(false)}
+          />
+        )}
 
         {/* Toolbar & Filter Bar */}
         <div className="w-full">
@@ -251,7 +289,21 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
                 selectedPickingList={selectedPickingList}
                 selectedCarrier={selectedCarrier}
                 searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                onExportExcel={handleExportExcel}
+                onPrintPreview={() => setIsPrintModalOpen(true)}
                 onNavigateTab={onSelectSubTab}
+                onOpenPrintModal={(pl, customOrders) => {
+                  if (pl) setSelectedPickingList(pl);
+                  if (customOrders && customOrders.length > 0) {
+                    setCustomPrintOrders(customOrders);
+                  } else {
+                    setCustomPrintOrders(null);
+                  }
+                  setIsPrintModalOpen(true);
+                }}
+                onOrdersChange={onOrdersChange}
+                currentWmsStatus={currentWmsStatus}
               />
             </div>
           )}
@@ -379,8 +431,11 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
         {/* Printable Modal */}
         <PrintPickingModal
           isOpen={isPrintModalOpen}
-          onClose={() => setIsPrintModalOpen(false)}
-          orders={orders}
+          onClose={() => {
+            setIsPrintModalOpen(false);
+            setCustomPrintOrders(null);
+          }}
+          orders={customPrintOrders || orders}
           selectedPickingList={selectedPickingList}
           selectedCarrier={selectedCarrier}
           skuGroups={skuGroups}

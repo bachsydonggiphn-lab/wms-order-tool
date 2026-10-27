@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Radio,
   Volume2,
@@ -12,11 +12,14 @@ import {
   Package,
   Layers,
   Truck,
-  Check
+  Check,
+  FileSpreadsheet,
+  Trash2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { RawOrderRow, SkuGroupsMap } from '../types';
 import { playOrderAlertSound } from '../utils/audioAlert';
+import { tinhTongHopSKU } from '../utils/orderProcessor';
 
 export interface RealTimeTrackerBarProps {
   orders?: RawOrderRow[];
@@ -24,7 +27,14 @@ export interface RealTimeTrackerBarProps {
   onNewOrders?: (newOrders: RawOrderRow[]) => void;
   onNewOrdersDetected?: (newOrders: RawOrderRow[]) => void;
   onReloadStatusOrders?: (orders: RawOrderRow[], statusName?: string) => void;
+  onSwitchStatus?: (targetStatus: WmsStatusKey) => void;
   skuGroups?: SkuGroupsMap;
+  pickingLists?: string[];
+  totalSkus?: number;
+  totalPcs?: number;
+  onOpenWmsSync?: () => void;
+  onLoadSample?: () => void;
+  onClear?: () => void;
 }
 
 export type WmsStatusKey = '5' | '4' | '8';
@@ -79,10 +89,39 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   onNewOrders,
   onNewOrdersDetected,
   onReloadStatusOrders,
+  onSwitchStatus,
   skuGroups = {},
+  pickingLists,
+  totalSkus: propTotalSkus,
+  totalPcs: propTotalPcs,
+  onOpenWmsSync,
+  onLoadSample,
+  onClear,
 }) => {
   const effectiveOrders = orders || currentOrders || [];
   const effectiveOnNewOrders = onNewOrders || onNewOrdersDetected;
+
+  // Tính toán các thông số tổng hợp Đơn, SKU, PCS, Lists
+  const skuSummary = useMemo(() => {
+    return tinhTongHopSKU(effectiveOrders, '', 'ALL');
+  }, [effectiveOrders]);
+
+  const totalSkus = propTotalSkus !== undefined ? propTotalSkus : Object.keys(skuSummary).length;
+  const totalPcs =
+    propTotalPcs !== undefined
+      ? propTotalPcs
+      : Object.values(skuSummary).reduce((a: number, b: number) => a + b, 0);
+
+  const totalLists = useMemo(() => {
+    if (pickingLists !== undefined) return pickingLists.length;
+    const set = new Set<string>();
+    effectiveOrders.forEach((o) => {
+      if (o.pickingList && o.pickingList.trim() !== '') {
+        set.add(o.pickingList.trim());
+      }
+    });
+    return set.size;
+  }, [pickingLists, effectiveOrders]);
 
   // Trạng thái bắt live thời gian thực: Tự động khôi phục từ localStorage hoặc mặc định BẬT
   const [isLive, setIsLive] = useState<boolean>(() => {
@@ -653,6 +692,9 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   const handleSwitchStatus = (targetStatus: WmsStatusKey) => {
     setIsLive(true);
     switchStatusAndFetch(targetStatus);
+    if (onSwitchStatus) {
+      onSwitchStatus(targetStatus);
+    }
   };
 
   const handleToggleLive = () => {
@@ -668,7 +710,89 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
 
   return (
     <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border-b border-indigo-900/60 shadow-lg lg:sticky lg:top-14 z-20">
-      <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-2">
+      <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-2.5 space-y-2">
+        {/* ROW 1: 4 STATS (ĐƠN, SKU, PCS, LISTS) & 3 ACTIONS (ĐỒNG BỘ YUNWMS, DỮ LIỆU MẪU, XÓA) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-800/80">
+          {/* Left: 4 Stat Cards */}
+          <div className="grid grid-cols-4 sm:flex items-center gap-1.5 sm:gap-2.5 w-full sm:w-auto">
+            {/* ĐƠN */}
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-xs shadow-indigo-400"></span>
+              <div>
+                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">Đơn</div>
+                <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{effectiveOrders.length}</div>
+              </div>
+            </div>
+
+            {/* SKU */}
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-400"></span>
+              <div>
+                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">SKU</div>
+                <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{totalSkus}</div>
+              </div>
+            </div>
+
+            {/* PCS */}
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
+              <span className="w-2 h-2 rounded-full bg-purple-500 shadow-xs shadow-purple-400"></span>
+              <div>
+                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">PCS</div>
+                <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{totalPcs}</div>
+              </div>
+            </div>
+
+            {/* LISTS */}
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
+              <span className="w-2 h-2 rounded-full bg-amber-400 shadow-xs shadow-amber-300"></span>
+              <div>
+                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">Lists</div>
+                <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{totalLists}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: 3 Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            {onOpenWmsSync && (
+              <button
+                type="button"
+                onClick={onOpenWmsSync}
+                title="Kết nối trực tiếp YunWMS để lấy đơn Submitted"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-600/30 border border-blue-400/40 transition-all cursor-pointer hover:scale-102 active:scale-98 shrink-0"
+              >
+                <span className="text-amber-300">⚡</span>
+                <span>Đồng Bộ YunWMS</span>
+              </button>
+            )}
+
+            {onLoadSample && (
+              <button
+                type="button"
+                onClick={onLoadSample}
+                title="Tải 22 đơn hàng mẫu để kiểm tra tính năng"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-850 hover:bg-slate-750 text-slate-200 border border-slate-700 transition-colors cursor-pointer shrink-0"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Dữ liệu mẫu</span>
+              </button>
+            )}
+
+            {effectiveOrders.length > 0 && onClear && (
+              <button
+                type="button"
+                onClick={onClear}
+                title="Xóa toàn bộ dữ liệu đơn hàng cũ"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 transition-colors cursor-pointer shrink-0"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Xóa</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ROW 2: CONTROLS & TRẠNG THÁI */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-3">
           
           {/* CỤM 1: BỘ 3 NÚT CHUYỂN TRẠNG THÁI VỚI SỐ LƯỢNG REALTIME */}
@@ -929,25 +1053,6 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
             </button>
           </div>
         </div>
-
-        {/* Info banner - truncate trên mobile */}
-        {lastCheckTime && (
-          <div className="mt-1.5 pt-1.5 border-t border-indigo-900/40 flex items-center gap-2 text-[10px] sm:text-[11px] overflow-hidden">
-            <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
-              <CheckCircle2 className="w-3 h-3" />
-            </span>
-            <span className="text-emerald-300 truncate">
-              {currentConfig.shortLabel}: {totalInWms?.toLocaleString() || '?'} đơn WMS | {effectiveOrders.length.toLocaleString()} hiển thị | {lastCheckTime}
-            </span>
-            <span className={`hidden sm:inline px-1.5 py-0.5 rounded-md font-mono shrink-0 ${
-              autoReplace
-                ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
-            }`}>
-              {autoReplace ? `Xóa&Kéo mỗi ${intervalSec}s` : `Cộng dồn mỗi ${intervalSec}s`}
-            </span>
-          </div>
-        )}
 
       </div>
     </div>

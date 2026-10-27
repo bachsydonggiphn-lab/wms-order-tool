@@ -1,4 +1,4 @@
-import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck, Flame, Warehouse, Printer, Smartphone } from 'lucide-react';
+import { Package, Layers, Sparkles, MapPin, FileSpreadsheet, Trash2, Truck, Flame, Warehouse, Printer } from 'lucide-react';
 import { RawOrderRow, CarrierCode } from '../types';
 import { GKP_LOGO_PNG_BASE64 } from '../utils/logoBase64';
 import { ActiveTabType } from './Toolbar';
@@ -33,8 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   const isOrderOps =
     activeTab !== 'hot_sku_slotting' &&
     activeTab !== 'inventory_query' &&
-    activeTab !== 'order_pdf_print' &&
-    activeTab !== 'mobile_picker_app';
+    activeTab !== 'order_pdf_print';
 
   return (
     <header className="bg-white border-b border-gray-200 shrink-0 sticky top-0 z-30 shadow-xs">
@@ -154,104 +153,8 @@ export const Header: React.FC<HeaderProps> = ({
                 Tìm & In 1 Lần
               </span>
             </button>
-
-            {/* 5. Chế Độ Đi Nhặt Kho (Mobile Picker App) */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('mobile_picker_app')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0 ${
-                activeTab === 'mobile_picker_app'
-                  ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-sm ring-2 ring-purple-200'
-                  : 'text-slate-700 hover:text-purple-900 hover:bg-white/80'
-              }`}
-            >
-              <Smartphone className="w-4 h-4 shrink-0" />
-              <span className="sm:hidden">5. Đi Nhặt</span>
-              <span className="hidden sm:inline">5. Chế Độ Đi Nhặt Kho (Mobile App)</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
-                  activeTab === 'mobile_picker_app' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
-                }`}
-              >
-                App Kho
-              </span>
-            </button>
           </div>
         </div>
-
-        {/* Row 2: Stats Cards & Các Nút Thao Tác (Đồng Bộ, Dữ Liệu Mẫu, Xóa Đưa Xuống Dưới) - Chỉ hiển thị khi đang trong phân hệ 1 */}
-        {isOrderOps && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mt-2.5 pt-2 border-t border-slate-100">
-            {/* Left: Stats Cards - 4 cột đều trên mobile */}
-            <div className="grid grid-cols-4 sm:flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-600 shrink-0"></div>
-                <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">Đơn</div>
-                  <div className="text-xs font-bold text-gray-900 leading-tight">{orders.length}</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-600 shrink-0"></div>
-                <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">SKU</div>
-                  <div className="text-xs font-bold text-gray-900 leading-tight">{totalSkus}</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600 shrink-0"></div>
-                <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">PCS</div>
-                  <div className="text-xs font-bold text-gray-900 leading-tight">{totalPcs}</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 shadow-2xs">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 shrink-0"></div>
-                <div>
-                  <div className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-tight">Lists</div>
-                  <div className="text-xs font-bold text-gray-900 leading-tight">{pickingLists.length}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Các nút thao tác đã đưa xuống dưới */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {onOpenWmsSync && (
-                <button
-                  onClick={onOpenWmsSync}
-                  title="Kết nối trực tiếp YunWMS để lấy đơn Submitted"
-                  className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs transition-all cursor-pointer"
-                >
-                  <span className="text-amber-300">⚡</span>
-                  <span>Đồng Bộ YunWMS</span>
-                </button>
-              )}
-
-              <button
-                onClick={onLoadSample}
-                title="Tải dữ liệu mẫu"
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-colors shadow-xs cursor-pointer"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Dữ liệu mẫu</span>
-              </button>
-
-              {orders.length > 0 && (
-                <button
-                  onClick={onClear}
-                  title="Xóa toàn bộ dữ liệu đơn hàng cũ"
-                  className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-colors cursor-pointer shadow-2xs"
-                >
-                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Xóa</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </header>
   );

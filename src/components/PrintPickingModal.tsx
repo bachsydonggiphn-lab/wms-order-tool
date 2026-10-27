@@ -22,7 +22,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { RawOrderRow, SkuGroupsMap, CarrierCode } from '../types';
-import { xuLyGopPCS, layNhomTuSKU, CARRIER_CONFIG, locDonHang } from '../utils/orderProcessor';
+import { xuLyGopPCS, layNhomTuSKU, CARRIER_CONFIG, locDonHang, xacDinhDonViVanChuyen } from '../utils/orderProcessor';
 import { DEFAULT_AREA_ORDER } from '../utils/skuData';
 import { BarcodeView } from './BarcodeView';
 
@@ -77,7 +77,14 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
   const [previewPageIndex, setPreviewPageIndex] = useState<number>(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  // Khi modal mở ra, đồng bộ lại picking list đang chọn
+  // Tải bổ sung đơn từ WMS nếu picking list đang chọn chưa có trong orders hoặc thiếu đơn
+  const [remotePlOrders, setRemotePlOrders] = useState<RawOrderRow[]>([]);
+  const [isLoadingRemotePl, setIsLoadingRemotePl] = useState<boolean>(false);
+
+  // Bộ lọc ĐVVC trong Modal in: Mặc định là 'ALL' (in toàn bộ đơn của Picking List)
+  const [modalCarrier, setModalCarrier] = useState<string>('ALL');
+
+  // Khi modal mở ra, đồng bộ lại picking list đang chọn và reset bộ lọc hãng về ALL
   React.useEffect(() => {
     if (selectedPickingList) {
       setActivePickingList(selectedPickingList);
@@ -85,17 +92,102 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
     } else {
       setPrintScope('all_batch');
     }
+    setModalCarrier('ALL');
   }, [selectedPickingList, isOpen]);
 
-  // Lọc tập dữ liệu theo ĐVVC (nếu có lọc)
-  const carrierFilteredOrders = useMemo(() => {
-    return locDonHang(orders, '', selectedCarrier);
-  }, [orders, selectedCarrier]);
+  // Dữ liệu đơn hàng hiệu lực: Tự động ghép đơn từ cache Shelved (5) nếu targetPl chưa có hoặc chưa đầy đủ trong orders
+  const effectiveOrders = useMemo(() => {
+    const plToFind = (activePickingList || selectedPickingList || '').trim().toUpperCase();
+    if (!plToFind || plToFind === 'TẤT CẢ' || plToFind === 'CHƯA GÁN PL') {
+      return orders;
+    }
+
+    // Kiểm tra trong sessionStorage cache của Shelved (5)
+    try {
+      const cached = sessionStorage.getItem('wms_cache_orders_5');
+      if (cached) {
+        const cachedOrders: RawOrderRow[] = JSON.parse(cached);
+        const cachedMatched = cachedOrders.filter(
+          (o) => (o.pickingList || '').trim().toUpperCase() === plToFind
+        );
+        const inMemoryMatched = orders.filter(
+          (o) => (o.pickingList || '').trim().toUpperCase() === plToFind
+        );
+        // Nếu trong cache WMS có số đơn nhiều hơn số đơn hiện có trong memory:
+        if (cachedMatched.length > inMemoryMatched.length) {
+          const withoutTargetPl = orders.filter(
+            (o) => (o.pickingList || '').trim().toUpperCase() !== plToFind
+          );
+          return [...withoutTargetPl, ...cachedMatched];
+        }
+      }
+    } catch {}
+
+    return orders;
+  }, [orders, activePickingList, selectedPickingList]);
+
+  // Luôn chủ động đồng bộ từ WMS Status 5 khi modal mở cho targetPl để đảm bảo số đơn & SKU 100% khớp chuẩn WMS
+  React.useEffect(() => {
+    const plToFind = (activePickingList || selectedPickingList || '').trim().toUpperCase();
+    if (!isOpen || !plToFind || plToFind === 'TẤT CẢ' || plToFind === 'CHƯA GÁN PL') {
+      setRemotePlOrders([]);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingRemotePl(true);
+
+    fetch('/api/wms/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouse: '7',
+        status: '5',
+        pageSize: 1000,
+        username: 'David',
+        password: '12345abc',
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.success && Array.isArray(d.orders)) {
+          try {
+            sessionStorage.setItem('wms_cache_orders_5', JSON.stringify(d.orders.slice(0, 5000)));
+          } catch {}
+          const matched = d.orders.filter(
+            (o: RawOrderRow) => (o.pickingList || '').trim().toUpperCase() === plToFind
+          );
+          const currentCount = effectiveOrders.filter(
+            (o) => (o.pickingList || '').trim().toUpperCase() === plToFind
+          ).length;
+          if (matched.length > currentCount) {
+            setRemotePlOrders(matched);
+          }
+        }
+      })
+      .catch((err) => console.error('Lỗi nạp đơn PL từ WMS:', err))
+      .finally(() => {
+        if (!cancelled) setIsLoadingRemotePl(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, activePickingList, selectedPickingList, effectiveOrders]);
+
+  const allAvailableOrders = useMemo(() => {
+    if (remotePlOrders.length === 0) return effectiveOrders;
+    const plToFind = (activePickingList || selectedPickingList || '').trim().toUpperCase();
+    const withoutTargetPl = effectiveOrders.filter(
+      (o) => (o.pickingList || '').trim().toUpperCase() !== plToFind
+    );
+    return [...withoutTargetPl, ...remotePlOrders];
+  }, [effectiveOrders, remotePlOrders, activePickingList, selectedPickingList]);
 
   // Danh sách các Picking List có trong tập dữ liệu
   const allPickingLists = useMemo(() => {
     const map = new Map<string, RawOrderRow[]>();
-    carrierFilteredOrders.forEach((o) => {
+    allAvailableOrders.forEach((o) => {
       const pl = o.pickingList && o.pickingList.trim() !== '' ? o.pickingList.trim() : 'Chưa gán PL';
       if (!map.has(pl)) {
         map.set(pl, []);
@@ -105,7 +197,32 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
     return Array.from(map.entries())
       .map(([plNo, ords]) => ({ plNo, orders: ords }))
       .sort((a, b) => a.plNo.localeCompare(b.plNo));
-  }, [carrierFilteredOrders]);
+  }, [allAvailableOrders]);
+
+  // Danh sách các hãng vận chuyển có trong Picking List hiện tại
+  const carrierOptionsInCurrentPl = useMemo(() => {
+    const targetPl = (activePickingList || allPickingLists[0]?.plNo || '').trim().toUpperCase();
+    const plOrders = allAvailableOrders.filter((o) => {
+      const pl = (o.pickingList || '').trim().toUpperCase();
+      return pl === targetPl;
+    });
+    const map = new Map<string, number>();
+    plOrders.forEach((o) => {
+      const c = (o.carrier || (typeof xacDinhDonViVanChuyen === 'function' ? xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText).carrier : 'OTHER')) as CarrierCode;
+      map.set(c, (map.get(c) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([code, count]) => ({
+      code,
+      label: CARRIER_CONFIG[code as CarrierCode]?.shortName || code,
+      count,
+    }));
+  }, [allAvailableOrders, activePickingList, allPickingLists]);
+
+  // Lọc tập dữ liệu theo ĐVVC (nếu người dùng chọn lọc trong modal, mặc định ALL)
+  const carrierFilteredOrders = useMemo(() => {
+    if (modalCarrier === 'ALL') return allAvailableOrders;
+    return locDonHang(allAvailableOrders, '', modalCarrier as CarrierCode);
+  }, [allAvailableOrders, modalCarrier]);
 
   // Khởi tạo danh sách chọn hàng loạt mặc định là tất cả
   React.useEffect(() => {
@@ -116,9 +233,9 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
 
   // Tên ĐVVC hiển thị
   const carrierDisplayName = useMemo(() => {
-    if (selectedCarrier === 'ALL') return 'TẤT CẢ ĐVVC';
-    return CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier;
-  }, [selectedCarrier]);
+    if (modalCarrier === 'ALL') return 'TẤT CẢ ĐVVC';
+    return CARRIER_CONFIG[modalCarrier as CarrierCode]?.shortName || modalCarrier;
+  }, [modalCarrier]);
 
   // Số lượng SKU tối đa trên 1 tem 100x150 mm trước khi ngắt trang (phụ thuộc độ gọn dòng và có chữ ký/chân tem hay không)
   const MAX_SKU_PER_LABEL = useMemo(() => {
@@ -202,9 +319,18 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
       const targetPl = activePickingList || allPickingLists[0]?.plNo || 'TẤT CẢ';
       const plOrders = carrierFilteredOrders.filter((o) => {
         const pl = o.pickingList && o.pickingList.trim() !== '' ? o.pickingList.trim() : 'Chưa gán PL';
-        return pl === targetPl;
+        return pl.toUpperCase() === targetPl.toUpperCase();
       });
-      buildLabelPagesForOrders(targetPl, plOrders.length > 0 ? plOrders : carrierFilteredOrders);
+
+      // QUAN TRỌNG: Nếu chọn in một Picking List cụ thể (khác 'TẤT CẢ'), TUYỆT ĐỐI KHÔNG FALLBACK sang toàn bộ đơn kho
+      const isSpecificPl = targetPl !== 'TẤT CẢ' && targetPl !== 'Chưa gán PL';
+      const ordersToBuild = isSpecificPl
+        ? plOrders
+        : (plOrders.length > 0 ? plOrders : carrierFilteredOrders);
+
+      if (ordersToBuild.length > 0) {
+        buildLabelPagesForOrders(targetPl, ordersToBuild);
+      }
     } else if (printScope === 'all_batch') {
       // In hàng loạt từng Picking List đã chọn
       allPickingLists.forEach(({ plNo, orders: plOrds }) => {
@@ -607,6 +733,38 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
             </button>
           </div>
 
+          {/* Group 2.5: Lọc ĐVVC trong Picking List */}
+          {carrierOptionsInCurrentPl.length > 1 && printScope === 'current' && (
+            <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-300 shadow-2xs">
+              <span className="text-[11px] font-bold text-slate-500 px-2">ĐVVC:</span>
+              <button
+                type="button"
+                onClick={() => setModalCarrier('ALL')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer text-xs ${
+                  modalCarrier === 'ALL'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                Tất Cả ({carrierOptionsInCurrentPl.reduce((sum, c) => sum + c.count, 0)})
+              </button>
+              {carrierOptionsInCurrentPl.map((c) => (
+                <button
+                  key={c.code}
+                  type="button"
+                  onClick={() => setModalCarrier(c.code)}
+                  className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer text-xs ${
+                    modalCarrier === c.code
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {c.label} ({c.count})
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Group 3: Tùy Chọn Chi Tiết */}
           <div className="flex items-center gap-2 flex-wrap">
             <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-slate-700 font-semibold cursor-pointer shadow-2xs">
@@ -817,11 +975,25 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
             <div className="printable-root w-full flex flex-col items-center gap-8 print:gap-0 print:block">
               {labelPages.length === 0 ? (
                 <div className="bg-white p-12 rounded-3xl text-center text-slate-500 shadow-lg max-w-md">
-                  <Info className="w-10 h-10 text-amber-500 mx-auto mb-3" />
-                  <p className="font-bold text-slate-800 mb-1">Không có dữ liệu nhặt hàng để in</p>
-                  <p className="text-xs text-slate-500">
-                    Vui lòng kiểm tra lại bộ lọc Picking List hoặc Đơn Vị Vận Chuyển.
-                  </p>
+                  {isLoadingRemotePl ? (
+                    <>
+                      <div className="w-9 h-9 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                      <p className="font-bold text-slate-800 mb-1">Đang kéo đơn {activePickingList} từ WMS...</p>
+                      <p className="text-xs text-slate-500">
+                        Hệ thống đang đồng bộ dữ liệu đợt nhặt hàng từ cổng YunWMS.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Info className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+                      <p className="font-bold text-slate-800 mb-1">Không có dữ liệu nhặt hàng để in</p>
+                      <p className="text-xs text-slate-500">
+                        {activePickingList
+                          ? `Không tìm thấy đơn hàng nào thuộc đợt nhặt ${activePickingList}.`
+                          : 'Vui lòng kiểm tra lại bộ lọc Picking List hoặc Đơn Vị Vận Chuyển.'}
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : (
                 labelPages.map((label, idx) => {

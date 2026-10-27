@@ -168,9 +168,7 @@ export const PickingListDetailView: React.FC<PickingListDetailViewProps> = ({
 
   // Cập nhật khi props selectedPickingList thay đổi từ thanh công cụ
   useEffect(() => {
-    if (selectedPickingList !== undefined && selectedPickingList !== '') {
-      setActivePlFilter(selectedPickingList);
-    }
+    setActivePlFilter(selectedPickingList || '');
   }, [selectedPickingList]);
 
   // Danh sách các Picking List có chứa đơn của ĐVVC đang chọn
@@ -199,19 +197,15 @@ export const PickingListDetailView: React.FC<PickingListDetailViewProps> = ({
     });
   }, [pickingListStats, selectedCarrier, showOnlyCarrierLists, searchTerm]);
 
-  // Tự động chọn PL đầu tiên nếu PL hiện tại không có trong danh sách lọc
+  // Kiểm tra nếu activePlFilter không còn trong danh sách lọc thì reset về '' (Mặc định là Tất cả)
   useEffect(() => {
-    if (filteredPlList.length > 0) {
+    if (activePlFilter && filteredPlList.length > 0) {
       const exists = filteredPlList.some((it) => it.pickingListNo === activePlFilter);
-      if (!exists && activePlFilter !== '') {
-        setActivePlFilter(filteredPlList[0].pickingListNo);
-        onSelectPickingList(filteredPlList[0].pickingListNo);
-      } else if (!activePlFilter && filteredPlList.length > 0) {
-        setActivePlFilter(filteredPlList[0].pickingListNo);
-        onSelectPickingList(filteredPlList[0].pickingListNo);
+      if (!exists) {
+        setActivePlFilter('');
       }
     }
-  }, [filteredPlList, activePlFilter, onSelectPickingList]);
+  }, [filteredPlList, activePlFilter]);
 
   // Picking list đang được chọn xem chi tiết
   const currentPl = useMemo(() => {
@@ -398,7 +392,7 @@ export const PickingListDetailView: React.FC<PickingListDetailViewProps> = ({
                       key={item.pickingListNo}
                       onClick={() => {
                         setActivePlFilter(item.pickingListNo);
-                        onSelectPickingList(item.pickingListNo);
+                        onSelectPickingList(item.pickingListNo === 'Chưa gán PL' ? '' : item.pickingListNo);
                       }}
                       className={`p-3 rounded-xl border transition-all cursor-pointer ${
                         isSelected

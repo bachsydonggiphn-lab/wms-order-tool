@@ -22,7 +22,20 @@ export const AreaGroupingView: React.FC<AreaGroupingViewProps> = ({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('ALL');
   const [columnMode, setColumnMode] = useState<'sheet4' | 'expanded8'>('sheet4');
-  const [displayLayout, setDisplayLayout] = useState<'matrix' | 'cards'>('matrix');
+  const [displayLayout, setDisplayLayout] = useState<'matrix' | 'cards'>(() => {
+    try {
+      const saved = localStorage.getItem('area_grouping_display_layout');
+      if (saved === 'matrix' || saved === 'cards') return saved;
+    } catch {}
+    return 'cards';
+  });
+
+  const handleDisplayLayoutChange = (mode: 'matrix' | 'cards') => {
+    setDisplayLayout(mode);
+    try {
+      localStorage.setItem('area_grouping_display_layout', mode);
+    } catch {}
+  };
 
   const { donTheoNhom, dynamicAreaList } = xuLyPhanNhomKhuVuc(
     orders,
@@ -111,7 +124,7 @@ export const AreaGroupingView: React.FC<AreaGroupingViewProps> = ({
           {/* Display Layout Toggle */}
           <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200">
             <button
-              onClick={() => setDisplayLayout('matrix')}
+              onClick={() => handleDisplayLayoutChange('matrix')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 displayLayout === 'matrix'
                   ? 'bg-white text-indigo-600 shadow-2xs font-semibold'
@@ -122,7 +135,7 @@ export const AreaGroupingView: React.FC<AreaGroupingViewProps> = ({
               <span>Bảng Sheet Ma Trận</span>
             </button>
             <button
-              onClick={() => setDisplayLayout('cards')}
+              onClick={() => handleDisplayLayoutChange('cards')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 displayLayout === 'cards'
                   ? 'bg-white text-indigo-600 shadow-2xs font-semibold'

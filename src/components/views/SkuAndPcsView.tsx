@@ -9,6 +9,7 @@ import {
   FileText,
   ArrowUpDown,
   Zap,
+  ChevronLeft,
   ChevronRight,
   ChevronDown,
   ExternalLink,
@@ -22,6 +23,7 @@ import {
   ListOrdered,
   Truck,
   Hash,
+  Printer,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { RawOrderRow, SkuCountResult, PcsGroupResult, CarrierCode, SkuGroupsMap } from '../../types';
@@ -29,6 +31,7 @@ import { xuLyGopPCS, CARRIER_CONFIG } from '../../utils/orderProcessor';
 import { DEFAULT_SKU_GROUPS } from '../../utils/skuData';
 import { ActiveTabType } from '../Toolbar';
 import { SkuHoverImage } from '../common/SkuHoverImage';
+import { CreateWmsPickingListModal } from '../CreateWmsPickingListModal';
 
 interface SkuAndPcsViewProps {
   orders: RawOrderRow[];
@@ -36,7 +39,13 @@ interface SkuAndPcsViewProps {
   selectedPickingList: string;
   selectedCarrier?: CarrierCode;
   searchTerm: string;
+  onSearchChange?: (term: string) => void;
+  onExportExcel?: () => void;
+  onPrintPreview?: () => void;
   onNavigateTab?: (tab: ActiveTabType) => void;
+  onOpenPrintModal?: (pickingCode: string, targetOrders?: RawOrderRow[]) => void;
+  onOrdersChange?: (newOrders: RawOrderRow[]) => void;
+  currentWmsStatus?: string;
 }
 
 export interface ColumnSkuItem {
@@ -54,10 +63,107 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
   selectedPickingList,
   selectedCarrier = 'ALL',
   searchTerm,
+  onSearchChange,
+  onExportExcel,
+  onPrintPreview,
   onNavigateTab,
+  onOpenPrintModal,
+  onOrdersChange,
+  currentWmsStatus,
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [skuSortMode, setSkuSortMode] = useState<'name' | 'qty'>('name');
+
+  // Trạng thái thu gọn / mở rộng ("thò thụt") của Bảng Tổng Hợp SKU (Cột S:T)
+  const [isSkuTableCollapsed, setIsSkuTableCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('sku_table_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSkuTableCollapsed = () => {
+    setIsSkuTableCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sku_table_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // Tính năng Tạo Picking List WMS chỉ hoạt động và hiển thị ở trạng thái Submitted (E11=4)
+  const isSubmittedStatus = currentWmsStatus
+    ? currentWmsStatus === '4'
+    : (() => {
+        try {
+          const s = localStorage.getItem('wms_auto_refresh_status');
+          return s === '4' || !s;
+        } catch {
+          return true;
+        }
+      })();
+
+  // Trạng thái mở modal Tạo Picking List trực tiếp trên YunWMS (E11=4 -> E11=5)
+  const [wmsModalState, setWmsModalState] = useState<{
+    isOpen: boolean;
+    batchTitle: string;
+    orderCodes: string[];
+  }>({
+    isOpen: false,
+    batchTitle: '',
+    orderCodes: [],
+  });
+
+  const handleOpenCreateWmsModal = (orderCodes: string[], batchTitle: string) => {
+    if (!isSubmittedStatus) return;
+    if (!orderCodes || orderCodes.length === 0) return;
+    setWmsModalState({
+      isOpen: true,
+      batchTitle,
+      orderCodes: Array.from(new Set(orderCodes)),
+    });
+  };
+
+  const handleWmsSuccess = (pickCode: string, createdCodes: string[]) => {
+    setSelectedSkuMap(new Map());
+    if (onOrdersChange && orders && orders.length > 0) {
+      const codeSet = new Set(createdCodes);
+      const updated = orders.map((o) => {
+        if (codeSet.has(o.orderNo)) {
+          return {
+            ...o,
+            pickingList: pickCode,
+            rawPickingText: pickCode,
+          };
+        }
+        return o;
+      });
+      onOrdersChange(updated);
+    }
+  };
+
+  // Trạng thái chọn từng SKU riêng lẻ (checkbox) để gom tạo Picking List WMS
+  const [selectedSkuMap, setSelectedSkuMap] = useState<
+    Map<string, { sku: string; orderCount: number; totalQty: number; orderNos: string[]; colKey?: string }>
+  >(new Map());
+
+  // Thống kê các SKU được chọn thủ công
+  const selectedStats = useMemo(() => {
+    const entries = Array.from(selectedSkuMap.values());
+    const allOrderNos = Array.from(new Set(entries.flatMap((e) => e.orderNos)));
+    const totalPcs = entries.reduce((sum, e) => sum + e.totalQty, 0);
+    const skuSet = new Set(entries.map((e) => e.sku));
+
+    return {
+      count: entries.length,
+      skuCount: skuSet.size,
+      orderCount: allOrderNos.length,
+      totalPcs,
+      allOrderNos,
+    };
+  }, [selectedSkuMap]);
 
   // Chế độ hiển thị trong các cột PCS: 'sku' (Phân loại theo SKU), 'order_no' (Mã đơn thô), 'tracking_no' (Mã vận đơn thuần), 'tracking_prefix' (Mã vận đơn kèm "Tracking No. ："), 'ref_prefix' (Kèm tiền tố "RefNo.：")
   const [columnViewMode, setColumnViewMode] = useState<'sku' | 'order_no' | 'tracking_no' | 'tracking_prefix' | 'ref_prefix'>('sku');
@@ -435,37 +541,78 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner Information */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-sm font-bold text-gray-900">Bảng Tổng Hợp SKU & Gộp PCS</h2>
-            {selectedPickingList ? (
-              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-semibold">
-                List {selectedPickingList}
-                {selectedCarrier && selectedCarrier !== 'ALL'
-                  ? ` (${CARRIER_CONFIG[selectedCarrier]?.shortName || selectedCarrier})`
-                  : ''}
+      {/* Top Action Bar: Search, Export, In Phiếu + Hiện Bảng SKU + Chuyên sâu + Copy */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        {/* Cụm chức năng Trái: Tìm mã đơn, SKU... | Xuất Excel (.xlsx) | In Phiếu 100×150 */}
+        <div className="flex items-center flex-wrap gap-2 w-full md:w-auto">
+          {onSearchChange && (
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Tìm mã đơn, SKU..."
+                className="text-xs pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48 md:w-56 shadow-2xs"
+              />
+            </div>
+          )}
+
+          {onExportExcel && (
+            <button
+              type="button"
+              onClick={onExportExcel}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
+              title="Xuất file Excel (.xlsx)"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Xuất Excel (.xlsx)</span>
+            </button>
+          )}
+
+          {onPrintPreview && (
+            <button
+              type="button"
+              onClick={onPrintPreview}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-2xs transition-colors cursor-pointer shrink-0"
+              title="In phiếu gom hàng 100×150"
+            >
+              <Printer className="w-3.5 h-3.5 text-indigo-600" />
+              <span>In Phiếu</span>
+              <span className="text-[10px] px-1.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-200">
+                100×150
               </span>
-            ) : selectedCarrier && selectedCarrier !== 'ALL' ? (
-              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-semibold">
-                ĐVVC: {CARRIER_CONFIG[selectedCarrier]?.name || selectedCarrier}
-              </span>
-            ) : (
-              <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                Toàn bộ đơn ({orders.length} đơn)
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Cột S:T lưu danh sách SKU & Tổng số lượng; Cột X trở đi phân chia Order No theo số lượng PCS (1 PCS, 2 PCS, ..., MIX).{' '}
-            <span className="text-indigo-600 font-semibold">
-              💡 Bấm vào tiêu đề cột (ví dụ: 1 PCS, 2 PCS) để phân loại từng mã SKU và sao chép đơn theo mã!
-            </span>
-          </p>
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Cụm chức năng Phải: Hiện/Thu gọn Bảng SKU | Chế độ đóng gói chuyên sâu | Sao chép bảng SKU */}
+        <div className="flex items-center flex-wrap gap-2 justify-end w-full md:w-auto">
+          <button
+            type="button"
+            onClick={toggleSkuTableCollapsed}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border shadow-2xs ${
+              isSkuTableCollapsed
+                ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+                : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200'
+            }`}
+            title={isSkuTableCollapsed ? 'Mở rộng Bảng SKU (Cột S:T)' : 'Thu gọn Bảng SKU (Cột S:T) để mở rộng cột PCS'}
+          >
+            {isSkuTableCollapsed ? (
+              <>
+                <ChevronRight className="w-3.5 h-3.5 text-indigo-600" />
+                <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Hiện Bảng SKU ({skuEntries.length})</span>
+              </>
+            ) : (
+              <>
+                <ChevronLeft className="w-3.5 h-3.5 text-gray-500" />
+                <Layers className="w-3.5 h-3.5 text-gray-500" />
+                <span>Thu gọn Bảng SKU</span>
+              </>
+            )}
+          </button>
+
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('single_pcs')}
@@ -476,6 +623,7 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           )}
+
           <button
             onClick={handleCopySkuTable}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-gray-50 rounded-xl text-xs font-medium text-gray-700 transition-colors cursor-pointer border border-gray-200 shadow-2xs"
@@ -525,100 +673,126 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Bảng Tổng Hợp SKU (Cột S:T) */}
-        <div className={`lg:col-span-4 xl:col-span-3 bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex-col ${
-          mobileColumnTab === 'pcs' ? 'hidden lg:flex' : 'flex'
-        }`}>
-          {/* Header */}
-          <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-indigo-600" />
-              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Tổng Hợp SKU (Cột S:T)
-              </h3>
-            </div>
-            <span className="px-2.5 py-0.5 bg-gray-200/70 text-gray-700 rounded-full text-[11px] font-medium">
-              {skuEntries.length} mã ({totalSkuQty} PCS)
-            </span>
-          </div>
-
-          {/* Sorter & Filter bar */}
-          <div className="p-2.5 bg-white border-b border-gray-100 flex items-center justify-between text-xs text-gray-600">
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setSkuSortMode('name')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  skuSortMode === 'name' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                A-Z
-              </button>
-              <button
-                onClick={() => setSkuSortMode('qty')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  skuSortMode === 'qty' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Số lượng ↓
-              </button>
-            </div>
-            <span className="text-[11px] text-gray-400">Click SKU để copy</span>
-          </div>
-
-          {/* SKU Table List */}
-          <div className="max-h-[600px] overflow-y-auto divide-y divide-gray-100">
-            {skuEntries.length === 0 ? (
-              <div className="p-8 text-center text-xs text-gray-400">
-                Không có dữ liệu SKU nào
+        {!isSkuTableCollapsed && (
+          <div className={`lg:col-span-4 xl:col-span-3 bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex-col ${
+            mobileColumnTab === 'pcs' ? 'hidden lg:flex' : 'flex'
+          }`}>
+            {/* Header */}
+            <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-indigo-600" />
+                <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Tổng Hợp SKU (Cột S:T)
+                </h3>
               </div>
-            ) : (
-              <table className="w-full text-xs text-left">
-                <thead className="bg-gray-50 text-gray-500 font-semibold sticky top-0 border-b border-gray-100">
-                  <tr>
-                    <th className="py-2.5 px-3.5 w-12 text-center font-normal text-gray-400">STT</th>
-                    <th className="py-2.5 px-3.5">MÃ SKU</th>
-                    <th className="py-2.5 px-3.5 text-right">SỐ LƯỢNG</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 font-mono">
-                  {skuEntries.map(([sku, qty], idx) => {
-                    return (
-                      <tr
-                        key={sku}
-                        onClick={() => {
-                          navigator.clipboard.writeText(sku);
-                          setCopiedKey(`sku_${sku}`);
-                          setTimeout(() => setCopiedKey(null), 1500);
-                        }}
-                        className="hover:bg-gray-50/80 cursor-pointer transition-colors group"
-                      >
-                        <td className="py-2.5 px-3.5 text-gray-400 text-center text-[11px]">{idx + 1}</td>
-                        <td className="py-2.5 px-3.5 font-medium text-gray-800 flex items-center justify-between">
-                          <span>{sku}</span>
-                          {copiedKey === `sku_${sku}` && (
-                            <span className="text-[10px] text-emerald-600 font-sans font-bold ml-1">✓ Copied</span>
-                          )}
-                        </td>
-                        <td className="py-2.5 px-3.5 text-right">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
-                            {qty}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 bg-gray-200/70 text-gray-700 rounded-full text-[11px] font-medium">
+                  {skuEntries.length} mã ({totalSkuQty} PCS)
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleSkuTableCollapsed}
+                  className="p-1 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-gray-200/80 transition-colors cursor-pointer"
+                  title="Thu gọn bảng SKU (thụt vào để mở rộng cột PCS)"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Sorter & Filter bar */}
+            <div className="p-2.5 bg-white border-b border-gray-100 flex items-center justify-between text-xs text-gray-600">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setSkuSortMode('name')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    skuSortMode === 'name' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  A-Z
+                </button>
+                <button
+                  onClick={() => setSkuSortMode('qty')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    skuSortMode === 'qty' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Số lượng ↓
+                </button>
+              </div>
+              <span className="text-[11px] text-gray-400">Click SKU để copy</span>
+            </div>
+
+            {/* SKU Table List */}
+            <div className="max-h-[600px] overflow-y-auto divide-y divide-gray-100">
+              {skuEntries.length === 0 ? (
+                <div className="p-8 text-center text-xs text-gray-400">
+                  Không có dữ liệu SKU nào
+                </div>
+              ) : (
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-gray-50 text-gray-500 font-semibold sticky top-0 border-b border-gray-100">
+                    <tr>
+                      <th className="py-2.5 px-3.5 w-12 text-center font-normal text-gray-400">STT</th>
+                      <th className="py-2.5 px-3.5">MÃ SKU</th>
+                      <th className="py-2.5 px-3.5 text-right">SỐ LƯỢNG</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 font-mono">
+                    {skuEntries.map(([sku, qty], idx) => {
+                      return (
+                        <tr
+                          key={sku}
+                          onClick={() => {
+                            navigator.clipboard.writeText(sku);
+                            setCopiedKey(`sku_${sku}`);
+                            setTimeout(() => setCopiedKey(null), 1500);
+                          }}
+                          className="hover:bg-gray-50/80 cursor-pointer transition-colors group"
+                        >
+                          <td className="py-2.5 px-3.5 text-gray-400 text-center text-[11px]">{idx + 1}</td>
+                          <td className="py-2.5 px-3.5 font-medium text-gray-800 flex items-center justify-between">
+                            <span>{sku}</span>
+                            {copiedKey === `sku_${sku}` && (
+                              <span className="text-[10px] text-emerald-600 font-sans font-bold ml-1">✓ Copied</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3.5 text-right">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                              {qty}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right Column: Bảng Gộp PCS (Cột X trở đi) */}
-        <div className={`lg:col-span-8 xl:col-span-9 bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex-col ${
+        <div className={`${
+          isSkuTableCollapsed ? 'col-span-12' : 'lg:col-span-8 xl:col-span-9'
+        } bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden flex-col ${
           mobileColumnTab === 'sku' ? 'hidden lg:flex' : 'flex'
         }`}>
           {/* Header & Mode Switcher */}
           <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
+              {isSkuTableCollapsed && (
+                <button
+                  type="button"
+                  onClick={toggleSkuTableCollapsed}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all shadow-2xs cursor-pointer hover:scale-102 shrink-0 mr-1"
+                  title="Mở rộng Bảng SKU (thò ra)"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Bảng SKU ({skuEntries.length})</span>
+                </button>
+              )}
               <Box className="w-4 h-4 text-indigo-600" />
               <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Phân Loại Đơn Theo PCS (Cột X trở đi)
@@ -818,111 +992,135 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                 </div>
               </div>
 
-              {/* Right: Quick Batch Copy Buttons for Global 5-9, 10-19, >= 20 */}
-              <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                {/* Copy 5 - 9 đơn */}
-                <button
-                  onClick={() => handleCopyGlobalRange(5, 9, 'global_5_9')}
-                  disabled={globalThresholdStats.r5_9.totalOrders === 0}
-                  title="Sao chép toàn bộ Order No của tất cả SKU trong khoảng 5 - 9 đơn"
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-2xs cursor-pointer ${
-                    copiedKey === 'global_5_9'
-                      ? 'bg-emerald-600 text-white'
-                      : globalThresholdStats.r5_9.totalOrders > 0
-                      ? 'bg-sky-600 hover:bg-sky-500 text-white hover:shadow-xs'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {copiedKey === 'global_5_9' ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-white" />
-                      <span>Đã copy {globalThresholdStats.r5_9.totalOrders} đơn (5-9đ)!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-white" />
-                      <span>Copy Đơn 5 - 9 đơn ({globalThresholdStats.r5_9.totalOrders} đơn)</span>
-                    </>
+              {/* Right: Quick Batch Copy & Direct WMS Picking List Creation */}
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {/* 1. Nhóm 5 - 9 đơn */}
+                <div className="inline-flex items-center rounded-xl overflow-hidden border border-sky-300 shadow-2xs">
+                  <button
+                    onClick={() => handleCopyGlobalRange(5, 9, 'global_5_9')}
+                    disabled={globalThresholdStats.r5_9.totalOrders === 0}
+                    title="Sao chép toàn bộ Order No của tất cả SKU trong khoảng 5 - 9 đơn"
+                    className={`px-2.5 py-1.5 font-bold text-xs transition-all cursor-pointer ${
+                      copiedKey === 'global_5_9'
+                        ? 'bg-emerald-600 text-white'
+                        : globalThresholdStats.r5_9.totalOrders > 0
+                        ? 'bg-sky-600 hover:bg-sky-500 text-white'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {copiedKey === 'global_5_9' ? '✓ Đã copy' : `Copy 5-9đ (${globalThresholdStats.r5_9.totalOrders})`}
+                  </button>
+                  {isSubmittedStatus && (
+                    <button
+                      onClick={() => {
+                        const ordersToSubmit = globalThresholdStats.r5_9.orderNos;
+                        handleOpenCreateWmsModal(ordersToSubmit, `Nhóm 5 - 9 đơn (${ordersToSubmit.length} đơn)`);
+                      }}
+                      disabled={globalThresholdStats.r5_9.totalOrders === 0}
+                      title="Tạo Picking List trực tiếp trên YunWMS cho các SKU 5 - 9 đơn"
+                      className="px-2 py-1.5 bg-sky-700 hover:bg-sky-800 text-white font-extrabold text-xs transition-all cursor-pointer border-l border-sky-500 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Zap className="w-3 h-3 fill-current text-amber-300" />
+                      <span>⚡ Tạo WMS</span>
+                    </button>
                   )}
-                </button>
+                </div>
 
-                {/* Copy 10 - 19 đơn */}
-                <button
-                  onClick={() => handleCopyGlobalRange(10, 19, 'global_10_19')}
-                  disabled={globalThresholdStats.r10_19.totalOrders === 0}
-                  title="Sao chép toàn bộ Order No của tất cả SKU trong khoảng 10 - 19 đơn"
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-2xs cursor-pointer ${
-                    copiedKey === 'global_10_19'
-                      ? 'bg-emerald-600 text-white'
-                      : globalThresholdStats.r10_19.totalOrders > 0
-                      ? 'bg-amber-400 hover:bg-amber-300 text-indigo-950 hover:shadow-xs'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {copiedKey === 'global_10_19' ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-white" />
-                      <span>Đã copy {globalThresholdStats.r10_19.totalOrders} đơn (10-19đ)!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-indigo-950" />
-                      <span>Copy Đơn 10 - 19 đơn ({globalThresholdStats.r10_19.totalOrders} đơn)</span>
-                    </>
+                {/* 2. Nhóm 10 - 19 đơn */}
+                <div className="inline-flex items-center rounded-xl overflow-hidden border border-amber-400 shadow-2xs">
+                  <button
+                    onClick={() => handleCopyGlobalRange(10, 19, 'global_10_19')}
+                    disabled={globalThresholdStats.r10_19.totalOrders === 0}
+                    title="Sao chép toàn bộ Order No của tất cả SKU trong khoảng 10 - 19 đơn"
+                    className={`px-2.5 py-1.5 font-black text-xs transition-all cursor-pointer ${
+                      copiedKey === 'global_10_19'
+                        ? 'bg-emerald-600 text-white'
+                        : globalThresholdStats.r10_19.totalOrders > 0
+                        ? 'bg-amber-400 hover:bg-amber-300 text-indigo-950'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {copiedKey === 'global_10_19' ? '✓ Đã copy' : `Copy 10-19đ (${globalThresholdStats.r10_19.totalOrders})`}
+                  </button>
+                  {isSubmittedStatus && (
+                    <button
+                      onClick={() => {
+                        const ordersToSubmit = globalThresholdStats.r10_19.orderNos;
+                        handleOpenCreateWmsModal(ordersToSubmit, `Nhóm 10 - 19 đơn (${ordersToSubmit.length} đơn)`);
+                      }}
+                      disabled={globalThresholdStats.r10_19.totalOrders === 0}
+                      title="Tạo Picking List trực tiếp trên YunWMS cho các SKU 10 - 19 đơn"
+                      className="px-2 py-1.5 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-black text-xs transition-all cursor-pointer border-l border-amber-600 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Zap className="w-3 h-3 fill-current text-white" />
+                      <span>⚡ Tạo WMS</span>
+                    </button>
                   )}
-                </button>
+                </div>
 
-                {/* Copy >= 20 đơn */}
-                <button
-                  onClick={() => handleCopyGlobalRange(20, Infinity, 'global_ge20')}
-                  disabled={globalThresholdStats.ge20.totalOrders === 0}
-                  title="Sao chép toàn bộ Order No của tất cả SKU có từ 20 đơn trở lên"
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-2xs cursor-pointer ${
-                    copiedKey === 'global_ge20'
-                      ? 'bg-emerald-600 text-white'
-                      : globalThresholdStats.ge20.totalOrders > 0
-                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white hover:shadow-xs'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {copiedKey === 'global_ge20' ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-white" />
-                      <span>Đã copy {globalThresholdStats.ge20.totalOrders} đơn (≥20đ)!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-white" />
-                      <span>Copy Đơn ≥ 20 đơn ({globalThresholdStats.ge20.totalOrders} đơn)</span>
-                    </>
+                {/* 3. Nhóm >= 20 đơn */}
+                <div className="inline-flex items-center rounded-xl overflow-hidden border border-emerald-400 shadow-2xs">
+                  <button
+                    onClick={() => handleCopyGlobalRange(20, Infinity, 'global_ge20')}
+                    disabled={globalThresholdStats.ge20.totalOrders === 0}
+                    title="Sao chép toàn bộ Order No của tất cả SKU có từ 20 đơn trở lên"
+                    className={`px-2.5 py-1.5 font-bold text-xs transition-all cursor-pointer ${
+                      copiedKey === 'global_ge20'
+                        ? 'bg-emerald-600 text-white'
+                        : globalThresholdStats.ge20.totalOrders > 0
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {copiedKey === 'global_ge20' ? '✓ Đã copy' : `Copy ≥20đ (${globalThresholdStats.ge20.totalOrders})`}
+                  </button>
+                  {isSubmittedStatus && (
+                    <button
+                      onClick={() => {
+                        const ordersToSubmit = globalThresholdStats.ge20.orderNos;
+                        handleOpenCreateWmsModal(ordersToSubmit, `Nhóm ≥ 20 đơn (${ordersToSubmit.length} đơn)`);
+                      }}
+                      disabled={globalThresholdStats.ge20.totalOrders === 0}
+                      title="Tạo Picking List trực tiếp trên YunWMS cho các SKU ≥ 20 đơn"
+                      className="px-2 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs transition-all cursor-pointer border-l border-emerald-500 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Zap className="w-3 h-3 fill-current text-amber-300" />
+                      <span>⚡ Tạo WMS</span>
+                    </button>
                   )}
-                </button>
+                </div>
 
-                {/* Copy >= 5 đơn (Tổng hợp: gộp từ 5 đơn trở lên) */}
-                <button
-                  onClick={() => handleCopyGlobalRange(5, Infinity, 'global_ge5')}
-                  disabled={globalThresholdStats.ge5.totalOrders === 0}
-                  title="Sao chép toàn bộ Order No của tất cả SKU có từ 5 đơn trở lên (Tổng hợp)"
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-2xs cursor-pointer ${
-                    copiedKey === 'global_ge5'
-                      ? 'bg-emerald-600 text-white'
-                      : globalThresholdStats.ge5.totalOrders > 0
-                      ? 'bg-indigo-700 hover:bg-indigo-600 text-white hover:shadow-xs ring-1 ring-indigo-900/40'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {copiedKey === 'global_ge5' ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-white" />
-                      <span>Đã copy {globalThresholdStats.ge5.totalOrders} đơn (≥5đ Tổng hợp)!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-amber-300" />
-                      <span>Copy Đơn ≥ 5 đơn (Tổng: {globalThresholdStats.ge5.totalOrders} đơn)</span>
-                    </>
+                {/* 4. Nhóm >= 5 đơn (Tổng hợp) */}
+                <div className="inline-flex items-center rounded-xl overflow-hidden border border-indigo-400 shadow-2xs">
+                  <button
+                    onClick={() => handleCopyGlobalRange(5, Infinity, 'global_ge5')}
+                    disabled={globalThresholdStats.ge5.totalOrders === 0}
+                    title="Sao chép toàn bộ Order No của tất cả SKU có từ 5 đơn trở lên (Tổng hợp)"
+                    className={`px-2.5 py-1.5 font-bold text-xs transition-all cursor-pointer ${
+                      copiedKey === 'global_ge5'
+                        ? 'bg-emerald-600 text-white'
+                        : globalThresholdStats.ge5.totalOrders > 0
+                        ? 'bg-indigo-700 hover:bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {copiedKey === 'global_ge5' ? '✓ Đã copy' : `Copy ≥5đ Tổng (${globalThresholdStats.ge5.totalOrders})`}
+                  </button>
+                  {isSubmittedStatus && (
+                    <button
+                      onClick={() => {
+                        const ordersToSubmit = globalThresholdStats.ge5.orderNos;
+                        handleOpenCreateWmsModal(ordersToSubmit, `Nhóm ≥ 5 đơn Tổng hợp (${ordersToSubmit.length} đơn)`);
+                      }}
+                      disabled={globalThresholdStats.ge5.totalOrders === 0}
+                      title="Tạo Picking List trực tiếp trên YunWMS cho toàn bộ SKU từ 5 đơn trở lên"
+                      className="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs transition-all cursor-pointer border-l border-amber-400 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                    >
+                      <Zap className="w-3.5 h-3.5 fill-current text-slate-950" />
+                      <span>⚡ Tạo List WMS</span>
+                    </button>
                   )}
-                </button>
+                </div>
               </div>
             </div>
           )}
@@ -982,42 +1180,105 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                         className="p-3 bg-white border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-indigo-50/40 transition-colors group select-none"
                         title={`Bấm để mở chi tiết phân loại SKU của cột ${headerTitle}`}
                       >
-                        <div className="truncate pr-1">
-                          <div className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
-                            <span className={`w-2 h-2 rounded-full ${isMixL46 ? 'bg-amber-500' : isMix ? 'bg-purple-500' : 'bg-indigo-600'}`}></span>
-                            <span className="group-hover:text-indigo-600 transition-colors">{headerTitle}</span>
-                            <Maximize2 className="w-3 h-3 text-gray-300 group-hover:text-indigo-600 transition-colors shrink-0" />
-                          </div>
-                          <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1 font-medium">
-                            <span className="text-gray-900 font-bold">{ordersList.length} đơn</span>
-                            <span>•</span>
-                            <span className="text-indigo-600 font-bold">{rawSkuList.length} mã SKU</span>
+                        <div className="flex items-center gap-2 truncate pr-1">
+                          {/* Checkbox chọn tất cả SKU trong cột này */}
+                          {isSubmittedStatus && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedSkuMap((prev) => {
+                                    const next = new Map(prev);
+                                    const allSelected =
+                                      rawSkuList.length > 0 &&
+                                      rawSkuList.every((it) => next.has(`${key}_${it.sku}`));
+
+                                    if (allSelected) {
+                                      rawSkuList.forEach((it) => next.delete(`${key}_${it.sku}`));
+                                    } else {
+                                      rawSkuList.forEach((it) => {
+                                        next.set(`${key}_${it.sku}`, {
+                                          sku: it.sku,
+                                          orderCount: it.orderCount,
+                                          totalQty: it.totalQty,
+                                          orderNos: it.orderNos,
+                                          colKey: key,
+                                        });
+                                      });
+                                    }
+                                    return next;
+                                  });
+                                }}
+                                className="p-1 -ml-1 rounded-md hover:bg-black/5 transition-colors cursor-pointer shrink-0"
+                                title={
+                                  rawSkuList.length > 0 &&
+                                  rawSkuList.every((it) => selectedSkuMap.has(`${key}_${it.sku}`))
+                                    ? 'Bỏ chọn toàn bộ SKU trong cột này'
+                                    : 'Chọn tất cả SKU trong cột này'
+                                }
+                              >
+                                {rawSkuList.length > 0 &&
+                                rawSkuList.every((it) => selectedSkuMap.has(`${key}_${it.sku}`)) ? (
+                                  <CheckSquare className="w-4 h-4 text-indigo-600 fill-indigo-100" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-gray-300 hover:text-gray-500" />
+                                )}
+                              </button>
+                            )}
+
+                          <div className="truncate">
+                            <div className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
+                              <span className={`w-2 h-2 rounded-full ${isMixL46 ? 'bg-amber-500' : isMix ? 'bg-purple-500' : 'bg-indigo-600'}`}></span>
+                              <span className="group-hover:text-indigo-600 transition-colors">{headerTitle}</span>
+                              <Maximize2 className="w-3 h-3 text-gray-300 group-hover:text-indigo-600 transition-colors shrink-0" />
+                            </div>
+                            <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1 font-medium">
+                              <span className="text-gray-900 font-bold">{ordersList.length} đơn</span>
+                              <span>•</span>
+                              <span className="text-indigo-600 font-bold">{rawSkuList.length} mã SKU</span>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Copy Entire Column button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCopyColumn(headerTitle, ordersList);
-                          }}
-                          title={
-                            columnViewMode === 'ref_prefix'
-                              ? `Sao chép toàn bộ ${ordersList.length} dòng dạng "RefNo.：..." của cột ${headerTitle}`
-                              : columnViewMode === 'tracking_prefix'
-                              ? `Sao chép toàn bộ ${ordersList.length} dòng dạng "Tracking No. ：..." của cột ${headerTitle}`
-                              : columnViewMode === 'tracking_no'
-                              ? `Sao chép toàn bộ ${ordersList.length} mã vận đơn (Tracking No.) của cột ${headerTitle}`
-                              : `Sao chép toàn bộ ${ordersList.length} mã đơn của cột ${headerTitle}`
-                          }
-                          className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer shrink-0"
-                        >
-                          {copiedKey === headerTitle ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Copy Entire Column button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyColumn(headerTitle, ordersList);
+                            }}
+                            title={
+                              columnViewMode === 'ref_prefix'
+                                ? `Sao chép toàn bộ ${ordersList.length} dòng dạng "RefNo.：..." của cột ${headerTitle}`
+                                : columnViewMode === 'tracking_prefix'
+                                ? `Sao chép toàn bộ ${ordersList.length} dòng dạng "Tracking No. ：..." của cột ${headerTitle}`
+                                : columnViewMode === 'tracking_no'
+                                ? `Sao chép toàn bộ ${ordersList.length} mã vận đơn (Tracking No.) của cột ${headerTitle}`
+                                : `Sao chép toàn bộ ${ordersList.length} mã đơn của cột ${headerTitle}`
+                            }
+                            className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer shrink-0"
+                          >
+                            {copiedKey === headerTitle ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+
+                          {/* Tạo List WMS cho toàn bộ cột này */}
+                          {isSubmittedStatus && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenCreateWmsModal(ordersList, `Cột ${headerTitle} (${ordersList.length} đơn)`);
+                              }}
+                              title={`⚡ Tạo Picking List WMS cho toàn bộ ${ordersList.length} đơn của cột ${headerTitle}`}
+                              className="p-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 transition-colors cursor-pointer shrink-0 shadow-2xs hover:scale-105 active:scale-95"
+                            >
+                              <Zap className="w-3.5 h-3.5 fill-current text-amber-500" />
+                            </button>
                           )}
-                        </button>
+                        </div>
                       </div>
 
                       {/* Sub-bar inside column card: Quick Copy for 5-9, 10-19, >=20, >=5 (Tổng), <5 in this column */}
@@ -1178,6 +1439,7 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                             skuList.map((item, idx) => {
                               const itemKey = `${key}_${item.sku}`;
                               const isExpanded = expandedSkus.has(itemKey);
+                              const isSelected = selectedSkuMap.has(itemKey);
                               const isTop1 = idx === 0;
                               const is20Plus = item.orderCount >= 20;
                               const is10_19 = item.orderCount >= 10 && item.orderCount <= 19;
@@ -1187,7 +1449,9 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                                 <div
                                   key={item.sku}
                                   className={`rounded-xl border transition-all overflow-hidden ${
-                                    is20Plus
+                                    isSelected
+                                      ? 'bg-indigo-50/95 border-indigo-500 ring-2 ring-indigo-400/60 shadow-xs'
+                                      : is20Plus
                                       ? 'bg-emerald-50/40 border-emerald-300 ring-1 ring-emerald-400/20'
                                       : is10_19
                                       ? 'bg-amber-50/50 border-amber-300 ring-1 ring-amber-400/20'
@@ -1200,6 +1464,39 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                                 >
                                   {/* SKU Row Header */}
                                   <div className="p-2 flex items-center justify-between gap-1.5">
+                                    {/* Checkbox chọn riêng SKU này - chỉ dùng cho Submitted để tạo List */}
+                                    {isSubmittedStatus && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedSkuMap((prev) => {
+                                            const next = new Map(prev);
+                                            if (next.has(itemKey)) {
+                                              next.delete(itemKey);
+                                            } else {
+                                              next.set(itemKey, {
+                                                sku: item.sku,
+                                                orderCount: item.orderCount,
+                                                totalQty: item.totalQty,
+                                                orderNos: item.orderNos,
+                                                colKey: key,
+                                              });
+                                            }
+                                            return next;
+                                          });
+                                        }}
+                                        title={isSelected ? `Bỏ chọn SKU ${item.sku}` : `Chọn SKU ${item.sku} để tạo List`}
+                                        className="p-0.5 rounded-md hover:bg-black/5 transition-colors cursor-pointer shrink-0"
+                                      >
+                                        {isSelected ? (
+                                          <CheckSquare className="w-4 h-4 text-indigo-600 fill-indigo-100" />
+                                        ) : (
+                                          <Square className="w-4 h-4 text-gray-300 hover:text-indigo-600" />
+                                        )}
+                                      </button>
+                                    )}
+
                                     <div
                                       onClick={() => handleToggleExpandSku(itemKey)}
                                       className="flex items-center gap-1.5 truncate cursor-pointer flex-1"
@@ -1260,6 +1557,20 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
                                           <Copy className="w-3 h-3" />
                                         )}
                                       </button>
+
+                                      {/* Nút Tạo Picking List WMS Cho SKU Này - chỉ hiển thị khi ở trạng thái Submitted */}
+                                      {isSubmittedStatus && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleOpenCreateWmsModal(item.orderNos, `SKU ${item.sku} (${item.orderCount} đơn)`);
+                                          }}
+                                          title={`⚡ Tạo Picking List WMS cho ${item.orderCount} đơn của ${item.sku}`}
+                                          className="p-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-700 hover:text-amber-900 border border-amber-300 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+                                        >
+                                          <Zap className="w-3 h-3 fill-current text-amber-500" />
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
 
@@ -1424,6 +1735,73 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Floating Bottom Action Bar khi có SKU được chọn thủ công - chỉ trong Submitted */}
+      {isSubmittedStatus && selectedStats.orderCount > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-4xl w-[94%] bg-slate-900/95 text-white backdrop-blur-md px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/80 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center shrink-0">
+              <CheckSquare className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm text-white">
+                  Đã chọn: <span className="text-amber-400 font-extrabold">{selectedStats.skuCount} SKU</span>
+                </span>
+                <span className="text-xs text-slate-300">
+                  ({selectedStats.orderCount} đơn • {selectedStats.totalPcs} PCS)
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Các SKU đã được chọn trên các cột PCS để gom tạo Picking List
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedSkuMap(new Map())}
+              className="px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+            >
+              Bỏ chọn tất cả
+            </button>
+
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(selectedStats.allOrderNos.join('\n'));
+                setCopiedKey('floating_batch_copy');
+                setTimeout(() => setCopiedKey(null), 2000);
+              }}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-xs font-semibold text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            >
+              {copiedKey === 'floating_batch_copy' ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-300 font-bold">Đã chép {selectedStats.orderCount} đơn</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-slate-300" />
+                  <span>Sao chép {selectedStats.orderCount} mã đơn</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() =>
+                handleOpenCreateWmsModal(
+                  selectedStats.allOrderNos,
+                  `${selectedStats.skuCount} SKU đã chọn (${selectedStats.orderCount} đơn)`
+                )
+              }
+              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-95"
+            >
+              <Zap className="w-4 h-4 fill-current text-white" />
+              <span>⚡ Tạo List WMS ({selectedStats.orderCount} đơn)</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL: CHI TIẾT PHÂN TÁCH SKU CHO CỘT PCS ĐƯỢC CHỌN */}
       {inspectColumnKey && (
@@ -1777,16 +2155,31 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs">
-              <button
-                onClick={() => {
-                  handleCopyColumn(inspectColumnTitle, pcsGroups[inspectColumnKey] || []);
-                }}
-                className="px-3.5 py-2 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-700 font-medium cursor-pointer transition-colors flex items-center gap-1.5"
-              >
-                {copiedKey === inspectColumnTitle ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>Sao chép tất cả {activeModalTotalOrders} mã đơn của cột này</span>
-              </button>
+            <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    handleCopyColumn(inspectColumnTitle, pcsGroups[inspectColumnKey] || []);
+                  }}
+                  className="px-3.5 py-2 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-700 font-medium cursor-pointer transition-colors flex items-center gap-1.5 shadow-2xs"
+                >
+                  {copiedKey === inspectColumnTitle ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>Sao chép tất cả {activeModalTotalOrders} mã đơn</span>
+                </button>
+
+                {isSubmittedStatus && (
+                  <button
+                    onClick={() => {
+                      const ordersToSubmit = pcsGroups[inspectColumnKey] || [];
+                      handleOpenCreateWmsModal(ordersToSubmit, `Cột ${inspectColumnTitle} (${ordersToSubmit.length} đơn)`);
+                    }}
+                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs"
+                  >
+                    <Zap className="w-3.5 h-3.5 fill-current text-white" />
+                    <span>⚡ Tạo List WMS Cột Này ({activeModalTotalOrders} đơn)</span>
+                  </button>
+                )}
+              </div>
 
               <button
                 onClick={() => setInspectColumnKey(null)}
@@ -1798,6 +2191,17 @@ export const SkuAndPcsView: React.FC<SkuAndPcsViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Modal Tạo Picking List Trực Tiếp Trên YunWMS (czwh.wms.yunwms.com) */}
+      <CreateWmsPickingListModal
+        isOpen={wmsModalState.isOpen}
+        onClose={() => setWmsModalState(prev => ({ ...prev, isOpen: false }))}
+        batchTitle={wmsModalState.batchTitle}
+        orderCodes={wmsModalState.orderCodes}
+        orders={orders}
+        onSuccess={handleWmsSuccess}
+        onOpenPrintModal={onOpenPrintModal}
+      />
     </div>
   );
 };

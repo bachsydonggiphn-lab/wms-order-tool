@@ -36,6 +36,7 @@ interface DataInputSectionProps {
   skuGroups: SkuGroupsMap;
   ordersCount: number;
   forceOpen?: boolean;
+  onClose?: () => void;
 }
 
 export const DataInputSection: React.FC<DataInputSectionProps> = ({
@@ -46,6 +47,7 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
   skuGroups,
   ordersCount,
   forceOpen,
+  onClose,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(ordersCount === 0);
   const [inputMode, setInputMode] = useState<'wms_direct' | 'paste_table' | 'paste_3col' | 'upload_file'>('wms_direct');
@@ -406,6 +408,17 @@ export const DataInputSection: React.FC<DataInputSectionProps> = ({
           >
             {isOpen ? 'Thu gọn ▲' : 'Mở rộng ▼'}
           </button>
+
+          {onClose && (
+            <button
+              onClick={onClose}
+              title="Ẩn khung nhập liệu này"
+              className="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Ẩn</span>
+            </button>
+          )}
         </div>
       </div>
 
