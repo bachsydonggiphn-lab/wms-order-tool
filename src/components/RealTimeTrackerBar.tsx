@@ -15,11 +15,21 @@ import {
   Check,
   FileSpreadsheet,
   Trash2,
+  Settings,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { RawOrderRow, SkuGroupsMap } from '../types';
 import { playOrderAlertSound } from '../utils/audioAlert';
 import { tinhTongHopSKU } from '../utils/orderProcessor';
+import { TelegramBotSettingsModal } from './TelegramBotSettingsModal';
+import {
+  TelegramBotConfig,
+  loadTelegramConfig,
+  saveTelegramConfig,
+  formatTelegramReport,
+  sendTelegramMessage,
+  WmsStatusCounts,
+} from '../services/telegramService';
 
 export interface RealTimeTrackerBarProps {
   orders?: RawOrderRow[];
@@ -160,6 +170,10 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     }
   });
 
+  // State cấu hình Telegram Bot
+  const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
+  const [telegramConfig, setTelegramConfig] = useState<TelegramBotConfig>(() => loadTelegramConfig());
+
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem('wms_auto_refresh_sound');
@@ -225,6 +239,74 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   useEffect(() => {
     try { localStorage.setItem('wms_auto_status_counts', JSON.stringify(statusCounts)); } catch {}
   }, [statusCounts]);
+
+  // Tự động gửi báo cáo Telegram cho bot khi được BẬT
+  useEffect(() => {
+    if (!telegramConfig.enabled || !telegramConfig.chatId || !telegramConfig.botToken) {
+      return;
+    }
+
+    const checkAndSendTelegram = async () => {
+      const counts: WmsStatusCounts = {
+        submitted: statusCounts['4'] ?? 0,
+        shelved: statusCounts['5'] ?? 0,
+        shipped: statusCounts['8'] ?? 0,
+      };
+
+      // Chỉ gửi khi đã có dữ liệu (ít nhất 1 chỉ số > 0)
+      if (counts.submitted === 0 && counts.shelved === 0 && counts.shipped === 0) {
+        return;
+      }
+
+      const lastCounts = telegramConfig.lastCounts || {};
+      const isChanged =
+        counts.submitted !== lastCounts.submitted ||
+        counts.shelved !== lastCounts.shelved ||
+        counts.shipped !== lastCounts.shipped;
+
+      const now = Date.now();
+      const lastSentTime = telegramConfig.lastSentAt ? new Date(telegramConfig.lastSentAt).getTime() : 0;
+      const intervalMs = (telegramConfig.intervalMinutes || 30) * 60 * 1000;
+      const isDue = (now - lastSentTime) >= intervalMs;
+
+      if (isDue && (!telegramConfig.onlyOnChange || isChanged)) {
+        try {
+          const reportText = formatTelegramReport(counts, {
+            ...telegramConfig,
+            warehouse: warehouseRef.current || warehouse,
+          });
+
+          const res = await sendTelegramMessage({
+            botToken: telegramConfig.botToken,
+            chatId: telegramConfig.chatId,
+            text: reportText,
+            silent: telegramConfig.silent,
+          });
+
+          if (res.ok) {
+            const updatedConfig: TelegramBotConfig = {
+              ...telegramConfig,
+              lastSentAt: new Date().toISOString(),
+              lastCounts: counts,
+            };
+            setTelegramConfig(updatedConfig);
+            saveTelegramConfig(updatedConfig);
+            console.log('[TelegramBot] Đã gửi báo cáo đơn hàng định kỳ thành công tới @WMSHCMBOT');
+          }
+        } catch (e) {
+          console.error('[TelegramBot] Lỗi gửi báo cáo định kỳ:', e);
+        }
+      }
+    };
+
+    const intervalTimer = setInterval(checkAndSendTelegram, 30000);
+    const timeoutTimer = setTimeout(checkAndSendTelegram, 5000);
+
+    return () => {
+      clearInterval(intervalTimer);
+      clearTimeout(timeoutTimer);
+    };
+  }, [telegramConfig, statusCounts, warehouse]);
 
   // Refs để tránh closure stale state trong setInterval & Bộ nhớ đệm chuyển đổi siêu tốc
   const countdownIntervalRef = useRef<any>(null);
@@ -907,6 +989,23 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               )}
             </button>
 
+            {/* Nút Cài đặt Telegram Bot (icon bánh răng cưa) */}
+            <button
+              onClick={() => setIsTelegramModalOpen(true)}
+              title="Cài đặt tự động gửi báo cáo Telegram Bot (@WMSHCMBOT)"
+              className={`px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 border ${
+                telegramConfig.enabled
+                  ? 'bg-sky-500/20 text-sky-300 border-sky-400/50 hover:bg-sky-500/30 ring-2 ring-sky-400/20'
+                  : 'bg-slate-800/90 hover:bg-slate-700 text-slate-300 border-slate-700'
+              }`}
+            >
+              <Settings className={`w-3.5 h-3.5 ${telegramConfig.enabled ? 'animate-spin text-sky-400' : 'text-slate-400'}`} style={{ animationDuration: '6s' }} />
+              <span className="hidden sm:inline">Bot Telegram</span>
+              {telegramConfig.enabled && (
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+              )}
+            </button>
+
             {/* Loading spinner khi chuyển đổi trạng thái */}
             {isSwitchingStatus && (
               <span className="text-xs text-amber-300 flex items-center gap-1 font-semibold animate-pulse shrink-0">
@@ -1055,6 +1154,15 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
         </div>
 
       </div>
+
+      {/* MODAL CÀI ĐẶT TELEGRAM BOT */}
+      <TelegramBotSettingsModal
+        isOpen={isTelegramModalOpen}
+        onClose={() => setIsTelegramModalOpen(false)}
+        statusCounts={statusCounts}
+        warehouse={warehouse}
+        onConfigUpdated={(newCfg) => setTelegramConfig(newCfg)}
+      />
     </div>
   );
 };

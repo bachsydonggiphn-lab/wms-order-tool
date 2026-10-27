@@ -1,5 +1,8 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 import { fetchWmsOrders, getWmsSessionCookie, pollLatestWmsOrders, fetchWmsInventory, fetchSkuImage, httpsRequest, searchOrdersWithAttachments, mergeOrderPdfs, batchShipWmsOrders, fetchTodayPickingLists } from '../services/wmsService';
 import { fetchGHNLive, fetchJNTLive, fetchJNTBatchLive, fetchSPXLive, fetchNinjaVanLive } from './trackingBackend';
 import {
@@ -1324,6 +1327,128 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
       sendJson(res, 200, { success: true, results });
     }).catch(err => sendJson(res, 500, { success: false, error: err.message }));
     return;
+  }
+
+  // 1.9 Endpoint Gửi tin nhắn Telegram Bot
+  if (parsedUrl.pathname === '/api/wms/telegram-send' && req.method === 'POST') {
+    parseJsonBody(req).then(async (body) => {
+      const { token, chatId, text, parseMode = 'HTML', silent = false } = body;
+      if (!token || !chatId || !text) {
+        return sendJson(res, 400, { ok: false, error: 'Thiếu token, chatId hoặc text' });
+      }
+
+      const postData = JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: parseMode,
+        disable_notification: silent,
+        disable_web_page_preview: true,
+      });
+
+      const options = {
+        hostname: 'api.telegram.org',
+        port: 443,
+        path: `/bot${token}/sendMessage`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData),
+        },
+        timeout: 15000,
+      };
+
+      const teleReq = https.request(options, (teleRes) => {
+        let respBody = '';
+        teleRes.on('data', chunk => { respBody += chunk; });
+        teleRes.on('end', () => {
+          try {
+            const parsed = JSON.parse(respBody);
+            sendJson(res, teleRes.statusCode || 200, parsed);
+          } catch {
+            sendJson(res, teleRes.statusCode || 200, { ok: teleRes.statusCode === 200, raw: respBody });
+          }
+        });
+      });
+
+      teleReq.on('error', (err) => {
+        sendJson(res, 500, { ok: false, description: err.message });
+      });
+
+      teleReq.write(postData);
+      teleReq.end();
+    }).catch(err => sendJson(res, 500, { ok: false, error: err.message }));
+    return;
+  }
+
+  // 1.10 Endpoint Lấy danh sách tin nhắn Telegram Updates (để lấy Chat ID tự động)
+  if (parsedUrl.pathname === '/api/wms/telegram-updates' && req.method === 'GET') {
+    const token = (parsedUrl.query?.token as string) || '';
+    if (!token) {
+      return sendJson(res, 400, { ok: false, error: 'Thiếu token' });
+    }
+
+    const options = {
+      hostname: 'api.telegram.org',
+      port: 443,
+      path: `/bot${token}/getUpdates`,
+      method: 'GET',
+      timeout: 10000,
+    };
+
+    const teleReq = https.request(options, (teleRes) => {
+      let respBody = '';
+      teleRes.on('data', chunk => { respBody += chunk; });
+      teleRes.on('end', () => {
+        try {
+          const parsed = JSON.parse(respBody);
+          sendJson(res, teleRes.statusCode || 200, parsed);
+        } catch {
+          sendJson(res, teleRes.statusCode || 200, { ok: false, raw: respBody });
+        }
+      });
+    });
+
+    teleReq.on('error', (err) => {
+      sendJson(res, 500, { ok: false, description: err.message });
+    });
+
+    teleReq.end();
+    return;
+  }
+
+  // 1.11 Endpoint Lưu và Đọc Cấu hình Telegram Bot trên server
+  if (parsedUrl.pathname === '/api/wms/telegram-config') {
+    const configPath = path.resolve(process.cwd(), 'data', 'telegram_config.json');
+
+    if (req.method === 'GET') {
+      try {
+        if (fs.existsSync(configPath)) {
+          const data = fs.readFileSync(configPath, 'utf8');
+          sendJson(res, 200, { success: true, config: JSON.parse(data) });
+        } else {
+          sendJson(res, 200, { success: true, config: null });
+        }
+      } catch (err: any) {
+        sendJson(res, 500, { success: false, error: err.message });
+      }
+      return;
+    }
+
+    if (req.method === 'POST') {
+      parseJsonBody(req).then((body) => {
+        try {
+          const dir = path.dirname(configPath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          fs.writeFileSync(configPath, JSON.stringify(body, null, 2), 'utf8');
+          sendJson(res, 200, { success: true });
+        } catch (err: any) {
+          sendJson(res, 500, { success: false, error: err.message });
+        }
+      }).catch(err => sendJson(res, 500, { success: false, error: err.message }));
+      return;
+    }
   }
 
   next();
