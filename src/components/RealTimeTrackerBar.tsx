@@ -318,30 +318,56 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   const soundEnabledRef = useRef<boolean>(soundEnabled);
   const skuGroupsRef = useRef<SkuGroupsMap>(skuGroups);
   const initialFetchDoneRef = useRef<boolean>(false);
+  const switchAbortControllerRef = useRef<AbortController | null>(null);
+
+  // Hàm thẩm định tính hợp lệ của cache theo trạng thái WMS
+  const isCacheValid = useCallback((targetSt: WmsStatusKey, list: RawOrderRow[] | undefined, expectedCount?: number): boolean => {
+    if (!list || !Array.isArray(list) || list.length === 0) return false;
+    // Status 4 (Submitted): Tuyệt đối chưa có Picking List
+    if (targetSt === '4') {
+      const hasPickingList = list.some((o) => o.pickingList && o.pickingList.trim() !== '');
+      if (hasPickingList) return false;
+    }
+    // Status 5 (Shelved): Đơn đã lên kệ, hầu hết phải có Picking List
+    if (targetSt === '5') {
+      const hasPickingList = list.some((o) => o.pickingList && o.pickingList.trim() !== '');
+      if (!hasPickingList && list.length > 50) return false;
+    }
+    // Nếu có expectedCount (từ statusCounts) và lệch quá nhiều (lớn hơn 50 đơn), coi như cache đã cũ
+    if (expectedCount && Math.abs(list.length - expectedCount) > 50) {
+      return false;
+    }
+    return true;
+  }, []);
+
   const statusOrdersCacheRef = useRef<Record<string, RawOrderRow[]>>((() => {
     try {
-      const c4 = sessionStorage.getItem('wms_cache_orders_4');
-      const c5 = sessionStorage.getItem('wms_cache_orders_5');
-      return {
-        ...(c4 ? { '4': JSON.parse(c4) } : {}),
-        ...(c5 ? { '5': JSON.parse(c5) } : {})
-      };
+      const c4Str = sessionStorage.getItem('wms_cache_orders_4');
+      const c5Str = sessionStorage.getItem('wms_cache_orders_5');
+      const c4 = c4Str ? JSON.parse(c4Str) : null;
+      const c5 = c5Str ? JSON.parse(c5Str) : null;
+      
+      const res: Record<string, RawOrderRow[]> = {};
+      if (c4 && Array.isArray(c4) && !c4.some((o: RawOrderRow) => o.pickingList && o.pickingList.trim() !== '')) {
+        res['4'] = c4;
+      } else if (c4Str) {
+        sessionStorage.removeItem('wms_cache_orders_4');
+      }
+
+      if (c5 && Array.isArray(c5)) {
+        res['5'] = c5;
+      }
+      return res;
     } catch {
       return {};
     }
   })());
   const lastWmsTotalRef = useRef<number | null>(null);
 
+  // Chỉ cập nhật ref orders hiện tại - KHÔNG ghi đè vào cache trạng thái ở đây để tránh race condition
   useEffect(() => {
     ordersRef.current = effectiveOrders;
-    // Lưu vào cache hiện tại nếu có dữ liệu
-    if (effectiveOrders && effectiveOrders.length > 0) {
-      statusOrdersCacheRef.current[status] = effectiveOrders;
-      try {
-        sessionStorage.setItem('wms_cache_orders_' + status, JSON.stringify(effectiveOrders.slice(0, 5000)));
-      } catch {}
-    }
-  }, [effectiveOrders, status]);
+  }, [effectiveOrders]);
 
   useEffect(() => {
     skuGroupsRef.current = skuGroups;
@@ -524,16 +550,25 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     }
   };
 
-  // 2. Chuyển trạng thái siêu tốc (Instant Stale-While-Revalidate): Hiện ngay dữ liệu đệm trong 0ms, sau đó làm tươi nền
+  // 2. Chuyển trạng thái siêu tốc: Thẩm định cache chặt chẽ, abort request cũ, hiển thị loading rõ ràng
   const switchStatusAndFetch = async (targetStatus: WmsStatusKey, forceFetch = false) => {
+    // 1. Hủy bất kỳ tiến trình fetch trước đó đang dở dang
+    if (switchAbortControllerRef.current) {
+      switchAbortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    switchAbortControllerRef.current = abortController;
+
     setStatus(targetStatus);
     statusRef.current = targetStatus;
+    setIsSwitchingStatus(true);
 
     const cached = statusOrdersCacheRef.current[targetStatus];
     const statusConfig = WMS_STATUS_CONFIG[targetStatus];
+    const isCacheLegit = !forceFetch && isCacheValid(targetStatus, cached, statusCounts[targetStatus]);
 
-    // NẾU ĐÃ CÓ DỮ LIỆU ĐỆM -> HIỂN THỊ NGAY LẬP TỨC (0ms) KHÔNG ĐỂ NGƯỜI DÙNG PHẢI CHỜ!
-    if (cached && cached.length > 0 && !forceFetch) {
+    if (isCacheLegit && cached && cached.length > 0) {
+      // Dữ liệu đệm hợp lệ -> hiển thị ngay lập tức
       if (onReloadStatusOrders) {
         onReloadStatusOrders(cached, statusConfig.shortLabel);
       } else if (effectiveOnNewOrders) {
@@ -541,7 +576,11 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
       }
       setTotalInWms(cached.length);
     } else {
-      setIsSwitchingStatus(true);
+      // Dữ liệu đệm không hợp lệ hoặc không có -> dọn sạch đơn cũ tránh tình trạng hiển thị nhầm đơn trạng thái khác
+      if (onReloadStatusOrders) {
+        onReloadStatusOrders([], statusConfig.shortLabel);
+      }
+      setTotalInWms(null);
     }
 
     isPollingRef.current = true;
@@ -549,23 +588,28 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     setLastDetectedOrders([]);
 
     try {
-        // Tải dữ liệu trạng thái mới: Lấy toàn bộ đơn hàng (Status 4, 5 và Shipped Hôm nay)
-        const res = await fetch('/api/wms/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            warehouse: warehouseRef.current,
-            status: targetStatus,
-            pageSize: 500,
-            maxPages: 0,
-            username: 'David',
-            password: '12345abc',
-            skuGroups: skuGroupsRef.current,
-          }),
-        });
+      // Tải dữ liệu trạng thái mới: Lấy toàn bộ đơn hàng từ YunWMS
+      const res = await fetch('/api/wms/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
+        body: JSON.stringify({
+          warehouse: warehouseRef.current,
+          status: targetStatus,
+          pageSize: 500,
+          maxPages: 0,
+          forceRefresh: true,
+          username: 'David',
+          password: '12345abc',
+          skuGroups: skuGroupsRef.current,
+        }),
+      });
 
       if (res.ok) {
         const data = await res.json();
+        // Kiểm tra xem trạng thái người dùng đang xem có còn là targetStatus không
+        if (statusRef.current !== targetStatus) return;
+
         if (data.success && Array.isArray(data.orders)) {
           statusOrdersCacheRef.current[targetStatus] = data.orders;
           try {
@@ -580,7 +624,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           // Cập nhật số lượng của trạng thái vừa kéo
           setStatusCounts((prev) => ({
             ...prev,
-            [targetStatus]: data.totalOrders
+            [targetStatus]: data.totalOrders,
           }));
 
           if (onReloadStatusOrders) {
@@ -594,14 +638,18 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           }
         }
       }
-    } catch (err) {
-      console.error('Error switching status:', err);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('Error switching status:', err);
+      }
     } finally {
-      setIsSwitchingStatus(false);
-      isPollingRef.current = false;
-      setIsPolling(false);
-      setIsLive(true);
-      setCountdown(intervalSec);
+      if (statusRef.current === targetStatus) {
+        setIsSwitchingStatus(false);
+        isPollingRef.current = false;
+        setIsPolling(false);
+        setIsLive(true);
+        setCountdown(intervalSec);
+      }
     }
   };
 
@@ -924,7 +972,13 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                   : 'bg-slate-800/90 hover:bg-slate-700 text-blue-200/90 border border-slate-700'
               }`}
             >
-              <span>{WMS_STATUS_CONFIG['4'].icon}</span>
+              <span>
+                {status === '4' && isSwitchingStatus ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-white inline-block" />
+                ) : (
+                  WMS_STATUS_CONFIG['4'].icon
+                )}
+              </span>
               <span className="hidden sm:inline">Submitted (E11=4)</span>
               <span className="sm:hidden">Submit</span>
               {statusCounts['4'] !== undefined && (
@@ -934,7 +988,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                   {statusCounts['4']}
                 </span>
               )}
-              {status === '4' && isLive && (
+              {status === '4' && isLive && !isSwitchingStatus && (
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
               )}
             </button>
@@ -949,7 +1003,13 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                   : 'bg-slate-800/90 hover:bg-slate-700 text-amber-200/90 border border-slate-700'
               }`}
             >
-              <span>{WMS_STATUS_CONFIG['5'].icon}</span>
+              <span>
+                {status === '5' && isSwitchingStatus ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-300 inline-block" />
+                ) : (
+                  WMS_STATUS_CONFIG['5'].icon
+                )}
+              </span>
               <span className="hidden sm:inline">Shelved (E11=5)</span>
               <span className="sm:hidden">Shelved</span>
               {statusCounts['5'] !== undefined && (
@@ -959,7 +1019,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                   {statusCounts['5']}
                 </span>
               )}
-              {status === '5' && isLive && (
+              {status === '5' && isLive && !isSwitchingStatus && (
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping"></span>
               )}
             </button>
@@ -974,7 +1034,13 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                   : 'bg-slate-800/90 hover:bg-slate-700 text-emerald-200/90 border border-slate-700'
               }`}
             >
-              <span>{WMS_STATUS_CONFIG['8'].icon}</span>
+              <span>
+                {status === '8' && isSwitchingStatus ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-white inline-block" />
+                ) : (
+                  WMS_STATUS_CONFIG['8'].icon
+                )}
+              </span>
               <span className="hidden sm:inline">Shipped Hôm Nay (E11=8)</span>
               <span className="sm:hidden">Shipped HN</span>
               {(statusCounts['8'] !== undefined || (status === '8' && totalInWms !== null)) && (
@@ -986,7 +1052,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                     : (statusCounts['8'] ?? totalInWms ?? 0).toLocaleString('vi-VN')}
                 </span>
               )}
-              {status === '8' && isLive && (
+              {status === '8' && isLive && !isSwitchingStatus && (
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
               )}
             </button>
@@ -1009,12 +1075,12 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
               )}
             </button>
 
-            {/* Loading spinner khi chuyển đổi trạng thái */}
+            {/* Loading badge khi chuyển đổi trạng thái */}
             {isSwitchingStatus && (
-              <span className="text-xs text-amber-300 flex items-center gap-1 font-semibold animate-pulse shrink-0">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span className="hidden sm:inline">Đang làm tươi {currentConfig.shortLabel}...</span>
-              </span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/25 text-amber-300 border border-amber-400/50 text-xs font-bold animate-pulse shrink-0 shadow-sm">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400 shrink-0" />
+                <span>Đang tải {currentConfig.shortLabel}...</span>
+              </div>
             )}
           </div>
 
