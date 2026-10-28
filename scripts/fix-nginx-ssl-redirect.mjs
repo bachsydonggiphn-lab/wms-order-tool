@@ -30,6 +30,8 @@ server {
     ssl_prefer_server_ciphers on;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
     client_max_body_size 100M;
 
     location / {
