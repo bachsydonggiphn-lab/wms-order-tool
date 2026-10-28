@@ -53,6 +53,22 @@ export function loadTelegramConfig(): TelegramBotConfig {
   return { ...DEFAULT_TELEGRAM_CONFIG };
 }
 
+export async function fetchServerTelegramConfig(): Promise<TelegramBotConfig> {
+  try {
+    const res = await fetch('/api/wms/telegram-config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.config) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.config));
+        return { ...DEFAULT_TELEGRAM_CONFIG, ...data.config };
+      }
+    }
+  } catch (err) {
+    console.warn('[telegramService] Lỗi kéo telegram config từ VPS server:', err);
+  }
+  return loadTelegramConfig();
+}
+
 export function saveTelegramConfig(config: TelegramBotConfig): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));

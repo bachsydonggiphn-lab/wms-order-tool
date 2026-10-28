@@ -11,13 +11,23 @@ import { InventoryQueryResult } from '../../../types';
 
 interface InventoryKpiCardsProps {
   data: InventoryQueryResult | null;
+  className?: string;
+  showOnMobile?: boolean;
 }
 
-export const InventoryKpiCards: React.FC<InventoryKpiCardsProps> = ({ data }) => {
+export const InventoryKpiCards: React.FC<InventoryKpiCardsProps> = ({
+  data,
+  className = '',
+  showOnMobile = false,
+}) => {
   if (!data) return null;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+    <div
+      className={`${
+        showOnMobile ? 'grid grid-cols-2' : 'hidden'
+      } sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 ${className}`}
+    >
       {/* Tổng Mã SKU */}
       <div className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
         <div className="flex items-center justify-between mb-1">

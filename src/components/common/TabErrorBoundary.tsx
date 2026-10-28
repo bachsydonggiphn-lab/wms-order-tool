@@ -5,6 +5,8 @@ interface TabErrorBoundaryProps {
   tabName: string;
   onResetTab?: () => void;
   onNavigateHome?: () => void;
+  /** Alias của onNavigateHome (các module Tab 2/3 dùng tên này) */
+  onNavigateBack?: () => void;
   children: ReactNode;
 }
 
@@ -77,10 +79,10 @@ export class TabErrorBoundary extends Component<TabErrorBoundaryProps, TabErrorB
               <span>Tải Lại Riêng Tab Này</span>
             </button>
 
-            {this.props.onNavigateHome && (
+            {(this.props.onNavigateHome || this.props.onNavigateBack) && (
               <button
                 type="button"
-                onClick={this.props.onNavigateHome}
+                onClick={this.props.onNavigateHome || this.props.onNavigateBack}
                 className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />

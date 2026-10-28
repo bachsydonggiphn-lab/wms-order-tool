@@ -100,7 +100,15 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
                   <span className="text-slate-300">•</span>
                   <span className="flex items-center gap-1 text-slate-600 font-semibold">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    Cập nhật: {new Date(data.fetchedAt).toLocaleTimeString('vi-VN')}
+                    Cập nhật: {(() => {
+                      try {
+                        const d = new Date(data.fetchedAt);
+                        if (!isNaN(d.getTime())) return d.toLocaleTimeString('vi-VN');
+                        return String(data.fetchedAt).split(' ')[0] || String(data.fetchedAt);
+                      } catch {
+                        return String(data.fetchedAt);
+                      }
+                    })()}
                   </span>
                 </>
               )}

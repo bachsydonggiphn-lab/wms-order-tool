@@ -1,0 +1,28 @@
+{
+  "enabled": true,
+  "botToken": "8867073708:AAFnVPbjWujCH66ygemKQa2VRKU1y5H6FBA",
+  "botUsername": "WMSHCMBOT",
+  "chatId": "6271188961",
+  "chatTitle": "David (@BachDong_DAVID)",
+  "intervalMinutes": 30,
+  "scheduleTimes": [
+    "08:00",
+    "11:30",
+    "14:00",
+    "17:00",
+    "20:00"
+  ],
+  "mode": "interval",
+  "onlyOnChange": true,
+  "includeSubmitted": true,
+  "includeShelved": true,
+  "includeShipped": true,
+  "warehouse": "7",
+  "silent": false,
+  "lastSentAt": "2026-10-28T10:28:39.676Z",
+  "lastCounts": {
+    "submitted": 103,
+    "shelved": 245,
+    "shipped": 3431
+  }
+}

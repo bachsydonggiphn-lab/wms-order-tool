@@ -7,16 +7,18 @@ import { TabErrorBoundary } from '../../components/common/TabErrorBoundary';
 import { Toolbar, ActiveTabType } from '../../components/Toolbar';
 import { DataInputSection } from '../../components/DataInputSection';
 import { RealTimeTrackerBar } from '../../components/RealTimeTrackerBar';
-import { SkuAndPcsView } from '../../components/views/SkuAndPcsView';
-import { PickingListDetailView } from '../../components/views/PickingListDetailView';
-import { AreaGroupingView } from '../../components/views/AreaGroupingView';
-import { MixOrderAnalysisView } from '../../components/views/MixOrderAnalysisView';
-import { YogaClassificationView } from '../../components/views/YogaClassificationView';
-import { SinglePcsView } from '../../components/views/SinglePcsView';
-import { AllOrdersTableView } from '../../components/views/AllOrdersTableView';
-import { ShippedTrackingView } from '../../components/views/ShippedTrackingView';
-import { SkuSettingsView } from '../../components/views/SkuSettingsView';
-import { AppsScriptCodeView } from '../../components/views/AppsScriptCodeView';
+import {
+  SkuAndPcsView,
+  PickingListDetailView,
+  AreaGroupingView,
+  MixOrderAnalysisView,
+  YogaClassificationView,
+  SinglePcsView,
+  AllOrdersTableView,
+  ShippedTrackingView,
+  SkuSettingsView,
+  AppsScriptCodeView,
+} from './tabs';
 import { ClearDataModal } from '../../components/ClearDataModal';
 import { WmsSyncModal } from '../../components/WmsSyncModal';
 import { PrintPickingModal } from '../../components/PrintPickingModal';

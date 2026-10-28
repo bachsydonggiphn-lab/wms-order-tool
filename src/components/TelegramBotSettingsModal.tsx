@@ -21,6 +21,7 @@ import {
 import {
   TelegramBotConfig,
   loadTelegramConfig,
+  fetchServerTelegramConfig,
   saveTelegramConfig,
   formatTelegramReport,
   sendTelegramMessage,
@@ -56,7 +57,7 @@ export const TelegramBotSettingsModal: React.FC<TelegramBotSettingsModalProps> =
   const [copiedBot, setCopiedBot] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Đồng bộ cấu hình khi mở modal
+  // Đồng bộ cấu hình khi mở modal từ VPS server
   useEffect(() => {
     if (isOpen) {
       const loaded = loadTelegramConfig();
@@ -64,6 +65,13 @@ export const TelegramBotSettingsModal: React.FC<TelegramBotSettingsModalProps> =
       setTestResult(null);
       setDetectError(null);
       setSaveSuccess(false);
+
+      // Kéo cấu hình chính xác và mới nhất đang chạy trên VPS
+      fetchServerTelegramConfig().then((serverCfg) => {
+        if (serverCfg) {
+          setConfig(serverCfg);
+        }
+      }).catch(() => {});
     }
   }, [isOpen]);
 

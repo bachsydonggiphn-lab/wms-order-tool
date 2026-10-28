@@ -1,0 +1,4298 @@
+{
+  "2026-10-25": [
+    {
+      "plCode": "PL72610250053",
+      "createdTime": "2026-10-25 17:34:46",
+      "orderCount": 10,
+      "totalQty": 42,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 10,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 10
+      },
+      "topSkus": [
+        [
+          "0",
+          10
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250052",
+      "createdTime": "2026-10-25 17:34:35",
+      "orderCount": 19,
+      "totalQty": 38,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250051",
+      "createdTime": "2026-10-25 17:34:11",
+      "orderCount": 28,
+      "totalQty": 56,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 28,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 28
+      },
+      "topSkus": [
+        [
+          "0",
+          28
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250050",
+      "createdTime": "2026-10-25 17:33:55",
+      "orderCount": 40,
+      "totalQty": 650,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 40,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 40
+      },
+      "topSkus": [
+        [
+          "0",
+          40
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250049",
+      "createdTime": "2026-10-25 17:33:34",
+      "orderCount": 16,
+      "totalQty": 48,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 16,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 16
+      },
+      "topSkus": [
+        [
+          "0",
+          16
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250048",
+      "createdTime": "2026-10-25 17:33:21",
+      "orderCount": 10,
+      "totalQty": 40,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 10,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 10
+      },
+      "topSkus": [
+        [
+          "0",
+          10
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250047",
+      "createdTime": "2026-10-25 17:33:02",
+      "orderCount": 16,
+      "totalQty": 80,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 16,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 16
+      },
+      "topSkus": [
+        [
+          "0",
+          16
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250046",
+      "createdTime": "2026-10-25 17:32:47",
+      "orderCount": 33,
+      "totalQty": 66,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 33,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 33
+      },
+      "topSkus": [
+        [
+          "0",
+          33
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250045",
+      "createdTime": "2026-10-25 17:32:20",
+      "orderCount": 123,
+      "totalQty": 123,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 123,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 123
+      },
+      "topSkus": [
+        [
+          "0",
+          123
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250044",
+      "createdTime": "2026-10-25 16:53:58",
+      "orderCount": 311,
+      "totalQty": 311,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250043",
+      "createdTime": "2026-10-25 15:55:17",
+      "orderCount": 14,
+      "totalQty": 49,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 14,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 14
+      },
+      "topSkus": [
+        [
+          "0",
+          14
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250042",
+      "createdTime": "2026-10-25 15:54:58",
+      "orderCount": 29,
+      "totalQty": 58,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 29,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 29
+      },
+      "topSkus": [
+        [
+          "0",
+          29
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250041",
+      "createdTime": "2026-10-25 15:53:26",
+      "orderCount": 19,
+      "totalQty": 125,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250040",
+      "createdTime": "2026-10-25 15:52:55",
+      "orderCount": 21,
+      "totalQty": 42,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 21,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 21
+      },
+      "topSkus": [
+        [
+          "0",
+          21
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250039",
+      "createdTime": "2026-10-25 15:52:06",
+      "orderCount": 9,
+      "totalQty": 18,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 9,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 9
+      },
+      "topSkus": [
+        [
+          "0",
+          9
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250038",
+      "createdTime": "2026-10-25 15:51:47",
+      "orderCount": 12,
+      "totalQty": 40,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 12,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12
+      },
+      "topSkus": [
+        [
+          "0",
+          12
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250037",
+      "createdTime": "2026-10-25 15:47:27",
+      "orderCount": 9,
+      "totalQty": 36,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 9,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 9
+      },
+      "topSkus": [
+        [
+          "0",
+          9
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250036",
+      "createdTime": "2026-10-25 15:47:09",
+      "orderCount": 28,
+      "totalQty": 140,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 28,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 28
+      },
+      "topSkus": [
+        [
+          "0",
+          28
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250035",
+      "createdTime": "2026-10-25 15:46:58",
+      "orderCount": 13,
+      "totalQty": 39,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 13,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 13
+      },
+      "topSkus": [
+        [
+          "0",
+          13
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250034",
+      "createdTime": "2026-10-25 15:46:39",
+      "orderCount": 33,
+      "totalQty": 66,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 33,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 33
+      },
+      "topSkus": [
+        [
+          "0",
+          33
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250033",
+      "createdTime": "2026-10-25 15:46:17",
+      "orderCount": 88,
+      "totalQty": 88,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 88,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 88
+      },
+      "topSkus": [
+        [
+          "0",
+          88
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250032",
+      "createdTime": "2026-10-25 15:45:50",
+      "orderCount": 120,
+      "totalQty": 120,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 120,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 120
+      },
+      "topSkus": [
+        [
+          "0",
+          120
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250031",
+      "createdTime": "2026-10-25 14:33:47",
+      "orderCount": 165,
+      "totalQty": 165,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 165,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 165
+      },
+      "topSkus": [
+        [
+          "0",
+          165
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250030",
+      "createdTime": "2026-10-25 14:32:58",
+      "orderCount": 117,
+      "totalQty": 117,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 117,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 117
+      },
+      "topSkus": [
+        [
+          "0",
+          117
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250029",
+      "createdTime": "2026-10-25 14:05:35",
+      "orderCount": 76,
+      "totalQty": 152,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 76,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 76
+      },
+      "topSkus": [
+        [
+          "0",
+          76
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250028",
+      "createdTime": "2026-10-25 14:04:44",
+      "orderCount": 10,
+      "totalQty": 23,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 10,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 10
+      },
+      "topSkus": [
+        [
+          "0",
+          10
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250027",
+      "createdTime": "2026-10-25 14:04:26",
+      "orderCount": 10,
+      "totalQty": 49,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 10,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 10
+      },
+      "topSkus": [
+        [
+          "0",
+          10
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250026",
+      "createdTime": "2026-10-25 14:03:38",
+      "orderCount": 10,
+      "totalQty": 100,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 10,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 10
+      },
+      "topSkus": [
+        [
+          "0",
+          10
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250025",
+      "createdTime": "2026-10-25 14:03:14",
+      "orderCount": 46,
+      "totalQty": 230,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 46,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 46
+      },
+      "topSkus": [
+        [
+          "0",
+          46
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250024",
+      "createdTime": "2026-10-25 14:02:46",
+      "orderCount": 24,
+      "totalQty": 96,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 24,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 24
+      },
+      "topSkus": [
+        [
+          "0",
+          24
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250023",
+      "createdTime": "2026-10-25 14:02:32",
+      "orderCount": 35,
+      "totalQty": 105,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 35,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 35
+      },
+      "topSkus": [
+        [
+          "0",
+          35
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250022",
+      "createdTime": "2026-10-25 14:01:48",
+      "orderCount": 70,
+      "totalQty": 140,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 70,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 70
+      },
+      "topSkus": [
+        [
+          "0",
+          70
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250021",
+      "createdTime": "2026-10-25 14:00:25",
+      "orderCount": 201,
+      "totalQty": 201,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250020",
+      "createdTime": "2026-10-25 11:11:07",
+      "orderCount": 231,
+      "totalQty": 231,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250019",
+      "createdTime": "2026-10-25 11:09:59",
+      "orderCount": 266,
+      "totalQty": 266,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250018",
+      "createdTime": "2026-10-25 11:08:43",
+      "orderCount": 265,
+      "totalQty": 265,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250017",
+      "createdTime": "2026-10-25 11:07:29",
+      "orderCount": 42,
+      "totalQty": 42,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 42,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 42
+      },
+      "topSkus": [
+        [
+          "0",
+          42
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250016",
+      "createdTime": "2026-10-25 09:51:31",
+      "orderCount": 20,
+      "totalQty": 217,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 20,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 20
+      },
+      "topSkus": [
+        [
+          "0",
+          20
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250015",
+      "createdTime": "2026-10-25 09:51:07",
+      "orderCount": 23,
+      "totalQty": 46,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 23,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 23
+      },
+      "topSkus": [
+        [
+          "0",
+          23
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250014",
+      "createdTime": "2026-10-25 09:50:44",
+      "orderCount": 11,
+      "totalQty": 42,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 11,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 11
+      },
+      "topSkus": [
+        [
+          "0",
+          11
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250013",
+      "createdTime": "2026-10-25 09:50:09",
+      "orderCount": 12,
+      "totalQty": 31,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 12,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12
+      },
+      "topSkus": [
+        [
+          "0",
+          12
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250012",
+      "createdTime": "2026-10-25 09:49:33",
+      "orderCount": 22,
+      "totalQty": 44,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250011",
+      "createdTime": "2026-10-25 09:49:11",
+      "orderCount": 22,
+      "totalQty": 104,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250010",
+      "createdTime": "2026-10-25 09:48:49",
+      "orderCount": 35,
+      "totalQty": 98,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 35,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 35
+      },
+      "topSkus": [
+        [
+          "0",
+          35
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250009",
+      "createdTime": "2026-10-25 09:48:15",
+      "orderCount": 22,
+      "totalQty": 67,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250008",
+      "createdTime": "2026-10-25 09:47:43",
+      "orderCount": 133,
+      "totalQty": 266,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 133,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 133
+      },
+      "topSkus": [
+        [
+          "0",
+          133
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250007",
+      "createdTime": "2026-10-25 09:38:03",
+      "orderCount": 365,
+      "totalQty": 365,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250006",
+      "createdTime": "2026-10-25 09:25:35",
+      "orderCount": 410,
+      "totalQty": 410,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250005",
+      "createdTime": "2026-10-25 09:19:20",
+      "orderCount": 222,
+      "totalQty": 222,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250004",
+      "createdTime": "2026-10-25 09:15:33",
+      "orderCount": 54,
+      "totalQty": 270,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 54,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 54
+      },
+      "topSkus": [
+        [
+          "0",
+          54
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250003",
+      "createdTime": "2026-10-25 09:15:11",
+      "orderCount": 35,
+      "totalQty": 140,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 35,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 35
+      },
+      "topSkus": [
+        [
+          "0",
+          35
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250002",
+      "createdTime": "2026-10-25 09:14:50",
+      "orderCount": 61,
+      "totalQty": 183,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 61,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 61
+      },
+      "topSkus": [
+        [
+          "0",
+          61
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610250001",
+      "createdTime": "2026-10-25 09:14:09",
+      "orderCount": 118,
+      "totalQty": 236,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 118,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 118
+      },
+      "topSkus": [
+        [
+          "0",
+          118
+        ]
+      ]
+    }
+  ],
+  "2026-10-24": [
+    {
+      "plCode": "PL72610240041",
+      "createdTime": "2026-10-24 17:32:29",
+      "orderCount": 21,
+      "totalQty": 42,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 21,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 21
+      },
+      "topSkus": [
+        [
+          "0",
+          21
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240040",
+      "createdTime": "2026-10-24 17:31:57",
+      "orderCount": 14,
+      "totalQty": 28,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 14,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 14
+      },
+      "topSkus": [
+        [
+          "0",
+          14
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240039",
+      "createdTime": "2026-10-24 17:31:26",
+      "orderCount": 7,
+      "totalQty": 14,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 7,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 7
+      },
+      "topSkus": [
+        [
+          "0",
+          7
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240038",
+      "createdTime": "2026-10-24 17:31:02",
+      "orderCount": 12,
+      "totalQty": 29,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 12,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12
+      },
+      "topSkus": [
+        [
+          "0",
+          12
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240037",
+      "createdTime": "2026-10-24 17:30:41",
+      "orderCount": 15,
+      "totalQty": 84,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 15,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 15
+      },
+      "topSkus": [
+        [
+          "0",
+          15
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240036",
+      "createdTime": "2026-10-24 17:30:17",
+      "orderCount": 20,
+      "totalQty": 40,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 20,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 20
+      },
+      "topSkus": [
+        [
+          "0",
+          20
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240035",
+      "createdTime": "2026-10-24 17:29:36",
+      "orderCount": 19,
+      "totalQty": 112,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240034",
+      "createdTime": "2026-10-24 17:28:59",
+      "orderCount": 19,
+      "totalQty": 57,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240033",
+      "createdTime": "2026-10-24 17:28:38",
+      "orderCount": 19,
+      "totalQty": 38,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240032",
+      "createdTime": "2026-10-24 17:25:58",
+      "orderCount": 250,
+      "totalQty": 250,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240031",
+      "createdTime": "2026-10-24 15:33:22",
+      "orderCount": 55,
+      "totalQty": 110,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 55,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 55
+      },
+      "topSkus": [
+        [
+          "0",
+          55
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240030",
+      "createdTime": "2026-10-24 15:32:33",
+      "orderCount": 23,
+      "totalQty": 72,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 23,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 23
+      },
+      "topSkus": [
+        [
+          "0",
+          23
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240029",
+      "createdTime": "2026-10-24 15:32:00",
+      "orderCount": 108,
+      "totalQty": 108,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 108,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 108
+      },
+      "topSkus": [
+        [
+          "0",
+          108
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240028",
+      "createdTime": "2026-10-24 14:57:26",
+      "orderCount": 24,
+      "totalQty": 235,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 24,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 24
+      },
+      "topSkus": [
+        [
+          "0",
+          24
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240027",
+      "createdTime": "2026-10-24 14:56:59",
+      "orderCount": 13,
+      "totalQty": 52,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 13,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 13
+      },
+      "topSkus": [
+        [
+          "0",
+          13
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240026",
+      "createdTime": "2026-10-24 14:54:20",
+      "orderCount": 22,
+      "totalQty": 110,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240025",
+      "createdTime": "2026-10-24 14:52:32",
+      "orderCount": 30,
+      "totalQty": 90,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 30,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 30
+      },
+      "topSkus": [
+        [
+          "0",
+          30
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240024",
+      "createdTime": "2026-10-24 14:50:37",
+      "orderCount": 122,
+      "totalQty": 122,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 122,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 122
+      },
+      "topSkus": [
+        [
+          "0",
+          122
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240023",
+      "createdTime": "2026-10-24 14:05:40",
+      "orderCount": 50,
+      "totalQty": 100,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 50,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 50
+      },
+      "topSkus": [
+        [
+          "0",
+          50
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240022",
+      "createdTime": "2026-10-24 14:05:04",
+      "orderCount": 134,
+      "totalQty": 134,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 134,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 134
+      },
+      "topSkus": [
+        [
+          "0",
+          134
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240021",
+      "createdTime": "2026-10-24 14:04:31",
+      "orderCount": 159,
+      "totalQty": 159,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 159,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 159
+      },
+      "topSkus": [
+        [
+          "0",
+          159
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240020",
+      "createdTime": "2026-10-24 12:18:54",
+      "orderCount": 1,
+      "totalQty": 30,
+      "creator": "David",
+      "carrier": "JTTH_1002",
+      "pcs1Count": 1,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "JTTH_25": 1
+      },
+      "topSkus": [
+        [
+          "0",
+          1
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240019",
+      "createdTime": "2026-10-24 12:10:32",
+      "orderCount": 392,
+      "totalQty": 392,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240018",
+      "createdTime": "2026-10-24 11:40:38",
+      "orderCount": 274,
+      "totalQty": 274,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240017",
+      "createdTime": "2026-10-24 11:05:47",
+      "orderCount": 265,
+      "totalQty": 265,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240016",
+      "createdTime": "2026-10-24 11:04:00",
+      "orderCount": 196,
+      "totalQty": 196,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 196,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 196
+      },
+      "topSkus": [
+        [
+          "0",
+          196
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240015",
+      "createdTime": "2026-10-24 11:01:10",
+      "orderCount": 58,
+      "totalQty": 290,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 58,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 58
+      },
+      "topSkus": [
+        [
+          "0",
+          58
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240014",
+      "createdTime": "2026-10-24 09:36:01",
+      "orderCount": 15,
+      "totalQty": 102,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 15,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 15
+      },
+      "topSkus": [
+        [
+          "0",
+          15
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240013",
+      "createdTime": "2026-10-24 09:35:32",
+      "orderCount": 22,
+      "totalQty": 44,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240012",
+      "createdTime": "2026-10-24 09:35:04",
+      "orderCount": 9,
+      "totalQty": 25,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 9,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 9
+      },
+      "topSkus": [
+        [
+          "0",
+          9
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240011",
+      "createdTime": "2026-10-24 09:34:25",
+      "orderCount": 10,
+      "totalQty": 36,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 10,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 10
+      },
+      "topSkus": [
+        [
+          "0",
+          10
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240010",
+      "createdTime": "2026-10-24 09:33:52",
+      "orderCount": 17,
+      "totalQty": 120,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 17,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 17
+      },
+      "topSkus": [
+        [
+          "0",
+          17
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240009",
+      "createdTime": "2026-10-24 09:33:10",
+      "orderCount": 18,
+      "totalQty": 36,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 18,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 18
+      },
+      "topSkus": [
+        [
+          "0",
+          18
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240008",
+      "createdTime": "2026-10-24 09:32:32",
+      "orderCount": 72,
+      "totalQty": 144,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 72,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 72
+      },
+      "topSkus": [
+        [
+          "0",
+          72
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240007",
+      "createdTime": "2026-10-24 09:16:35",
+      "orderCount": 180,
+      "totalQty": 180,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 180,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 180
+      },
+      "topSkus": [
+        [
+          "0",
+          180
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240006",
+      "createdTime": "2026-10-24 09:15:10",
+      "orderCount": 119,
+      "totalQty": 238,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 119,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 119
+      },
+      "topSkus": [
+        [
+          "0",
+          119
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240005",
+      "createdTime": "2026-10-24 09:13:52",
+      "orderCount": 173,
+      "totalQty": 173,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 173,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 173
+      },
+      "topSkus": [
+        [
+          "0",
+          173
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240004",
+      "createdTime": "2026-10-24 09:05:03",
+      "orderCount": 274,
+      "totalQty": 274,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240003",
+      "createdTime": "2026-10-24 09:01:32",
+      "orderCount": 21,
+      "totalQty": 84,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 21,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 21
+      },
+      "topSkus": [
+        [
+          "0",
+          21
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240002",
+      "createdTime": "2026-10-24 09:01:04",
+      "orderCount": 51,
+      "totalQty": 153,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 51,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 51
+      },
+      "topSkus": [
+        [
+          "0",
+          51
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610240001",
+      "createdTime": "2026-10-24 09:00:21",
+      "orderCount": 125,
+      "totalQty": 250,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 125,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 125
+      },
+      "topSkus": [
+        [
+          "0",
+          125
+        ]
+      ]
+    }
+  ],
+  "2026-10-23": [
+    {
+      "plCode": "PL72610230049",
+      "createdTime": "2026-10-23 18:14:36",
+      "orderCount": 19,
+      "totalQty": 47,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230048",
+      "createdTime": "2026-10-23 18:14:18",
+      "orderCount": 9,
+      "totalQty": 29,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 9,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 9
+      },
+      "topSkus": [
+        [
+          "0",
+          9
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230047",
+      "createdTime": "2026-10-23 18:13:24",
+      "orderCount": 74,
+      "totalQty": 74,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 74,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 74
+      },
+      "topSkus": [
+        [
+          "0",
+          74
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230046",
+      "createdTime": "2026-10-23 17:40:57",
+      "orderCount": 13,
+      "totalQty": 28,
+      "creator": "David",
+      "carrier": "LEXTH_6429, JTTH_1002",
+      "pcs1Count": 13,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12,
+        "JTTH_25": 1
+      },
+      "topSkus": [
+        [
+          "0",
+          13
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230045",
+      "createdTime": "2026-10-23 17:40:34",
+      "orderCount": 15,
+      "totalQty": 62,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 15,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 15
+      },
+      "topSkus": [
+        [
+          "0",
+          15
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230044",
+      "createdTime": "2026-10-23 17:39:59",
+      "orderCount": 66,
+      "totalQty": 66,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 66,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 66
+      },
+      "topSkus": [
+        [
+          "0",
+          66
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230043",
+      "createdTime": "2026-10-23 17:08:20",
+      "orderCount": 27,
+      "totalQty": 83,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 27,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 27
+      },
+      "topSkus": [
+        [
+          "0",
+          27
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230042",
+      "createdTime": "2026-10-23 17:07:50",
+      "orderCount": 24,
+      "totalQty": 48,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 24,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 24
+      },
+      "topSkus": [
+        [
+          "0",
+          24
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230041",
+      "createdTime": "2026-10-23 17:07:17",
+      "orderCount": 23,
+      "totalQty": 93,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 23,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 23
+      },
+      "topSkus": [
+        [
+          "0",
+          23
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230040",
+      "createdTime": "2026-10-23 17:06:09",
+      "orderCount": 22,
+      "totalQty": 44,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230039",
+      "createdTime": "2026-10-23 17:05:08",
+      "orderCount": 186,
+      "totalQty": 186,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 186,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 186
+      },
+      "topSkus": [
+        [
+          "0",
+          186
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230038",
+      "createdTime": "2026-10-23 15:53:15",
+      "orderCount": 12,
+      "totalQty": 69,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 12,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12
+      },
+      "topSkus": [
+        [
+          "0",
+          12
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230037",
+      "createdTime": "2026-10-23 15:52:39",
+      "orderCount": 15,
+      "totalQty": 38,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 15,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 15
+      },
+      "topSkus": [
+        [
+          "0",
+          15
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230036",
+      "createdTime": "2026-10-23 15:51:48",
+      "orderCount": 40,
+      "totalQty": 366,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 40,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 40
+      },
+      "topSkus": [
+        [
+          "0",
+          40
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230035",
+      "createdTime": "2026-10-23 15:51:13",
+      "orderCount": 11,
+      "totalQty": 55,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 11,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 11
+      },
+      "topSkus": [
+        [
+          "0",
+          11
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230034",
+      "createdTime": "2026-10-23 15:50:48",
+      "orderCount": 16,
+      "totalQty": 32,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 16,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 16
+      },
+      "topSkus": [
+        [
+          "0",
+          16
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230033",
+      "createdTime": "2026-10-23 15:50:20",
+      "orderCount": 72,
+      "totalQty": 72,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 72,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 72
+      },
+      "topSkus": [
+        [
+          "0",
+          72
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230032",
+      "createdTime": "2026-10-23 15:24:52",
+      "orderCount": 215,
+      "totalQty": 215,
+      "creator": "David",
+      "carrier": "LEXTH_6429, JTTH_1002",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 199,
+        "JTTH_25": 1
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230031",
+      "createdTime": "2026-10-23 14:30:05",
+      "orderCount": 19,
+      "totalQty": 178,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230030",
+      "createdTime": "2026-10-23 14:29:39",
+      "orderCount": 18,
+      "totalQty": 36,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 18,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 18
+      },
+      "topSkus": [
+        [
+          "0",
+          18
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230029",
+      "createdTime": "2026-10-23 14:29:14",
+      "orderCount": 9,
+      "totalQty": 21,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 9,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 9
+      },
+      "topSkus": [
+        [
+          "0",
+          9
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230028",
+      "createdTime": "2026-10-23 14:28:45",
+      "orderCount": 36,
+      "totalQty": 72,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 36,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 36
+      },
+      "topSkus": [
+        [
+          "0",
+          36
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230027",
+      "createdTime": "2026-10-23 14:28:07",
+      "orderCount": 60,
+      "totalQty": 120,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 60,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 60
+      },
+      "topSkus": [
+        [
+          "0",
+          60
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230026",
+      "createdTime": "2026-10-23 14:27:26",
+      "orderCount": 31,
+      "totalQty": 155,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 31,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 31
+      },
+      "topSkus": [
+        [
+          "0",
+          31
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230025",
+      "createdTime": "2026-10-23 14:27:02",
+      "orderCount": 16,
+      "totalQty": 64,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 16,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 16
+      },
+      "topSkus": [
+        [
+          "0",
+          16
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230024",
+      "createdTime": "2026-10-23 14:26:41",
+      "orderCount": 25,
+      "totalQty": 75,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 25,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 25
+      },
+      "topSkus": [
+        [
+          "0",
+          25
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230023",
+      "createdTime": "2026-10-23 14:26:15",
+      "orderCount": 40,
+      "totalQty": 80,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 40,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 40
+      },
+      "topSkus": [
+        [
+          "0",
+          40
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230022",
+      "createdTime": "2026-10-23 14:01:36",
+      "orderCount": 349,
+      "totalQty": 349,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230021",
+      "createdTime": "2026-10-23 12:09:36",
+      "orderCount": 387,
+      "totalQty": 387,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230020",
+      "createdTime": "2026-10-23 11:37:07",
+      "orderCount": 238,
+      "totalQty": 238,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230019",
+      "createdTime": "2026-10-23 11:35:57",
+      "orderCount": 90,
+      "totalQty": 90,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 90,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 90
+      },
+      "topSkus": [
+        [
+          "0",
+          90
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230018",
+      "createdTime": "2026-10-23 11:35:03",
+      "orderCount": 1,
+      "totalQty": 20,
+      "creator": "David",
+      "carrier": "JTTH_1002",
+      "pcs1Count": 1,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "JTTH_25": 1
+      },
+      "topSkus": [
+        [
+          "0",
+          1
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230017",
+      "createdTime": "2026-10-23 10:27:56",
+      "orderCount": 258,
+      "totalQty": 258,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230016",
+      "createdTime": "2026-10-23 10:03:39",
+      "orderCount": 186,
+      "totalQty": 186,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 186,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 186
+      },
+      "topSkus": [
+        [
+          "0",
+          186
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230015",
+      "createdTime": "2026-10-23 09:57:29",
+      "orderCount": 22,
+      "totalQty": 88,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230014",
+      "createdTime": "2026-10-23 09:54:49",
+      "orderCount": 57,
+      "totalQty": 285,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 57,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 57
+      },
+      "topSkus": [
+        [
+          "0",
+          57
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230013",
+      "createdTime": "2026-10-23 09:54:10",
+      "orderCount": 46,
+      "totalQty": 138,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 46,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 46
+      },
+      "topSkus": [
+        [
+          "0",
+          46
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230012",
+      "createdTime": "2026-10-23 09:48:23",
+      "orderCount": 134,
+      "totalQty": 268,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 134,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 134
+      },
+      "topSkus": [
+        [
+          "0",
+          134
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230011",
+      "createdTime": "2026-10-23 09:17:54",
+      "orderCount": 191,
+      "totalQty": 191,
+      "creator": "David",
+      "carrier": "LEXTH_6429, JTTH_1002",
+      "pcs1Count": 191,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 190,
+        "JTTH_25": 1
+      },
+      "topSkus": [
+        [
+          "0",
+          191
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230010",
+      "createdTime": "2026-10-23 09:12:47",
+      "orderCount": 19,
+      "totalQty": 96,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230009",
+      "createdTime": "2026-10-23 09:12:20",
+      "orderCount": 20,
+      "totalQty": 40,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 20,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 20
+      },
+      "topSkus": [
+        [
+          "0",
+          20
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230008",
+      "createdTime": "2026-10-23 09:11:41",
+      "orderCount": 12,
+      "totalQty": 33,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 12,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12
+      },
+      "topSkus": [
+        [
+          "0",
+          12
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230007",
+      "createdTime": "2026-10-23 09:11:18",
+      "orderCount": 16,
+      "totalQty": 88,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 16,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 16
+      },
+      "topSkus": [
+        [
+          "0",
+          16
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230006",
+      "createdTime": "2026-10-23 09:10:46",
+      "orderCount": 16,
+      "totalQty": 32,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 16,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 16
+      },
+      "topSkus": [
+        [
+          "0",
+          16
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230005",
+      "createdTime": "2026-10-23 09:10:10",
+      "orderCount": 69,
+      "totalQty": 138,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 69,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 69
+      },
+      "topSkus": [
+        [
+          "0",
+          69
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230004",
+      "createdTime": "2026-10-23 09:09:32",
+      "orderCount": 5,
+      "totalQty": 13,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 5,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 5
+      },
+      "topSkus": [
+        [
+          "0",
+          5
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230003",
+      "createdTime": "2026-10-23 09:08:50",
+      "orderCount": 132,
+      "totalQty": 264,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 132,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 132
+      },
+      "topSkus": [
+        [
+          "0",
+          132
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230002",
+      "createdTime": "2026-10-23 08:54:31",
+      "orderCount": 450,
+      "totalQty": 450,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610230001",
+      "createdTime": "2026-10-23 08:52:01",
+      "orderCount": 194,
+      "totalQty": 194,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 194,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 194
+      },
+      "topSkus": [
+        [
+          "0",
+          194
+        ]
+      ]
+    }
+  ],
+  "2026-10-22": [
+    {
+      "plCode": "PL72610220061",
+      "createdTime": "2026-10-22 18:23:23",
+      "orderCount": 9,
+      "totalQty": 42,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 9,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 9
+      },
+      "topSkus": [
+        [
+          "0",
+          9
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220060",
+      "createdTime": "2026-10-22 18:23:03",
+      "orderCount": 11,
+      "totalQty": 33,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 11,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 11
+      },
+      "topSkus": [
+        [
+          "0",
+          11
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220059",
+      "createdTime": "2026-10-22 18:22:40",
+      "orderCount": 60,
+      "totalQty": 60,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 60,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 60
+      },
+      "topSkus": [
+        [
+          "0",
+          60
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220058",
+      "createdTime": "2026-10-22 18:05:38",
+      "orderCount": 11,
+      "totalQty": 26,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 11,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 11
+      },
+      "topSkus": [
+        [
+          "0",
+          11
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220057",
+      "createdTime": "2026-10-22 18:05:21",
+      "orderCount": 8,
+      "totalQty": 27,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 8,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 8
+      },
+      "topSkus": [
+        [
+          "0",
+          8
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220056",
+      "createdTime": "2026-10-22 18:04:56",
+      "orderCount": 43,
+      "totalQty": 43,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 43,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 43
+      },
+      "topSkus": [
+        [
+          "0",
+          43
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220055",
+      "createdTime": "2026-10-22 17:43:03",
+      "orderCount": 18,
+      "totalQty": 49,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 18,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 18
+      },
+      "topSkus": [
+        [
+          "0",
+          18
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220054",
+      "createdTime": "2026-10-22 17:42:42",
+      "orderCount": 12,
+      "totalQty": 24,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 12,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12
+      },
+      "topSkus": [
+        [
+          "0",
+          12
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220053",
+      "createdTime": "2026-10-22 17:41:54",
+      "orderCount": 3,
+      "totalQty": 17,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 3,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 3
+      },
+      "topSkus": [
+        [
+          "0",
+          3
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220052",
+      "createdTime": "2026-10-22 17:41:32",
+      "orderCount": 49,
+      "totalQty": 49,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 49,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 49
+      },
+      "topSkus": [
+        [
+          "0",
+          49
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220051",
+      "createdTime": "2026-10-22 17:24:41",
+      "orderCount": 28,
+      "totalQty": 322,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 28,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 28
+      },
+      "topSkus": [
+        [
+          "0",
+          28
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220050",
+      "createdTime": "2026-10-22 17:24:06",
+      "orderCount": 121,
+      "totalQty": 121,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 121,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 121
+      },
+      "topSkus": [
+        [
+          "0",
+          121
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220049",
+      "createdTime": "2026-10-22 16:46:09",
+      "orderCount": 18,
+      "totalQty": 179,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 18,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 18
+      },
+      "topSkus": [
+        [
+          "0",
+          18
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220048",
+      "createdTime": "2026-10-22 16:45:42",
+      "orderCount": 27,
+      "totalQty": 54,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 27,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 27
+      },
+      "topSkus": [
+        [
+          "0",
+          27
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220047",
+      "createdTime": "2026-10-22 16:45:15",
+      "orderCount": 5,
+      "totalQty": 11,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 5,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 5
+      },
+      "topSkus": [
+        [
+          "0",
+          5
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220046",
+      "createdTime": "2026-10-22 16:44:35",
+      "orderCount": 24,
+      "totalQty": 48,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 24,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 24
+      },
+      "topSkus": [
+        [
+          "0",
+          24
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220045",
+      "createdTime": "2026-10-22 16:43:59",
+      "orderCount": 11,
+      "totalQty": 44,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 11,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 11
+      },
+      "topSkus": [
+        [
+          "0",
+          11
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220044",
+      "createdTime": "2026-10-22 16:43:33",
+      "orderCount": 14,
+      "totalQty": 70,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 14,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 14
+      },
+      "topSkus": [
+        [
+          "0",
+          14
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220043",
+      "createdTime": "2026-10-22 16:43:09",
+      "orderCount": 15,
+      "totalQty": 45,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 15,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 15
+      },
+      "topSkus": [
+        [
+          "0",
+          15
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220042",
+      "createdTime": "2026-10-22 16:42:44",
+      "orderCount": 37,
+      "totalQty": 74,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 37,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 37
+      },
+      "topSkus": [
+        [
+          "0",
+          37
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220041",
+      "createdTime": "2026-10-22 16:40:25",
+      "orderCount": 149,
+      "totalQty": 149,
+      "creator": "David",
+      "carrier": "LEXTH_6429, JTTH_1002",
+      "pcs1Count": 149,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 148,
+        "JTTH_25": 1
+      },
+      "topSkus": [
+        [
+          "0",
+          149
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220040",
+      "createdTime": "2026-10-22 15:48:49",
+      "orderCount": 77,
+      "totalQty": 77,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 77,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 77
+      },
+      "topSkus": [
+        [
+          "0",
+          77
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220039",
+      "createdTime": "2026-10-22 15:47:20",
+      "orderCount": 7,
+      "totalQty": 34,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 7,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 7
+      },
+      "topSkus": [
+        [
+          "0",
+          7
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220038",
+      "createdTime": "2026-10-22 15:29:42",
+      "orderCount": 101,
+      "totalQty": 101,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 101,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 101
+      },
+      "topSkus": [
+        [
+          "0",
+          101
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220037",
+      "createdTime": "2026-10-22 14:51:51",
+      "orderCount": 198,
+      "totalQty": 198,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 198,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 198
+      },
+      "topSkus": [
+        [
+          "0",
+          198
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220036",
+      "createdTime": "2026-10-22 14:29:09",
+      "orderCount": 73,
+      "totalQty": 146,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 73,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 73
+      },
+      "topSkus": [
+        [
+          "0",
+          73
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220035",
+      "createdTime": "2026-10-22 14:28:46",
+      "orderCount": 8,
+      "totalQty": 30,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 8,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 8
+      },
+      "topSkus": [
+        [
+          "0",
+          8
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220034",
+      "createdTime": "2026-10-22 14:06:38",
+      "orderCount": 12,
+      "totalQty": 24,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 12,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 12
+      },
+      "topSkus": [
+        [
+          "0",
+          12
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220033",
+      "createdTime": "2026-10-22 14:05:55",
+      "orderCount": 11,
+      "totalQty": 22,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 11,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 11
+      },
+      "topSkus": [
+        [
+          "0",
+          11
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220032",
+      "createdTime": "2026-10-22 14:05:10",
+      "orderCount": 9,
+      "totalQty": 36,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 9,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 9
+      },
+      "topSkus": [
+        [
+          "0",
+          9
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220031",
+      "createdTime": "2026-10-22 14:04:45",
+      "orderCount": 29,
+      "totalQty": 145,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 29,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 29
+      },
+      "topSkus": [
+        [
+          "0",
+          29
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220030",
+      "createdTime": "2026-10-22 14:04:21",
+      "orderCount": 20,
+      "totalQty": 60,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 20,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 20
+      },
+      "topSkus": [
+        [
+          "0",
+          20
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220029",
+      "createdTime": "2026-10-22 14:03:55",
+      "orderCount": 34,
+      "totalQty": 68,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 34,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 34
+      },
+      "topSkus": [
+        [
+          "0",
+          34
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220028",
+      "createdTime": "2026-10-22 14:02:24",
+      "orderCount": 215,
+      "totalQty": 215,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220027",
+      "createdTime": "2026-10-22 14:01:48",
+      "orderCount": 82,
+      "totalQty": 82,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 82,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 82
+      },
+      "topSkus": [
+        [
+          "0",
+          82
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220026",
+      "createdTime": "2026-10-22 14:01:08",
+      "orderCount": 166,
+      "totalQty": 166,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 166,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 166
+      },
+      "topSkus": [
+        [
+          "0",
+          166
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220025",
+      "createdTime": "2026-10-22 12:16:02",
+      "orderCount": 189,
+      "totalQty": 189,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 189,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 189
+      },
+      "topSkus": [
+        [
+          "0",
+          189
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220024",
+      "createdTime": "2026-10-22 11:59:05",
+      "orderCount": 1,
+      "totalQty": 5,
+      "creator": "David",
+      "carrier": "JTTH_1002",
+      "pcs1Count": 1,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "JTTH_25": 1
+      },
+      "topSkus": [
+        [
+          "0",
+          1
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220023",
+      "createdTime": "2026-10-22 11:39:44",
+      "orderCount": 198,
+      "totalQty": 198,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 198,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 198
+      },
+      "topSkus": [
+        [
+          "0",
+          198
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220022",
+      "createdTime": "2026-10-22 11:31:56",
+      "orderCount": 249,
+      "totalQty": 249,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220021",
+      "createdTime": "2026-10-22 11:27:32",
+      "orderCount": 260,
+      "totalQty": 260,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220020",
+      "createdTime": "2026-10-22 11:07:47",
+      "orderCount": 111,
+      "totalQty": 111,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 111,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 111
+      },
+      "topSkus": [
+        [
+          "0",
+          111
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220019",
+      "createdTime": "2026-10-22 10:55:08",
+      "orderCount": 123,
+      "totalQty": 123,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 123,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 123
+      },
+      "topSkus": [
+        [
+          "0",
+          123
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220018",
+      "createdTime": "2026-10-22 10:43:18",
+      "orderCount": 38,
+      "totalQty": 536,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 38,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 38
+      },
+      "topSkus": [
+        [
+          "0",
+          38
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220017",
+      "createdTime": "2026-10-22 10:42:30",
+      "orderCount": 61,
+      "totalQty": 305,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 61,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 61
+      },
+      "topSkus": [
+        [
+          "0",
+          61
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220016",
+      "createdTime": "2026-10-22 10:42:03",
+      "orderCount": 32,
+      "totalQty": 128,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 32,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 32
+      },
+      "topSkus": [
+        [
+          "0",
+          32
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220015",
+      "createdTime": "2026-10-22 10:41:36",
+      "orderCount": 55,
+      "totalQty": 165,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 55,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 55
+      },
+      "topSkus": [
+        [
+          "0",
+          55
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220014",
+      "createdTime": "2026-10-22 10:40:58",
+      "orderCount": 145,
+      "totalQty": 290,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 145,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 145
+      },
+      "topSkus": [
+        [
+          "0",
+          145
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220013",
+      "createdTime": "2026-10-22 10:21:21",
+      "orderCount": 445,
+      "totalQty": 445,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220012",
+      "createdTime": "2026-10-22 10:04:57",
+      "orderCount": 192,
+      "totalQty": 192,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 192,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 192
+      },
+      "topSkus": [
+        [
+          "0",
+          192
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220011",
+      "createdTime": "2026-10-22 09:25:00",
+      "orderCount": 65,
+      "totalQty": 65,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 65,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 65
+      },
+      "topSkus": [
+        [
+          "0",
+          65
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220010",
+      "createdTime": "2026-10-22 09:23:52",
+      "orderCount": 160,
+      "totalQty": 160,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 160,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 160
+      },
+      "topSkus": [
+        [
+          "0",
+          160
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220009",
+      "createdTime": "2026-10-22 08:59:16",
+      "orderCount": 834,
+      "totalQty": 834,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 200,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 200
+      },
+      "topSkus": [
+        [
+          "0",
+          200
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220008",
+      "createdTime": "2026-10-22 08:53:27",
+      "orderCount": 11,
+      "totalQty": 43,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 11,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 11
+      },
+      "topSkus": [
+        [
+          "0",
+          11
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220007",
+      "createdTime": "2026-10-22 08:52:48",
+      "orderCount": 137,
+      "totalQty": 274,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 137,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 137
+      },
+      "topSkus": [
+        [
+          "0",
+          137
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220006",
+      "createdTime": "2026-10-22 08:52:00",
+      "orderCount": 18,
+      "totalQty": 98,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 18,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 18
+      },
+      "topSkus": [
+        [
+          "0",
+          18
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220005",
+      "createdTime": "2026-10-22 08:51:36",
+      "orderCount": 19,
+      "totalQty": 38,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 19,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 19
+      },
+      "topSkus": [
+        [
+          "0",
+          19
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220004",
+      "createdTime": "2026-10-22 08:51:10",
+      "orderCount": 13,
+      "totalQty": 26,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 13,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 13
+      },
+      "topSkus": [
+        [
+          "0",
+          13
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220003",
+      "createdTime": "2026-10-22 08:50:43",
+      "orderCount": 17,
+      "totalQty": 49,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 17,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 17
+      },
+      "topSkus": [
+        [
+          "0",
+          17
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220002",
+      "createdTime": "2026-10-22 08:50:12",
+      "orderCount": 22,
+      "totalQty": 91,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 22,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 22
+      },
+      "topSkus": [
+        [
+          "0",
+          22
+        ]
+      ]
+    },
+    {
+      "plCode": "PL72610220001",
+      "createdTime": "2026-10-22 08:49:31",
+      "orderCount": 16,
+      "totalQty": 32,
+      "creator": "David",
+      "carrier": "LEXTH_6429",
+      "pcs1Count": 16,
+      "pcs2Count": 0,
+      "pcsMultiCount": 0,
+      "uniqueSkuCount": 1,
+      "carrierMap": {
+        "LEXTH_53": 16
+      },
+      "topSkus": [
+        [
+          "0",
+          16
+        ]
+      ]
+    }
+  ]
+}

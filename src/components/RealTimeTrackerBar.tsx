@@ -241,73 +241,8 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
     try { localStorage.setItem('wms_auto_status_counts', JSON.stringify(statusCounts)); } catch {}
   }, [statusCounts]);
 
-  // Tự động gửi báo cáo Telegram cho bot khi được BẬT
-  useEffect(() => {
-    if (!telegramConfig.enabled || !telegramConfig.chatId || !telegramConfig.botToken) {
-      return;
-    }
-
-    const checkAndSendTelegram = async () => {
-      const counts: WmsStatusCounts = {
-        submitted: statusCounts['4'] ?? 0,
-        shelved: statusCounts['5'] ?? 0,
-        shipped: statusCounts['8'] ?? 0,
-      };
-
-      // Chỉ gửi khi đã có dữ liệu (ít nhất 1 chỉ số > 0)
-      if (counts.submitted === 0 && counts.shelved === 0 && counts.shipped === 0) {
-        return;
-      }
-
-      const lastCounts = telegramConfig.lastCounts || {};
-      const isChanged =
-        counts.submitted !== lastCounts.submitted ||
-        counts.shelved !== lastCounts.shelved ||
-        counts.shipped !== lastCounts.shipped;
-
-      const now = Date.now();
-      const lastSentTime = telegramConfig.lastSentAt ? new Date(telegramConfig.lastSentAt).getTime() : 0;
-      const intervalMs = (telegramConfig.intervalMinutes || 30) * 60 * 1000;
-      const isDue = (now - lastSentTime) >= intervalMs;
-
-      if (isDue && (!telegramConfig.onlyOnChange || isChanged)) {
-        try {
-          const reportText = formatTelegramReport(counts, {
-            ...telegramConfig,
-            warehouse: warehouseRef.current || warehouse,
-          });
-
-          const res = await sendTelegramMessage({
-            botToken: telegramConfig.botToken,
-            chatId: telegramConfig.chatId,
-            text: reportText,
-            silent: telegramConfig.silent,
-          });
-
-          if (res.ok) {
-            const updatedConfig: TelegramBotConfig = {
-              ...telegramConfig,
-              lastSentAt: new Date().toISOString(),
-              lastCounts: counts,
-            };
-            setTelegramConfig(updatedConfig);
-            saveTelegramConfig(updatedConfig);
-            console.log('[TelegramBot] Đã gửi báo cáo đơn hàng định kỳ thành công tới @WMSHCMBOT');
-          }
-        } catch (e) {
-          console.error('[TelegramBot] Lỗi gửi báo cáo định kỳ:', e);
-        }
-      }
-    };
-
-    const intervalTimer = setInterval(checkAndSendTelegram, 30000);
-    const timeoutTimer = setTimeout(checkAndSendTelegram, 5000);
-
-    return () => {
-      clearInterval(intervalTimer);
-      clearTimeout(timeoutTimer);
-    };
-  }, [telegramConfig, statusCounts, warehouse]);
+  // Ghi chú: Việc tự động gửi báo cáo Telegram định kỳ được quản lý 24/7 bởi TelegramScheduler trên VPS
+  // để đảm bảo tuyệt đối tuân thủ thời gian người dùng cài đặt, không bị gửi trùng khi mở nhiều tab hay khi tắt trình duyệt.
 
   // Refs để tránh closure stale state trong setInterval & Bộ nhớ đệm chuyển đổi siêu tốc
   const countdownIntervalRef = useRef<any>(null);

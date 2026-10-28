@@ -19,6 +19,14 @@ import {
 import { layNhomTuSKU } from '../utils/orderProcessor';
 import { DEFAULT_SKU_GROUPS } from '../utils/skuData';
 import { wmsRealtimeBroadcaster } from './wmsRealtimeBroadcaster';
+import { telegramScheduler } from './telegramScheduler';
+
+// Khởi chạy tiến trình gửi Telegram định kỳ trên VPS tự động
+let isTelegramSchedulerStarted = false;
+if (!isTelegramSchedulerStarted) {
+  isTelegramSchedulerStarted = true;
+  telegramScheduler.start();
+}
 
 // Helper parse JSON body (tương thích cả Vite dev server lẫn Express body-parser)
 function parseJsonBody(req: any): Promise<any> {
@@ -1418,16 +1426,10 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
 
   // 1.11 Endpoint Lưu và Đọc Cấu hình Telegram Bot trên server
   if (parsedUrl.pathname === '/api/wms/telegram-config') {
-    const configPath = path.resolve(process.cwd(), 'data', 'telegram_config.json');
-
     if (req.method === 'GET') {
       try {
-        if (fs.existsSync(configPath)) {
-          const data = fs.readFileSync(configPath, 'utf8');
-          sendJson(res, 200, { success: true, config: JSON.parse(data) });
-        } else {
-          sendJson(res, 200, { success: true, config: null });
-        }
+        const config = telegramScheduler.getConfig();
+        sendJson(res, 200, { success: true, config });
       } catch (err: any) {
         sendJson(res, 500, { success: false, error: err.message });
       }
@@ -1437,18 +1439,23 @@ export function handleWmsApi(req: IncomingMessage, res: ServerResponse, next: ()
     if (req.method === 'POST') {
       parseJsonBody(req).then((body) => {
         try {
-          const dir = path.dirname(configPath);
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-          }
-          fs.writeFileSync(configPath, JSON.stringify(body, null, 2), 'utf8');
-          sendJson(res, 200, { success: true });
+          const updated = telegramScheduler.saveConfig(body);
+          telegramScheduler.reloadConfig();
+          sendJson(res, 200, { success: true, config: updated });
         } catch (err: any) {
           sendJson(res, 500, { success: false, error: err.message });
         }
       }).catch(err => sendJson(res, 500, { success: false, error: err.message }));
       return;
     }
+  }
+
+  // 1.12 Endpoint Kích hoạt gửi báo cáo ngay lập tức từ VPS
+  if (parsedUrl.pathname === '/api/wms/telegram-trigger-now' && req.method === 'POST') {
+    telegramScheduler.triggerSendNow()
+      .then(result => sendJson(res, 200, result))
+      .catch(err => sendJson(res, 500, { success: false, message: err?.message || 'Lỗi gửi tin nhắn' }));
+    return;
   }
 
   next();
