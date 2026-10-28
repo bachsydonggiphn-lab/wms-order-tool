@@ -107,11 +107,17 @@ export class TelegramScheduler {
         console.error('[TelegramScheduler] Lỗi trong vòng lặp kiểm tra:', err);
       });
     }, 25000);
+    if (this.timer && typeof this.timer.unref === 'function') {
+      this.timer.unref();
+    }
 
     // Chạy kiểm tra sau 5 giây khởi động
-    setTimeout(() => {
+    const startTimeout = setTimeout(() => {
       this.checkAndExecuteSchedule().catch(() => {});
     }, 5000);
+    if (startTimeout && typeof startTimeout.unref === 'function') {
+      startTimeout.unref();
+    }
   }
 
   public stop() {

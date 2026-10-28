@@ -21,9 +21,10 @@ import { DEFAULT_SKU_GROUPS } from '../utils/skuData';
 import { wmsRealtimeBroadcaster } from './wmsRealtimeBroadcaster';
 import { telegramScheduler } from './telegramScheduler';
 
-// Khởi chạy tiến trình gửi Telegram định kỳ trên VPS tự động
+// Khởi chạy tiến trình gửi Telegram định kỳ trên VPS tự động (trừ khi đang build bundle)
+const isBuildMode = process.argv.some(arg => arg.includes('build'));
 let isTelegramSchedulerStarted = false;
-if (!isTelegramSchedulerStarted) {
+if (!isTelegramSchedulerStarted && !isBuildMode) {
   isTelegramSchedulerStarted = true;
   telegramScheduler.start();
 }
