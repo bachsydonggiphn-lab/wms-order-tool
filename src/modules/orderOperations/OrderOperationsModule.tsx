@@ -76,10 +76,12 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
 
   // Danh sách các mã Picking List
   const pickingLists = useMemo(() => {
+    if (!Array.isArray(orders)) return [];
     const set = new Set<string>();
     orders.forEach((o) => {
-      if (o.pickingList && o.pickingList.trim() !== '') {
-        set.add(o.pickingList.trim());
+      if (o && o.pickingList) {
+        const pl = String(o.pickingList).trim();
+        if (pl) set.add(pl);
       }
     });
     return Array.from(set).sort();
@@ -110,12 +112,14 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
       BEST: 0,
       OTHER: 0,
     };
-    const filtered = selectedPickingList && pickingLists.includes(selectedPickingList)
-      ? orders.filter((o) => o.pickingList === selectedPickingList)
-      : orders;
+    const validOrders = Array.isArray(orders) ? orders.filter(Boolean) : [];
+    const filtered = (selectedPickingList && pickingLists.includes(selectedPickingList))
+      ? validOrders.filter((o) => o && String(o.pickingList || '').trim() === selectedPickingList)
+      : validOrders;
 
     counts.ALL = filtered.length;
     filtered.forEach((o) => {
+      if (!o) return;
       const c = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText).carrier;
       if (counts[c] !== undefined) {
         counts[c]++;
@@ -128,10 +132,11 @@ export const OrderOperationsModule: React.FC<OrderOperationsModuleProps> = ({
     counts.SPX_ALL = (counts.SPX || 0) + (counts.SPX_INSTANT || 0);
 
     return counts;
-  }, [orders, selectedPickingList]);
+  }, [orders, selectedPickingList, pickingLists]);
 
   const normalizeOrders = useCallback((rawList: RawOrderRow[]): RawOrderRow[] => {
-    return rawList.map((o) => {
+    if (!Array.isArray(rawList)) return [];
+    return rawList.filter(Boolean).map((o) => {
       const cInfo = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText);
       return {
         ...o,

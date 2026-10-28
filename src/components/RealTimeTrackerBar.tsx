@@ -125,9 +125,10 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   const totalLists = useMemo(() => {
     if (pickingLists !== undefined) return pickingLists.length;
     const set = new Set<string>();
-    effectiveOrders.forEach((o) => {
-      if (o.pickingList && o.pickingList.trim() !== '') {
-        set.add(o.pickingList.trim());
+    (effectiveOrders || []).forEach((o) => {
+      if (o && o.pickingList) {
+        const pl = String(o.pickingList).trim();
+        if (pl) set.add(pl);
       }
     });
     return set.size;
@@ -320,24 +321,28 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   const initialFetchDoneRef = useRef<boolean>(false);
   const switchAbortControllerRef = useRef<AbortController | null>(null);
 
-  // Hàm thẩm định tính hợp lệ của cache theo trạng thái WMS
+  // Hàm thẩm định tính hợp lệ của cache theo trạng thái WMS (An toàn tuyệt đối 100% không bao giờ throw)
   const isCacheValid = useCallback((targetSt: WmsStatusKey, list: RawOrderRow[] | undefined, expectedCount?: number): boolean => {
     if (!list || !Array.isArray(list) || list.length === 0) return false;
-    // Status 4 (Submitted): Tuyệt đối chưa có Picking List
-    if (targetSt === '4') {
-      const hasPickingList = list.some((o) => o.pickingList && o.pickingList.trim() !== '');
-      if (hasPickingList) return false;
-    }
-    // Status 5 (Shelved): Đơn đã lên kệ, hầu hết phải có Picking List
-    if (targetSt === '5') {
-      const hasPickingList = list.some((o) => o.pickingList && o.pickingList.trim() !== '');
-      if (!hasPickingList && list.length > 50) return false;
-    }
-    // Nếu có expectedCount (từ statusCounts) và lệch quá nhiều (lớn hơn 50 đơn), coi như cache đã cũ
-    if (expectedCount && Math.abs(list.length - expectedCount) > 50) {
+    try {
+      // Status 4 (Submitted): Tuyệt đối chưa có Picking List
+      if (targetSt === '4') {
+        const hasPickingList = list.some((o) => o && o.pickingList && String(o.pickingList).trim() !== '');
+        if (hasPickingList) return false;
+      }
+      // Status 5 (Shelved): Đơn đã lên kệ, hầu hết phải có Picking List
+      if (targetSt === '5') {
+        const hasPickingList = list.some((o) => o && o.pickingList && String(o.pickingList).trim() !== '');
+        if (!hasPickingList && list.length > 50) return false;
+      }
+      // Nếu có expectedCount (từ statusCounts) và lệch quá nhiều (lớn hơn 50 đơn), coi như cache đã cũ
+      if (expectedCount && Math.abs(list.length - expectedCount) > 50) {
+        return false;
+      }
+      return true;
+    } catch {
       return false;
     }
-    return true;
   }, []);
 
   const statusOrdersCacheRef = useRef<Record<string, RawOrderRow[]>>((() => {
@@ -348,7 +353,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
       const c5 = c5Str ? JSON.parse(c5Str) : null;
       
       const res: Record<string, RawOrderRow[]> = {};
-      if (c4 && Array.isArray(c4) && !c4.some((o: RawOrderRow) => o.pickingList && o.pickingList.trim() !== '')) {
+      if (c4 && Array.isArray(c4) && !c4.some((o: RawOrderRow) => o && o.pickingList && String(o.pickingList).trim() !== '')) {
         res['4'] = c4;
       } else if (c4Str) {
         sessionStorage.removeItem('wms_cache_orders_4');

@@ -36,6 +36,11 @@ export class TabErrorBoundary extends Component<TabErrorBoundaryProps, TabErrorB
   }
 
   handleRetry = () => {
+    try {
+      sessionStorage.removeItem('wms_cache_orders_4');
+      sessionStorage.removeItem('wms_cache_orders_5');
+      sessionStorage.removeItem('wms_cache_orders_8');
+    } catch {}
     this.setState({ hasError: false, error: null, errorInfo: null });
     if (this.props.onResetTab) {
       this.props.onResetTab();

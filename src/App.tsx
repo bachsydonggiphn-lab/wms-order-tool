@@ -203,10 +203,12 @@ export default function App() {
 
   // Header stats & counts
   const pickingLists = useMemo(() => {
+    if (!Array.isArray(orders)) return [];
     const set = new Set<string>();
     orders.forEach((o) => {
-      if (o.pickingList && o.pickingList.trim() !== '') {
-        set.add(o.pickingList.trim());
+      if (o && o.pickingList) {
+        const pl = String(o.pickingList).trim();
+        if (pl) set.add(pl);
       }
     });
     return Array.from(set).sort();
@@ -229,8 +231,10 @@ export default function App() {
       BEST: 0,
       OTHER: 0,
     };
-    counts.ALL = orders.length;
-    orders.forEach((o) => {
+    const validOrders = Array.isArray(orders) ? orders.filter(Boolean) : [];
+    counts.ALL = validOrders.length;
+    validOrders.forEach((o) => {
+      if (!o) return;
       const c = xacDinhDonViVanChuyen(o.trackingNo, o.rawOrderText).carrier;
       if (counts[c] !== undefined) {
         counts[c]++;
