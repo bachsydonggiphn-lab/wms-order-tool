@@ -6,7 +6,6 @@ import { useTodayPickingLists } from './hooks/useTodayPickingLists';
 import { printPickingSlipWindow } from './utils/pickingSlipPrinter';
 import { OrderAttachmentInfo } from '../../services/wmsService';
 
-import { BatchPrintHeaderBanner } from './components/BatchPrintHeaderBanner';
 import { BatchPrintInputCard } from './components/BatchPrintInputCard';
 import { BatchPrintDashboardCards } from './components/BatchPrintDashboardCards';
 import { SkuPickingSummaryCard } from './components/SkuPickingSummaryCard';
@@ -52,7 +51,6 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
     previewPdfUrl, setPreviewPdfUrl, previewTitle,
     distinctPickingLists, parsedCodes,
     ordersOfSelectedSkus, totalPcsOfSelectedSkus,
-    handleLoadSampleCodes, handleImportCurrentOrders,
     handleSearchPickingList, handleSearchOrderCodes,
     executeSearchWithCodes,
     handlePrintMergedPdfForOrders, handlePreviewMergedPdfForOrders, handleDownloadMergedPdf,
@@ -110,14 +108,7 @@ export const OrderPdfPrintModule: React.FC<OrderPdfBatchPrintViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Header Banner */}
-      <BatchPrintHeaderBanner
-        ordersCount={orders.length}
-        onLoadSampleCodes={handleLoadSampleCodes}
-        onImportCurrentOrders={handleImportCurrentOrders}
-      />
-
-      {/* 2. Khung Khai Báo Đầu Vào (Picking List No. vs Dán Mã Đơn Lẻ) */}
+      {/* 1. Khung Khai Báo Đầu Vào (Picking List No. vs Dán Mã Đơn Lẻ) */}
       <BatchPrintInputCard
         inputMode={inputMode}
         setInputMode={setInputMode}
