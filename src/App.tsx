@@ -345,15 +345,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-        <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Công Cụ Xử Lý & Phân Loại Đơn Hàng Kho (Tương thích Google Apps Script)</span>
-          <span className="text-slate-400">
-            Hỗ trợ trích xuất Order No, Picking List No, gộp PCS, phân nhóm 13 khu vực & Thảm Yoga
-          </span>
-        </div>
-      </footer>
+
 
       {/* Floating Scroll To Top Button (Mobile & Desktop) */}
       {showScrollTop && (
