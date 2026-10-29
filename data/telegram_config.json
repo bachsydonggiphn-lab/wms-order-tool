@@ -19,10 +19,10 @@
   "includeShipped": true,
   "warehouse": "7",
   "silent": false,
-  "lastSentAt": "2026-10-28T10:28:39.676Z",
+  "lastSentAt": "2026-10-29T01:21:28.956Z",
   "lastCounts": {
-    "submitted": 103,
-    "shelved": 245,
-    "shipped": 3431
+    "submitted": 640,
+    "shelved": 843,
+    "shipped": 472
   }
 }

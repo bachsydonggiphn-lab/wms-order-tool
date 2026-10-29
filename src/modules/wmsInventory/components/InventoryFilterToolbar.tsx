@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Search, Sparkles, CornerDownLeft, X, Layers, ListFilter, Printer } from 'lucide-react';
+import { Search, Sparkles, CornerDownLeft, X, Layers, ListFilter, Printer, RefreshCw } from 'lucide-react';
 import { InventoryGroupSummary, WmsInventoryItem, InventoryQueryResult } from '../../../types';
 import { StockFilterType, ViewMode } from '../types';
 import { compareGroups } from '../hooks/useWmsInventoryData';
@@ -19,6 +19,9 @@ interface InventoryFilterToolbarProps {
   filteredGroups: InventoryGroupSummary[];
   expandAllGroups: () => void;
   collapseAllGroups: () => void;
+  onRefresh?: () => void;
+  loading?: boolean;
+  isPolling?: boolean;
 }
 
 export const InventoryFilterToolbar: React.FC<InventoryFilterToolbarProps> = ({
@@ -36,6 +39,9 @@ export const InventoryFilterToolbar: React.FC<InventoryFilterToolbarProps> = ({
   filteredGroups,
   expandAllGroups,
   collapseAllGroups,
+  onRefresh,
+  loading = false,
+  isPolling = false,
 }) => {
   const [isSuggestOpen, setIsSuggestOpen] = useState<boolean>(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
@@ -108,40 +114,41 @@ export const InventoryFilterToolbar: React.FC<InventoryFilterToolbarProps> = ({
     <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3.5">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Search Box with Smart Autocomplete */}
-        <div ref={searchContainerRef} className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Tìm mã SKU, tên SP (gõ gợi ý tức thì)..."
-            value={searchQuery}
-            onFocus={() => {
-              if (searchQuery.trim().length > 0 && smartSuggestions.length > 0) {
-                setIsSuggestOpen(true);
-              }
-            }}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setIsSuggestOpen(e.target.value.trim().length > 0);
-              setHighlightedIndex(0);
-            }}
-            onKeyDown={handleKeyDown}
-            className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium transition-all"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setIsSuggestOpen(false);
-                setHighlightedIndex(-1);
+        <div className="flex items-center gap-2 flex-1 max-w-md w-full">
+          <div ref={searchContainerRef} className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Tìm mã SKU, tên SP (gõ gợi ý tức thì)..."
+              value={searchQuery}
+              onFocus={() => {
+                if (searchQuery.trim().length > 0 && smartSuggestions.length > 0) {
+                  setIsSuggestOpen(true);
+                }
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5 rounded-md"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsSuggestOpen(e.target.value.trim().length > 0);
+                setHighlightedIndex(0);
+              }}
+              onKeyDown={handleKeyDown}
+              className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSuggestOpen(false);
+                  setHighlightedIndex(-1);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5 rounded-md"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
 
-          {/* Dropdown Smart Autocomplete */}
+            {/* Dropdown Smart Autocomplete */}
           {isSuggestOpen && smartSuggestions.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-xl border border-slate-200/90 overflow-hidden z-50 animate-fade-in max-h-96 flex flex-col">
               <div className="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
@@ -233,6 +240,18 @@ export const InventoryFilterToolbar: React.FC<InventoryFilterToolbarProps> = ({
             </div>
           )}
         </div>
+        {onRefresh && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading || isPolling}
+            className="sm:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer disabled:opacity-50"
+            title="Làm mới dữ liệu tồn kho"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading || isPolling ? 'animate-spin text-emerald-600' : ''}`} />
+          </button>
+        )}
+      </div>
 
         {/* Filter Status Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">

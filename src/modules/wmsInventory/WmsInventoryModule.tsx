@@ -89,32 +89,31 @@ export const WmsInventoryModule: React.FC<WmsInventoryModuleProps> = ({
     setIsSkuLabelModalOpen(true);
   };
 
-  // Mobile KPI Visibility State (Mặc định ẩn trên mobile)
-  const [showMobileKpi, setShowMobileKpi] = useState<boolean>(false);
-
   return (
     <TabErrorBoundary tabName="Tồn Kho WMS" onNavigateBack={onNavigateToOrders}>
       <div className="space-y-5 animate-fade-in pb-12">
-        {/* 1. Top Header Banner & Real-Time Polling Controls */}
-        <InventoryHeaderBar
-          selectedWarehouse={selectedWarehouse}
-          setSelectedWarehouse={setSelectedWarehouse}
-          isAutoRefresh={isAutoRefresh}
-          setIsAutoRefresh={setIsAutoRefresh}
-          refreshInterval={refreshInterval}
-          setRefreshInterval={setRefreshInterval}
-          countdown={countdown}
-          isPolling={isPolling}
-          soundEnabled={soundEnabled}
-          setSoundEnabled={setSoundEnabled}
-          recentChanges={recentChanges}
-          loading={loading}
-          data={data}
-          onRefresh={() => fetchData(selectedWarehouse)}
-          onExportExcel={() => data && exportInventoryToExcel(data)}
-          onOpenPrintModal={() => handleOpenPrintModal('COLUMN_MATRIX')}
-          onNavigateToSlotting={onNavigateToSlotting}
-        />
+        {/* 1. Top Header Banner & Real-Time Polling Controls (Ẩn trên mobile) */}
+        <div className="hidden sm:block">
+          <InventoryHeaderBar
+            selectedWarehouse={selectedWarehouse}
+            setSelectedWarehouse={setSelectedWarehouse}
+            isAutoRefresh={isAutoRefresh}
+            setIsAutoRefresh={setIsAutoRefresh}
+            refreshInterval={refreshInterval}
+            setRefreshInterval={setRefreshInterval}
+            countdown={countdown}
+            isPolling={isPolling}
+            soundEnabled={soundEnabled}
+            setSoundEnabled={setSoundEnabled}
+            recentChanges={recentChanges}
+            loading={loading}
+            data={data}
+            onRefresh={() => fetchData(selectedWarehouse)}
+            onExportExcel={() => data && exportInventoryToExcel(data)}
+            onOpenPrintModal={() => handleOpenPrintModal('COLUMN_MATRIX')}
+            onNavigateToSlotting={onNavigateToSlotting}
+          />
+        </div>
 
         {/* Error message */}
         {error && (
@@ -123,18 +122,9 @@ export const WmsInventoryModule: React.FC<WmsInventoryModuleProps> = ({
           </div>
         )}
 
-        {/* 2. KPI Summary Cards (Mặc định ẩn trên Mobile để ưu tiên danh sách tồn kho) */}
-        <div className="space-y-2">
-          {/* Nút bấm hiển thị nhanh KPI trên Mobile */}
-          <div className="flex sm:hidden justify-end">
-            <button
-              onClick={() => setShowMobileKpi(!showMobileKpi)}
-              className="text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl border border-slate-200/80 flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
-            >
-              <span>{showMobileKpi ? '▲ Ẩn 6 chỉ số KPI' : '▼ Xem 6 chỉ số KPI kho'}</span>
-            </button>
-          </div>
-          <InventoryKpiCards data={data} showOnMobile={showMobileKpi} />
+        {/* 2. KPI Summary Cards (Ẩn trên mobile) */}
+        <div className="hidden sm:block">
+          <InventoryKpiCards data={data} />
         </div>
 
         {/* 3. Search Bar, Group Tabs & View Mode Switcher */}
@@ -153,6 +143,9 @@ export const WmsInventoryModule: React.FC<WmsInventoryModuleProps> = ({
           filteredGroups={filteredGroups}
           expandAllGroups={expandAllGroups}
           collapseAllGroups={collapseAllGroups}
+          onRefresh={() => fetchData(selectedWarehouse)}
+          loading={loading}
+          isPolling={isPolling}
         />
 
         {/* 4. Content Rendering */}
