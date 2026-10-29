@@ -82,14 +82,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const [quickCopiedCarrier, setQuickCopiedCarrier] = useState<CarrierCode | null>(null);
   const [quickToastMessage, setQuickToastMessage] = useState<string | null>(null);
 
-  // Refs and scroll helpers for horizontal laptop scrolling
-  const subTabsContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollSubTabs = (direction: 'left' | 'right') => {
-    if (subTabsContainerRef.current) {
-      subTabsContainerRef.current.scrollBy({ left: direction === 'left' ? -280 : 280, behavior: 'smooth' });
-    }
-  };
 
   // Helper lấy hãng thực tế chuẩn hóa từ dữ liệu đơn hàng
   const getOrderCarrier = (o: RawOrderRow): CarrierCode => {
@@ -1105,70 +1098,45 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       )}
 
-      {/* Main Tabs Navigation (CÁC TAB CON CỦA VẬN HÀNH ĐƠN HÀNG) */}
-      <div className="relative flex items-center bg-white border-t border-gray-100 p-1 sm:p-1.5">
-        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-2 shrink-0 hidden lg:inline">
+      {/* Main Tabs Navigation (CÁC TAB CON CỦA VẬN HÀNH ĐƠN HÀNG - Nằm Gọn Trên Thanh Không Cuộn) */}
+      <div className="px-3 sm:px-4 py-1.5 bg-white border-t border-gray-100 flex items-center flex-wrap gap-1 sm:gap-1.5">
+        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0 hidden lg:inline">
           Tab Con:
         </span>
 
-        <button
-          type="button"
-          onClick={() => scrollSubTabs('left')}
-          className="hidden sm:flex items-center justify-center w-6 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shrink-0 mr-1.5 cursor-pointer transition-colors"
-          title="Cuộn các tab sang trái"
-          aria-label="Cuộn các tab sang trái"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-        </button>
+        {orderSubTabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
 
-        <div
-          ref={subTabsContainerRef}
-          className="flex items-center overflow-x-auto custom-scrollbar p-0.5 gap-0.5 sm:gap-1 w-full scroll-smooth"
-        >
-          {orderSubTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setLastOrderSubTab(tab.id);
-                  setActiveTab(tab.id);
-                }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                  isActive
-                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                <span>{tab.label}</span>
-                {tab.badge && (
-                  <span
-                    className={`text-[10px] px-1.5 rounded-full font-medium hidden xl:inline ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => scrollSubTabs('right')}
-          className="hidden sm:flex items-center justify-center w-6 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shrink-0 ml-1.5 cursor-pointer transition-colors"
-          title="Cuộn các tab sang phải"
-          aria-label="Cuộn các tab sang phải"
-        >
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setLastOrderSubTab(tab.id);
+                setActiveTab(tab.id);
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+              <span>{tab.label}</span>
+              {tab.badge && (
+                <span
+                  className={`text-[10px] px-1.5 rounded-full font-medium hidden xl:inline ${
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Modal Sao Chép Đơn Theo Hãng Vận Chuyển */}
