@@ -5,14 +5,23 @@ import { HotSkuAnalyticsResult } from '../../../../sqliteDb';
 interface Warehouse2DSlottingMapProps {
   analytics: HotSkuAnalyticsResult | null;
   selectedZoneFilter: 'ALL' | 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'INBOUND';
-  onSelectZoneFilter: (zone: 'ALL' | 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'INBOUND') => void;
+  onSelectZoneFilter?: (zone: 'ALL' | 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'INBOUND') => void;
+  setSelectedZoneFilter?: (zone: 'ALL' | 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'INBOUND') => void;
+  onNavigateToInventory?: (sku?: string) => void;
 }
 
 export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
   analytics,
   selectedZoneFilter,
   onSelectZoneFilter,
+  setSelectedZoneFilter,
+  onNavigateToInventory,
 }) => {
+  const handleSelectZone = (zone: 'ALL' | 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'INBOUND') => {
+    if (onSelectZoneFilter) onSelectZoneFilter(zone);
+    else if (setSelectedZoneFilter) setSelectedZoneFilter(zone);
+  };
+  const items = Array.isArray(analytics?.items) ? analytics.items : [];
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -30,7 +39,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
           <span className="text-xs text-slate-500 font-medium">Lọc theo Khu Vực Kệ:</span>
           <button
             type="button"
-            onClick={() => onSelectZoneFilter('ALL')}
+            onClick={() => handleSelectZone('ALL')}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               selectedZoneFilter === 'ALL'
                 ? 'bg-slate-900 text-white font-semibold'
@@ -74,7 +83,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
 
           {/* Cột 2: ZONE A - VÙNG VÀNG MẶT TIỀN (GOLDEN ZONE) */}
           <div
-            onClick={() => onSelectZoneFilter(selectedZoneFilter === 'ZONE_A' ? 'ALL' : 'ZONE_A')}
+            onClick={() => handleSelectZone(selectedZoneFilter === 'ZONE_A' ? 'ALL' : 'ZONE_A')}
             className={`md:col-span-3 p-5 rounded-xl border cursor-pointer transition-all ${
               selectedZoneFilter === 'ZONE_A'
                 ? 'bg-amber-950/80 border-amber-400 ring-2 ring-amber-400/50 shadow-xl'
@@ -107,7 +116,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
                   Đang đứt hàng, chuẩn bị sẵn ô kệ mặt tiền để khi xe bốc hàng về xếp ngay!
                 </p>
                 <div className="flex flex-wrap gap-1 mt-1.5">
-                  {analytics?.items
+                  {items
                     .filter((it) => it.isStockoutWithIncoming && it.abcRank === 'A')
                     .slice(0, 4)
                     .map((it) => (
@@ -126,7 +135,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
             <div className="mt-3.5 space-y-1.5">
               <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Top Mã Ưu Tiên:</span>
               <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-                {analytics?.items
+                {items
                   .filter((it) => it.abcRank === 'A')
                   .slice(0, 6)
                   .map((it) => (
@@ -143,7 +152,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
 
           {/* Cột 3: ZONE B - KỆ TRUNG TÂM (MIDDLE ZONE) */}
           <div
-            onClick={() => onSelectZoneFilter(selectedZoneFilter === 'ZONE_B' ? 'ALL' : 'ZONE_B')}
+            onClick={() => handleSelectZone(selectedZoneFilter === 'ZONE_B' ? 'ALL' : 'ZONE_B')}
             className={`md:col-span-3 p-5 rounded-xl border cursor-pointer transition-all ${
               selectedZoneFilter === 'ZONE_B'
                 ? 'bg-blue-950/80 border-blue-400 ring-2 ring-blue-400/50 shadow-xl'
@@ -166,7 +175,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
             <div className="mt-3.5 space-y-1.5">
               <span className="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Mã Tiêu Biểu:</span>
               <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-                {analytics?.items
+                {items
                   .filter((it) => it.abcRank === 'B')
                   .slice(0, 6)
                   .map((it) => (
@@ -183,7 +192,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
 
           {/* Cột 4: ZONE C - TẦNG CAO & PHÍA SAU (STORAGE ZONE) */}
           <div
-            onClick={() => onSelectZoneFilter(selectedZoneFilter === 'ZONE_C' ? 'ALL' : 'ZONE_C')}
+            onClick={() => handleSelectZone(selectedZoneFilter === 'ZONE_C' ? 'ALL' : 'ZONE_C')}
             className={`md:col-span-3 p-5 rounded-xl border cursor-pointer transition-all ${
               selectedZoneFilter === 'ZONE_C'
                 ? 'bg-slate-800 border-slate-400 ring-2 ring-slate-400/50 shadow-xl'
@@ -206,7 +215,7 @@ export const Warehouse2DSlottingMap: React.FC<Warehouse2DSlottingMapProps> = ({
             <div className="mt-3.5 space-y-1.5">
               <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Hàng Chậm / Dự Trữ:</span>
               <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-                {analytics?.items
+                {items
                   .filter((it) => it.abcRank === 'C')
                   .slice(0, 6)
                   .map((it) => (

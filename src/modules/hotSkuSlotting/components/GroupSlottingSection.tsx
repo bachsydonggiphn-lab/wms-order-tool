@@ -79,6 +79,9 @@ export const GroupSlottingSection: React.FC<GroupSlottingSectionProps> = ({
   handlePrintGroupSlottingReport,
   onNavigateToInventory
 }) => {
+  const metrics = Array.isArray(groupSlottingMetrics) ? groupSlottingMetrics : [];
+  const displayedSkus = Array.isArray(displayedSlottingSkus) ? displayedSlottingSkus : [];
+
   return (
     <div className="space-y-6">
       {/* Header Bar của Bố Trí Theo Nhóm */}
@@ -196,7 +199,7 @@ export const GroupSlottingSection: React.FC<GroupSlottingSectionProps> = ({
             </div>
           </div>
           <div className="text-2xl font-black text-amber-600">
-            {groupSlottingMetrics.filter(g => g.optimalAisleRecommendation.zoneTag === 'ZONE_A').length} <span className="text-sm font-semibold text-slate-500">nhóm</span>
+            {metrics.filter(g => g.optimalAisleRecommendation?.zoneTag === 'ZONE_A').length} <span className="text-sm font-semibold text-slate-500">nhóm</span>
           </div>
           <div className="text-xs text-slate-500 mt-1">
             Đặt tại Dãy 01 - 02 (&lt; 5m tới Bàn Đóng Gói)
@@ -211,10 +214,10 @@ export const GroupSlottingSection: React.FC<GroupSlottingSectionProps> = ({
             </div>
           </div>
           <div className="text-xl font-black text-emerald-700">
-            {groupSlottingMetrics.reduce((s, g) => s + g.totalInUsed, 0).toLocaleString()} <span className="text-xs font-semibold text-slate-500">tồn kho</span>
+            {metrics.reduce((s, g) => s + (g.totalInUsed || 0), 0).toLocaleString()} <span className="text-xs font-semibold text-slate-500">tồn kho</span>
           </div>
           <div className="text-xs text-emerald-600 font-semibold mt-1">
-            + {groupSlottingMetrics.reduce((s, g) => s + g.totalOnWay, 0).toLocaleString()} PCS hàng trên đường về
+            + {metrics.reduce((s, g) => s + (g.totalOnWay || 0), 0).toLocaleString()} PCS hàng trên đường về
           </div>
         </div>
       </div>

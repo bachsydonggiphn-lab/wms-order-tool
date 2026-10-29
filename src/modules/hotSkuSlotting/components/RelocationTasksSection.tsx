@@ -9,29 +9,66 @@ import {
   Download,
   Printer
 } from 'lucide-react';
-import { SlottingRelocationTask } from '../../../../sqliteDb';
+import { HotSkuAnalyticsResult, SlottingRelocationTask } from '../../../../sqliteDb';
 
 interface RelocationTasksSectionProps {
-  tasks: SlottingRelocationTask[];
-  completedTaskIds: Set<string>;
-  onToggleTask: (taskId: string) => void;
-  onExportExcel: () => void;
-  onPrintTasks: () => void;
+  analytics?: HotSkuAnalyticsResult | null;
+  tasks?: SlottingRelocationTask[];
+  completedTaskIds?: Set<string>;
+  onToggleTask?: (taskId: string) => void;
+  toggleTaskCompleted?: (taskId: string) => void;
+  markAllTasksCompleted?: () => void;
+  resetAllTasks?: () => void;
+  onExportExcel?: () => void;
+  handleExportRelocationTasks?: () => void;
+  onPrintTasks?: () => void;
+  onNavigateToInventory?: (sku?: string) => void;
 }
 
 export const RelocationTasksSection: React.FC<RelocationTasksSectionProps> = ({
-  tasks,
-  completedTaskIds,
+  analytics,
+  tasks: propTasks,
+  completedTaskIds = new Set<string>(),
   onToggleTask,
+  toggleTaskCompleted,
+  markAllTasksCompleted,
+  resetAllTasks,
   onExportExcel,
+  handleExportRelocationTasks,
   onPrintTasks,
+  onNavigateToInventory,
 }) => {
   const [taskUrgencyFilter, setTaskUrgencyFilter] = useState<'ALL' | 'high' | 'medium' | 'low'>('ALL');
 
+  const tasks = useMemo(() => {
+    if (Array.isArray(propTasks)) return propTasks;
+    if (Array.isArray(analytics?.relocationTasks)) return analytics.relocationTasks;
+    return [];
+  }, [propTasks, analytics]);
+
+  const handleToggle = (taskId: string) => {
+    if (onToggleTask) onToggleTask(taskId);
+    else if (toggleTaskCompleted) toggleTaskCompleted(taskId);
+  };
+
+  const handleExport = () => {
+    if (onExportExcel) onExportExcel();
+    else if (handleExportRelocationTasks) handleExportRelocationTasks();
+  };
+
+  const handlePrint = () => {
+    if (onPrintTasks) onPrintTasks();
+    else window.print();
+  };
+
   const filteredTasks = useMemo(() => {
+    if (!Array.isArray(tasks)) return [];
     if (taskUrgencyFilter === 'ALL') return tasks;
     return tasks.filter((t) => t.urgency === taskUrgencyFilter);
   }, [tasks, taskUrgencyFilter]);
+
+  const completedCount = completedTaskIds?.size || 0;
+  const totalCount = tasks.length;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -47,13 +84,13 @@ export const RelocationTasksSection: React.FC<RelocationTasksSectionProps> = ({
           </p>
           <div className="flex items-center gap-3 pt-2 text-xs font-semibold">
             <span className="text-slate-600">
-              Tiến độ: <b className="text-indigo-600">{completedTaskIds.size}</b> / {tasks.length} nhiệm vụ đã xong
+              Tiến độ: <b className="text-indigo-600">{completedCount}</b> / {totalCount} nhiệm vụ đã xong
             </span>
             <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
               <div
                 className="h-full bg-emerald-500 rounded-full transition-all duration-300"
                 style={{
-                  width: `${tasks.length > 0 ? (completedTaskIds.size / tasks.length) * 100 : 0}%`,
+                  width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
                 }}
               />
             </div>
@@ -92,7 +129,7 @@ export const RelocationTasksSection: React.FC<RelocationTasksSectionProps> = ({
           {/* Action Buttons */}
           <button
             type="button"
-            onClick={onExportExcel}
+            onClick={handleExport}
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
@@ -101,7 +138,7 @@ export const RelocationTasksSection: React.FC<RelocationTasksSectionProps> = ({
 
           <button
             type="button"
-            onClick={onPrintTasks}
+            onClick={handlePrint}
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
           >
             <Printer className="w-4 h-4" />
@@ -126,7 +163,7 @@ export const RelocationTasksSection: React.FC<RelocationTasksSectionProps> = ({
             return (
               <div
                 key={task.id}
-                onClick={() => onToggleTask(task.id)}
+                onClick={() => handleToggle(task.id)}
                 className={`p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
                   isDone
                     ? 'bg-slate-50/80 border-slate-200 opacity-60'

@@ -146,13 +146,13 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
               <FolderTree className="w-4 h-4 shrink-0" />
               <span className="hidden sm:inline">Bố Trí Theo Nhóm Hàng</span>
               <span className="sm:hidden">Theo Nhóm Hàng</span>
-              {groupSlottingMetrics.length > 0 && (
+              {(groupSlottingMetrics?.length || 0) > 0 && (
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                     activeSubTab === 'group_slotting' ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-800'
                   }`}
                 >
-                  {groupSlottingMetrics.length}
+                  {groupSlottingMetrics?.length}
                 </span>
               )}
             </button>
@@ -190,13 +190,13 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
               <Link2 className="w-4 h-4 shrink-0" />
               <span className="hidden sm:inline">Ma Trận Cặp Mua Kèm (Đơn Mix)</span>
               <span className="sm:hidden">Cặp Mua Kèm</span>
-              {uniquePairs.length > 0 && (
+              {(uniquePairs?.length || 0) > 0 && (
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                     activeSubTab === 'paired_skus' ? 'bg-white text-emerald-800' : 'bg-emerald-100 text-emerald-800'
                   }`}
                 >
-                  {uniquePairs.length}
+                  {uniquePairs?.length}
                 </span>
               )}
             </button>
@@ -282,11 +282,14 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
         {activeSubTab === 'relocation_tasks' && (
           <RelocationTasksSection
             analytics={analytics}
+            tasks={analytics?.relocationTasks || []}
             completedTaskIds={completedTaskIds}
             toggleTaskCompleted={toggleTaskCompleted}
+            onToggleTask={toggleTaskCompleted}
             markAllTasksCompleted={markAllTasksCompleted}
             resetAllTasks={resetAllTasks}
             handleExportRelocationTasks={() => exportRelocationTasksToExcel(analytics, completedTaskIds)}
+            onExportExcel={() => exportRelocationTasksToExcel(analytics, completedTaskIds)}
             onNavigateToInventory={onNavigateToInventory}
           />
         )}

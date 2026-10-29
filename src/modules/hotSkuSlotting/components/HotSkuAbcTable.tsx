@@ -55,6 +55,7 @@ export const HotSkuAbcTable: React.FC<HotSkuAbcTableProps> = ({
   stockoutIncomingCount,
   onNavigateToInventory
 }) => {
+  const items = Array.isArray(filteredItems) ? filteredItems : [];
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Table Filter Header */}
@@ -62,7 +63,7 @@ export const HotSkuAbcTable: React.FC<HotSkuAbcTableProps> = ({
         <div className="flex items-center gap-3">
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
             <Layers className="w-5 h-5 text-indigo-600" />
-            Bảng Chi Tiết Phân Hạng SKU & Tồn Kho ({filteredItems.length} mã)
+            Bảng Chi Tiết Phân Hạng SKU & Tồn Kho ({items.length} mã)
           </h3>
           {selectedZoneFilter !== 'ALL' && (
             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 flex items-center gap-1.5">
@@ -150,7 +151,7 @@ export const HotSkuAbcTable: React.FC<HotSkuAbcTableProps> = ({
           <AlertTriangle className="w-8 h-8 mx-auto" />
           <p className="font-semibold">{errorMessage}</p>
         </div>
-      ) : filteredItems.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="py-16 text-center text-slate-500 space-y-2">
           <Package className="w-8 h-8 mx-auto text-slate-400" />
           <p className="font-semibold">Không tìm thấy mã SKU nào phù hợp với bộ lọc hiện tại.</p>
@@ -182,7 +183,7 @@ export const HotSkuAbcTable: React.FC<HotSkuAbcTableProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredItems.map((item, idx) => (
+              {items.map((item, idx) => (
                 <tr
                   key={item.sku}
                   className={`hover:bg-slate-50/80 transition-colors ${

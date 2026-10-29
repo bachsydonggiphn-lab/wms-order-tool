@@ -4,17 +4,37 @@ import { HotSkuAnalyticsResult } from '../../../../sqliteDb';
 
 interface HotSkuSummaryMetricsProps {
   analytics: HotSkuAnalyticsResult | null;
-  stockoutRiskCount: number;
-  filterStockoutIncomingOnly: boolean;
-  onToggleStockoutFilter: () => void;
+  rankingMode?: 'normalized' | 'actual';
+  selectedAbc?: 'ALL' | 'A' | 'B' | 'C';
+  setSelectedAbc?: (abc: 'ALL' | 'A' | 'B' | 'C') => void;
+  selectedZoneFilter?: 'ALL' | 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'INBOUND';
+  setSelectedZoneFilter?: (zone: 'ALL' | 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'INBOUND') => void;
+  stockoutRiskCount?: number;
+  filterStockoutIncomingOnly?: boolean;
+  setFilterStockoutIncomingOnly?: (val: boolean) => void;
+  onToggleStockoutFilter?: () => void;
 }
 
 export const HotSkuSummaryMetrics: React.FC<HotSkuSummaryMetricsProps> = ({
   analytics,
-  stockoutRiskCount,
-  filterStockoutIncomingOnly,
+  rankingMode,
+  selectedAbc,
+  setSelectedAbc,
+  selectedZoneFilter,
+  setSelectedZoneFilter,
+  stockoutRiskCount: propRiskCount,
+  filterStockoutIncomingOnly = false,
+  setFilterStockoutIncomingOnly,
   onToggleStockoutFilter,
 }) => {
+  const stockoutRiskCount = propRiskCount ?? (analytics?.items?.filter((i) => i.stockoutWarning)?.length || 0);
+  const handleToggleStockout = () => {
+    if (onToggleStockoutFilter) {
+      onToggleStockoutFilter();
+    } else if (setFilterStockoutIncomingOnly) {
+      setFilterStockoutIncomingOnly(!filterStockoutIncomingOnly);
+    }
+  };
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {/* Card 1: Tổng Sản Lượng Bán */}
@@ -96,7 +116,7 @@ export const HotSkuSummaryMetrics: React.FC<HotSkuSummaryMetricsProps> = ({
 
       {/* Card 5: SKU Đứt Hàng Đang Chờ Về (Đặt Chỗ Zone A) */}
       <div
-        onClick={onToggleStockoutFilter}
+        onClick={handleToggleStockout}
         className={`cursor-pointer rounded-2xl p-5 border transition-all ${
           filterStockoutIncomingOnly
             ? 'bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/50 shadow-md'
