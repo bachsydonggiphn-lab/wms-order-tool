@@ -27,15 +27,18 @@ interface InventoryHeaderBarProps {
   isPolling: boolean;
   soundEnabled: boolean;
   setSoundEnabled: (val: boolean) => void;
-  recentChanges: {
+  recentChanges?: {
     time: string;
     changedCount: number;
     details: Array<{ sku: string; diffInUsed: number }>;
   } | null;
-  setRecentChanges: (val: any) => void;
-  fetchInventory: (isBackground?: boolean) => void;
-  handleExport: () => void;
-  handleOpenPrintModal: (mode: 'COLUMN_MATRIX' | 'DETAILED_TABLE') => void;
+  setRecentChanges?: (val: any) => void;
+  fetchInventory?: (isBackground?: boolean) => void;
+  onRefresh?: () => void;
+  handleExport?: () => void;
+  onExportExcel?: () => void;
+  handleOpenPrintModal?: (mode: 'COLUMN_MATRIX' | 'DETAILED_TABLE') => void;
+  onOpenPrintModal?: (mode?: 'COLUMN_MATRIX' | 'DETAILED_TABLE') => void;
   onNavigateToSlotting?: () => void;
 }
 
@@ -55,10 +58,27 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
   recentChanges,
   setRecentChanges,
   fetchInventory,
+  onRefresh,
   handleExport,
+  onExportExcel,
   handleOpenPrintModal,
+  onOpenPrintModal,
   onNavigateToSlotting
 }) => {
+  const doRefresh = () => {
+    if (fetchInventory) fetchInventory(false);
+    else if (onRefresh) onRefresh();
+  };
+
+  const doExport = () => {
+    if (handleExport) handleExport();
+    else if (onExportExcel) onExportExcel();
+  };
+
+  const doOpenPrint = (mode: 'COLUMN_MATRIX' | 'DETAILED_TABLE' = 'COLUMN_MATRIX') => {
+    if (handleOpenPrintModal) handleOpenPrintModal(mode);
+    else if (onOpenPrintModal) onOpenPrintModal(mode);
+  };
   return (
     <div className="space-y-3">
       {/* 1. Header Bar: Tiêu Đề + Controls + Real-Time Poller */}
@@ -160,20 +180,25 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
 
             {/* Warehouse Select */}
             <div className="relative shrink-0">
+              <Warehouse className="w-3.5 h-3.5 text-emerald-600 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <select
                 value={selectedWarehouse}
-                onChange={(e) => setSelectedWarehouse(e.target.value)}
-                className="appearance-none bg-slate-50 border border-slate-200 text-slate-800 font-bold text-xs rounded-xl px-3 py-2 pr-7 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer shadow-2xs"
+                onChange={(e) => {
+                  setSelectedWarehouse(e.target.value);
+                  setTimeout(() => doRefresh(), 50);
+                }}
+                className="appearance-none bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs rounded-xl pl-8 pr-7 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer shadow-2xs transition-colors"
+                title="Chọn kho tra cứu tồn kho (VN02 Đồng Nai / VN01 Hà Nội)"
               >
                 <option value="7">Kho VN02 (Đồng Nai)</option>
                 <option value="1">Kho VN01 (Hà Nội)</option>
               </select>
-              <Warehouse className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Refresh Button */}
             <button
-              onClick={() => fetchInventory(false)}
+              onClick={doRefresh}
               disabled={loading || isPolling}
               className="px-3 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all disabled:opacity-50 shrink-0"
               title="Kéo dữ liệu tồn kho mới nhất ngay lập tức"
@@ -185,9 +210,9 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
             {/* Nút Mở Hộp Thoại In Danh Sách Tồn Kho */}
             <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 p-0.5 rounded-xl shrink-0">
               <button
-                onClick={() => handleOpenPrintModal('COLUMN_MATRIX')}
+                onClick={() => doOpenPrint('COLUMN_MATRIX')}
                 disabled={!data || data.items.length === 0}
-                className="px-3 py-2 rounded-lg text-xs font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all disabled:opacity-50"
+                className="px-3 py-2 rounded-lg text-xs font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all disabled:opacity-50"
                 title="Mở bảng in ma trận 6 cột tiết kiệm giấy (Khổ A4 Ngang)"
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -195,7 +220,7 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
               </button>
 
               <button
-                onClick={() => handleOpenPrintModal('DETAILED_TABLE')}
+                onClick={() => doOpenPrint('DETAILED_TABLE')}
                 disabled={!data || data.items.length === 0}
                 className="px-2.5 py-2 rounded-lg text-xs font-bold text-emerald-800 hover:bg-emerald-100 flex items-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                 title="In dạng bảng chi tiết (Khổ A4 Dọc)"
@@ -206,7 +231,7 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
 
             {/* Export Excel Button */}
             <button
-              onClick={handleExport}
+              onClick={doExport}
               disabled={!data || data.items.length === 0}
               className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95 transition-all disabled:opacity-50 shrink-0"
               title="Xuất danh sách tồn kho ra file Excel"
@@ -242,7 +267,7 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
               </span>
             </div>
             <button
-              onClick={() => setRecentChanges(null)}
+              onClick={() => setRecentChanges && setRecentChanges(null)}
               className="text-amber-700 hover:text-amber-950 font-bold ml-2 shrink-0 cursor-pointer"
             >
               Đã xem

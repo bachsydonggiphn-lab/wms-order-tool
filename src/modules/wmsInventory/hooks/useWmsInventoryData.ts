@@ -353,6 +353,7 @@ export const useWmsInventoryData = ({ skuGroups }: UseWmsInventoryDataParams) =>
     soundEnabled,
     setSoundEnabled,
     recentChanges,
+    setRecentChanges,
     changedSkuMap,
     selectedWarehouse,
     setSelectedWarehouse,

@@ -33,6 +33,7 @@ export const WmsInventoryModule: React.FC<WmsInventoryModuleProps> = ({
     soundEnabled,
     setSoundEnabled,
     recentChanges,
+    setRecentChanges,
     changedSkuMap,
     selectedWarehouse,
     setSelectedWarehouse,
@@ -106,11 +107,15 @@ export const WmsInventoryModule: React.FC<WmsInventoryModuleProps> = ({
             soundEnabled={soundEnabled}
             setSoundEnabled={setSoundEnabled}
             recentChanges={recentChanges}
+            setRecentChanges={setRecentChanges}
             loading={loading}
             data={data}
+            fetchInventory={() => fetchData(selectedWarehouse)}
             onRefresh={() => fetchData(selectedWarehouse)}
+            handleExport={() => data && exportInventoryToExcel(data)}
             onExportExcel={() => data && exportInventoryToExcel(data)}
-            onOpenPrintModal={() => handleOpenPrintModal('COLUMN_MATRIX')}
+            handleOpenPrintModal={(mode) => handleOpenPrintModal(mode)}
+            onOpenPrintModal={(mode) => handleOpenPrintModal(mode || 'COLUMN_MATRIX')}
             onNavigateToSlotting={onNavigateToSlotting}
           />
         </div>
