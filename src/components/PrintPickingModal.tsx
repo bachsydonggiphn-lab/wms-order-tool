@@ -376,15 +376,18 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
       // Đảm bảo tất cả các trang đều hiển thị (gỡ bỏ class hidden)
       const allPages = clone.querySelectorAll('.label-page-container');
       allPages.forEach((p) => {
-        (p as HTMLElement).style.display = 'block';
-        (p as HTMLElement).style.visibility = 'visible';
-        (p as HTMLElement).style.pageBreakAfter = 'always';
-        (p as HTMLElement).style.breakAfter = 'page';
-        (p as HTMLElement).style.margin = '0 auto';
-        (p as HTMLElement).style.boxShadow = 'none';
+        const el = p as HTMLElement;
+        el.classList.remove('hidden');
+        el.classList.add('block');
+        el.style.display = 'block';
+        el.style.visibility = 'visible';
+        el.style.pageBreakAfter = 'always';
+        el.style.breakAfter = 'page';
+        el.style.margin = '0 auto';
+        el.style.boxShadow = 'none';
       });
 
-      // Tạo hoặc tái sử dụng iframe
+      // Tạo hoặc tái sử dụng iframe với kích thước thực tế (không để 0x0 để tránh Chrome bỏ qua render CSS)
       let iframe = document.getElementById('picking-print-iframe') as HTMLIFrameElement;
       if (iframe) {
         iframe.remove();
@@ -392,27 +395,37 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
       iframe = document.createElement('iframe');
       iframe.id = 'picking-print-iframe';
       iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
+      iframe.style.left = '-9999px';
+      iframe.style.top = '-9999px';
+      iframe.style.width = '1000px';
+      iframe.style.height = '1200px';
       iframe.style.border = '0';
+      iframe.style.opacity = '0';
+      iframe.style.pointerEvents = 'none';
       document.body.appendChild(iframe);
 
-      // Thu thập toàn bộ CSS của trang
-      const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-        .map((el) => el.outerHTML)
+      // Thu thập toàn bộ CSS của trang với URL tuyệt đối
+      const headStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+        .map((el) => {
+          if (el.tagName === 'LINK') {
+            const link = el as HTMLLinkElement;
+            return `<link rel="stylesheet" href="${link.href}">`;
+          }
+          return el.outerHTML;
+        })
         .join('\n');
 
       const is100x150 = paperSize === '100x150';
       const printCss = `
         <style>
+          *, *::before, *::after {
+            box-sizing: border-box !important;
+            margin: 0;
+            padding: 0;
+          }
           @page {
             size: ${is100x150 ? '100mm 150mm' : 'A4 portrait'};
             margin: 0 !important;
-          }
-          *, *::before, *::after {
-            box-sizing: border-box;
           }
           html, body {
             margin: 0 !important;
@@ -421,20 +434,26 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
             color: #000000 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
           }
           .printable-root {
             display: block !important;
             width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .label-page-container {
             display: block !important;
+            visibility: visible !important;
             page-break-after: always !important;
             break-after: page !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             margin: 0 auto !important;
             padding: 0 !important;
+            width: ${is100x150 ? '100mm' : '210mm'} !important;
+            height: ${is100x150 ? '148mm' : 'auto'} !important;
+            box-sizing: border-box !important;
           }
           .picking-label-card {
             width: ${is100x150 ? '100mm' : '210mm'} !important;
@@ -444,22 +463,137 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
             display: flex !important;
             flex-direction: column !important;
             overflow: hidden !important;
+            border: 1.5px solid #000000 !important;
+            padding: ${is100x150 ? '2.5mm' : '8mm'} !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-size: ${is100x150 ? '10px' : '12px'} !important;
+            line-height: 1.2 !important;
+            margin: 0 auto !important;
           }
+          /* Flex & Grid layouts */
+          .flex { display: flex !important; }
+          .items-center { align-items: center !important; }
+          .justify-between { justify-content: space-between !important; }
+          .justify-center { justify-content: center !important; }
+          .shrink-0 { flex-shrink: 0 !important; }
+          .grid { display: grid !important; }
+          .grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+          .gap-1 { gap: 4px !important; }
+          .gap-1\\.5 { gap: 6px !important; }
+          /* Borders */
+          .border { border: 1px solid #000000 !important; }
+          .border-2 { border: 2px solid #000000 !important; }
+          .border-b { border-bottom: 1px solid #000000 !important; }
+          .border-b-2 { border-bottom: 2px solid #000000 !important; }
+          .border-t { border-top: 1px solid #000000 !important; }
+          .border-r { border-right: 1px solid #000000 !important; }
+          .border-black { border-color: #000000 !important; }
+          .border-black\\/60 { border-color: rgba(0,0,0,0.6) !important; }
+          .border-black\\/40 { border-color: rgba(0,0,0,0.4) !important; }
+          .border-black\\/80 { border-color: rgba(0,0,0,0.8) !important; }
+          /* Backgrounds & Text colors */
+          .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+          .text-white { color: #ffffff !important; }
+          .text-black { color: #000000 !important; }
+          .bg-white { background-color: #ffffff !important; }
+          .bg-neutral-100\\/70, .bg-neutral-100, .bg-neutral-50 { background-color: #f3f4f6 !important; }
+          .text-neutral-600, .text-neutral-500 { color: #4b5563 !important; }
+          .text-neutral-400 { color: #9ca3af !important; }
+          /* Typography */
+          .text-center { text-align: center !important; }
+          .text-left { text-align: left !important; }
+          .text-right { text-align: right !important; }
+          .font-black { font-weight: 900 !important; }
+          .font-bold { font-weight: 700 !important; }
+          .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; }
+          .uppercase { text-transform: uppercase !important; }
+          .underline { text-decoration: underline !important; }
+          .tracking-wider { letter-spacing: 0.05em !important; }
+          .tracking-tight { letter-spacing: -0.025em !important; }
+          .leading-none { line-height: 1 !important; }
+          .leading-tight { line-height: 1.25 !important; }
+          .truncate { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+          /* Sizing */
+          .text-\\[7px\\] { font-size: 7px !important; }
+          .text-\\[7\\.5px\\] { font-size: 7.5px !important; }
+          .text-\\[8px\\] { font-size: 8px !important; }
+          .text-\\[8\\.5px\\] { font-size: 8.5px !important; }
+          .text-\\[9\\.5px\\] { font-size: 9.5px !important; }
+          .text-\\[10px\\] { font-size: 10px !important; }
+          .text-\\[10\\.5px\\] { font-size: 10.5px !important; }
+          .text-xs { font-size: 11px !important; }
+          .text-base { font-size: 14px !important; }
+          .text-lg, .sm\\:text-lg { font-size: 16px !important; }
+          .p-\\[2\\.5mm\\] { padding: 2.5mm !important; }
+          .py-0\\.5 { padding-top: 2px !important; padding-bottom: 2px !important; }
+          .px-0\\.5 { padding-left: 2px !important; padding-right: 2px !important; }
+          .px-1 { padding-left: 4px !important; padding-right: 4px !important; }
+          .px-1\\.5 { padding-left: 6px !important; padding-right: 6px !important; }
+          .py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+          .pt-0\\.5 { padding-top: 2px !important; }
+          .pt-1 { padding-top: 4px !important; }
+          .pb-0\\.5 { padding-bottom: 2px !important; }
+          .my-0\\.5 { margin-top: 2px !important; margin-bottom: 2px !important; }
+          .mt-0\\.5 { margin-top: 2px !important; }
+          .mt-1 { margin-top: 4px !important; }
+          .mb-0\\.5 { margin-bottom: 2px !important; }
+          .mb-1 { margin-bottom: 4px !important; }
+          .mt-auto { margin-top: auto !important; }
+          .h-4 { height: 16px !important; }
+          .w-\\[26px\\] { width: 26px !important; }
+          .w-\\[36px\\] { width: 36px !important; }
+          .w-\\[56px\\] { width: 56px !important; }
+          .max-w-\\[56px\\] { max-width: 56px !important; }
+          .max-w-\\[130px\\] { max-width: 130px !important; }
+          .rounded-xs { border-radius: 2px !important; }
+          .rounded-sm { border-radius: 3px !important; }
+          .rounded-\\[2px\\] { border-radius: 2px !important; }
+          /* Table */
           table.picking-table {
             width: 100% !important;
             border-collapse: collapse !important;
+            border: 1.5px solid #000000 !important;
             table-layout: fixed !important;
-          }
-          table.picking-table th,
-          table.picking-table td {
+            margin: 0 !important;
             box-sizing: border-box !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
           }
+          table.picking-table thead tr {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+          }
+          table.picking-table th {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            border: 1px solid #000000 !important;
+            padding: 2px 2px !important;
+            font-weight: 900 !important;
+            font-size: 8px !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
+          }
+          table.picking-table td {
+            border: 1px solid #000000 !important;
+            padding: 1px 2px !important;
+            box-sizing: border-box !important;
+            vertical-align: middle !important;
+          }
+          .picking-table td div[class*="border"] {
+            display: inline-block !important;
+            width: 11px !important;
+            height: 11px !important;
+            border: 1.2px solid #000000 !important;
+            border-radius: 2px !important;
+            background: #ffffff !important;
+            margin: 0 auto !important;
+          }
+          /* Signature */
           .signature-box {
             margin-top: auto !important;
-            background-color: #ffffff !important;
+            border-top: 1px solid #000000 !important;
+            padding-top: 3px !important;
+            background: #ffffff !important;
           }
         </style>
       `;
@@ -476,8 +610,9 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
         <html>
           <head>
             <meta charset="utf-8">
+            <base href="${window.location.origin}/">
             <title>Phiếu Nhặt Hàng Kho - ${activePickingList || 'Warehouse'}</title>
-            ${styles}
+            ${headStyles}
             ${printCss}
           </head>
           <body>
@@ -497,7 +632,7 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
           console.error('Lỗi in iframe, chuyển sang window.print:', e);
           window.print();
         }
-      }, 350);
+      }, 500);
     } catch (err) {
       console.error('Lỗi khi chuẩn bị in:', err);
       window.print();
@@ -1069,25 +1204,53 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                         </div>
 
                         {/* 2. Thống Kê Nhanh (KPI Gom Hàng) */}
-                        <div className="grid grid-cols-3 gap-1 border border-black py-0.5 px-1 text-center bg-neutral-100/70 mb-1 shrink-0">
-                          <div className="border-r border-black/40 pr-0.5">
-                            <div className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Tổng Đơn</div>
-                            <div className="font-black text-xs leading-none">{label.ordersCount} đơn</div>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                            border: '1px solid #000000',
+                            padding: '2px 4px',
+                            textAlign: 'center',
+                            backgroundColor: '#f3f4f6',
+                            marginBottom: '4px',
+                            flexShrink: 0,
+                          }}
+                          className="grid grid-cols-3 gap-1 border border-black py-0.5 px-1 text-center bg-neutral-100/70 mb-1 shrink-0"
+                        >
+                          <div style={{ borderRight: '1px solid rgba(0,0,0,0.4)', paddingRight: '2px' }} className="border-r border-black/40 pr-0.5">
+                            <div style={{ fontSize: '7.5px', textTransform: 'uppercase', fontWeight: 700, color: '#4b5563', lineHeight: 1.2 }} className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Tổng Đơn</div>
+                            <div style={{ fontWeight: 900, fontSize: '12px', lineHeight: 1 }} className="font-black text-xs leading-none">{label.ordersCount} đơn</div>
                           </div>
-                          <div className="border-r border-black/40 pr-0.5">
-                            <div className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Mã SKU</div>
-                            <div className="font-black text-xs leading-none">{label.skuCount} mã</div>
+                          <div style={{ borderRight: '1px solid rgba(0,0,0,0.4)', paddingRight: '2px' }} className="border-r border-black/40 pr-0.5">
+                            <div style={{ fontSize: '7.5px', textTransform: 'uppercase', fontWeight: 700, color: '#4b5563', lineHeight: 1.2 }} className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Mã SKU</div>
+                            <div style={{ fontWeight: 900, fontSize: '12px', lineHeight: 1 }} className="font-black text-xs leading-none">{label.skuCount} mã</div>
                           </div>
                           <div>
-                            <div className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Tổng PCS</div>
-                            <div className="font-black text-xs leading-none text-black underline">
+                            <div style={{ fontSize: '7.5px', textTransform: 'uppercase', fontWeight: 700, color: '#4b5563', lineHeight: 1.2 }} className="text-[7.5px] uppercase font-bold text-neutral-600 leading-tight">Tổng PCS</div>
+                            <div style={{ fontWeight: 900, fontSize: '12px', lineHeight: 1, textDecoration: 'underline' }} className="font-black text-xs leading-none text-black underline">
                               {label.totalPcs} cái
                             </div>
                           </div>
                         </div>
 
                         {/* Phân bổ đơn theo PCS gọn gàng */}
-                        <div className="flex items-center justify-between text-[8px] font-bold border-b border-black/60 pb-0.5 mb-1 px-0.5 shrink-0 leading-none">
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            fontSize: '8px',
+                            fontWeight: 700,
+                            borderBottom: '1px solid rgba(0,0,0,0.6)',
+                            paddingBottom: '2px',
+                            marginBottom: '4px',
+                            paddingLeft: '2px',
+                            paddingRight: '2px',
+                            lineHeight: 1,
+                            flexShrink: 0,
+                          }}
+                          className="flex items-center justify-between text-[8px] font-bold border-b border-black/60 pb-0.5 mb-1 px-0.5 shrink-0 leading-none"
+                        >
                           <span>Phân loại:</span>
                           <span>1 PCS: <strong>{label.pcsSummary['1 PCS'] || 0}đ</strong></span>
                           <span>2 PCS: <strong>{label.pcsSummary['2 PCS'] || 0}đ</strong></span>
@@ -1096,16 +1259,35 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
 
                         {/* 3. Bảng Danh Sách SKU Cần Nhặt */}
                         <div className="w-full shrink-0">
-                          <table className="picking-table w-full border-collapse border border-black text-black table-fixed">
+                          <table
+                            style={{
+                              width: '100%',
+                              borderCollapse: 'collapse',
+                              border: '1.5px solid #000000',
+                              tableLayout: 'fixed',
+                              boxSizing: 'border-box',
+                            }}
+                            className="picking-table w-full border-collapse border border-black text-black table-fixed"
+                          >
                             <thead>
-                              <tr className="bg-black text-white text-[8px] font-black uppercase leading-tight">
-                                <th className="border border-black py-0.5 px-0.5 w-[26px] text-center">STT</th>
+                              <tr
+                                style={{
+                                  backgroundColor: '#000000',
+                                  color: '#ffffff',
+                                  fontSize: '8px',
+                                  fontWeight: 900,
+                                  textTransform: 'uppercase',
+                                  lineHeight: 1.25,
+                                }}
+                                className="bg-black text-white text-[8px] font-black uppercase leading-tight"
+                              >
+                                <th style={{ border: '1px solid #000000', padding: '2px 1px', width: '26px', textAlign: 'center' }} className="border border-black py-0.5 px-0.5 w-[26px] text-center">STT</th>
                                 {showWarehouseArea && (
-                                  <th className="border border-black py-0.5 px-1 w-[56px] text-center">KỆ/KV</th>
+                                  <th style={{ border: '1px solid #000000', padding: '2px 4px', width: '56px', textAlign: 'center' }} className="border border-black py-0.5 px-1 w-[56px] text-center">KỆ/KV</th>
                                 )}
-                                <th className="border border-black py-0.5 px-1 text-left">MÃ SKU</th>
-                                <th className="border border-black py-0.5 px-0.5 w-[36px] text-center">SL</th>
-                                <th className="border border-black py-0.5 px-0.5 w-[26px] text-center">[✓]</th>
+                                <th style={{ border: '1px solid #000000', padding: '2px 4px', textAlign: 'left' }} className="border border-black py-0.5 px-1 text-left">MÃ SKU</th>
+                                <th style={{ border: '1px solid #000000', padding: '2px 1px', width: '36px', textAlign: 'center' }} className="border border-black py-0.5 px-0.5 w-[36px] text-center">SL</th>
+                                <th style={{ border: '1px solid #000000', padding: '2px 1px', width: '26px', textAlign: 'center' }} className="border border-black py-0.5 px-0.5 w-[26px] text-center">[✓]</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1121,18 +1303,57 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                                     style={{
                                       height: isUltra ? '16px' : isSpacious ? '22px' : '18px',
                                       maxHeight: isUltra ? '16px' : isSpacious ? '22px' : '18px',
+                                      borderBottom: '1px solid #000000',
+                                      boxSizing: 'border-box',
                                     }}
                                     className="border-b border-black hover:bg-neutral-50"
                                   >
-                                    <td className="border-r border-black px-0.5 py-0 text-center font-mono text-[8px] font-bold leading-none">
+                                    <td
+                                      style={{
+                                        borderRight: '1px solid #000000',
+                                        padding: '1px 2px',
+                                        textAlign: 'center',
+                                        fontFamily: 'monospace',
+                                        fontSize: '8px',
+                                        fontWeight: 700,
+                                        lineHeight: 1,
+                                      }}
+                                      className="border-r border-black px-0.5 py-0 text-center font-mono text-[8px] font-bold leading-none"
+                                    >
                                       {stt}
                                     </td>
                                     {showWarehouseArea && (
-                                      <td className="border-r border-black px-0.5 py-0 text-center font-bold text-[8px] truncate leading-tight max-w-[56px]">
+                                      <td
+                                        style={{
+                                          borderRight: '1px solid #000000',
+                                          padding: '1px 2px',
+                                          textAlign: 'center',
+                                          fontWeight: 700,
+                                          fontSize: '8px',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          maxWidth: '56px',
+                                          lineHeight: 1.25,
+                                        }}
+                                        className="border-r border-black px-0.5 py-0 text-center font-bold text-[8px] truncate leading-tight max-w-[56px]"
+                                      >
                                         {item.area}
                                       </td>
                                     )}
                                     <td
+                                      style={{
+                                        borderRight: '1px solid #000000',
+                                        padding: '1px 4px',
+                                        fontFamily: 'monospace',
+                                        fontWeight: 700,
+                                        fontSize: isUltra ? '8px' : isSpacious ? '9.5px' : '8.5px',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        maxWidth: '130px',
+                                        lineHeight: 1.25,
+                                      }}
                                       className={`border-r border-black px-1 py-0 font-mono font-bold truncate leading-tight ${
                                         isUltra
                                           ? 'text-[8px] max-w-[130px]'
@@ -1143,11 +1364,31 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                                     >
                                       {item.sku}
                                     </td>
-                                    <td className="border-r border-black px-0.5 py-0 text-center font-mono font-black text-[10.5px] leading-none">
+                                    <td
+                                      style={{
+                                        borderRight: '1px solid #000000',
+                                        padding: '1px 2px',
+                                        textAlign: 'center',
+                                        fontFamily: 'monospace',
+                                        fontWeight: 900,
+                                        fontSize: '10.5px',
+                                        lineHeight: 1,
+                                      }}
+                                      className="border-r border-black px-0.5 py-0 text-center font-mono font-black text-[10.5px] leading-none"
+                                    >
                                       {item.qty}
                                     </td>
-                                    <td className="px-0.5 py-0 text-center">
+                                    <td style={{ padding: '1px', textAlign: 'center' }} className="px-0.5 py-0 text-center">
                                       <div
+                                        style={{
+                                          width: isUltra ? '10px' : isSpacious ? '14px' : '12px',
+                                          height: isUltra ? '10px' : isSpacious ? '14px' : '12px',
+                                          border: '1.2px solid #000000',
+                                          borderRadius: '2px',
+                                          display: 'inline-block',
+                                          backgroundColor: '#ffffff',
+                                          margin: '0 auto',
+                                        }}
                                         className={`border border-black rounded-[2px] mx-auto ${
                                           isUltra
                                             ? 'w-2.5 h-2.5'
@@ -1183,19 +1424,37 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                         {/* 5. Chân Tem & Chữ Ký Xác Nhận (Có thể ẩn/hiện) */}
                         {showSignatures && (
                           <>
-                            <div className="signature-box border-t border-black pt-1 mt-auto shrink-0 bg-white">
-                              <div className="grid grid-cols-2 text-center text-[8.5px] font-bold">
+                            <div
+                              style={{
+                                marginTop: 'auto',
+                                borderTop: '1px solid #000000',
+                                paddingTop: '3px',
+                                backgroundColor: '#ffffff',
+                                flexShrink: 0,
+                              }}
+                              className="signature-box border-t border-black pt-1 mt-auto shrink-0 bg-white"
+                            >
+                              <div
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                                  textAlign: 'center',
+                                  fontSize: '8.5px',
+                                  fontWeight: 700,
+                                }}
+                                className="grid grid-cols-2 text-center text-[8.5px] font-bold"
+                              >
                                 <div>
                                   <span>Người Nhặt Hàng</span>
-                                  <div className="h-4"></div>
-                                  <span className="text-[7.5px] text-neutral-500 font-normal">
+                                  <div style={{ height: '14px' }} className="h-4"></div>
+                                  <span style={{ fontSize: '7.5px', color: '#6b7280', fontWeight: 400 }} className="text-[7.5px] text-neutral-500 font-normal">
                                     (Ký, ghi họ tên)
                                   </span>
                                 </div>
                                 <div>
                                   <span>Người Kiểm & Gói</span>
-                                  <div className="h-4"></div>
-                                  <span className="text-[7.5px] text-neutral-500 font-normal">
+                                  <div style={{ height: '14px' }} className="h-4"></div>
+                                  <span style={{ fontSize: '7.5px', color: '#6b7280', fontWeight: 400 }} className="text-[7.5px] text-neutral-500 font-normal">
                                     (Ký, ghi họ tên)
                                   </span>
                                 </div>
@@ -1203,7 +1462,7 @@ export const PrintPickingModal: React.FC<PrintPickingModalProps> = ({
                             </div>
 
                             {/* Footer nhỏ định danh khổ giấy */}
-                            <div className="text-[7px] text-neutral-400 text-center pt-0.5 shrink-0">
+                            <div style={{ fontSize: '7px', color: '#9ca3af', textAlign: 'center', paddingTop: '2px', flexShrink: 0 }} className="text-[7px] text-neutral-400 text-center pt-0.5 shrink-0">
                               Khổ tem: 100mm × 150mm • Máy in nhiệt vận đơn
                             </div>
                           </>
