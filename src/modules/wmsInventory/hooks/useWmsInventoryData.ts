@@ -137,13 +137,6 @@ export const useWmsInventoryData = ({ skuGroups }: UseWmsInventoryDataParams) =>
         skuGroups,
       });
       setData(res);
-      if (res.groups && res.groups.length > 0) {
-        const top3: Record<string, boolean> = {};
-        res.groups.slice(0, 3).forEach((g) => {
-          top3[g.group] = true;
-        });
-        setExpandedGroups(top3);
-      }
     } catch (err: any) {
       setError(err?.message || 'Không thể tải dữ liệu tồn kho từ YunWMS.');
     } finally {

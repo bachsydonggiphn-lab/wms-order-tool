@@ -129,9 +129,18 @@ export const InventoryGroupedView: React.FC<InventoryGroupedViewProps> = ({
                   <span>In nhóm</span>
                 </button>
 
-                <div className="p-1 rounded-lg hover:bg-slate-200/60 text-slate-500 shrink-0">
-                  {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleGroupExpand(g.group);
+                  }}
+                  className="p-1.5 rounded-xl hover:bg-slate-200/80 text-slate-600 hover:text-slate-900 transition-colors shrink-0 cursor-pointer shadow-2xs border border-transparent hover:border-slate-300"
+                  title={isExpanded ? `Thu gọn nhóm ${g.group}` : `Bung chi tiết nhóm ${g.group}`}
+                  aria-label={isExpanded ? `Thu gọn nhóm ${g.group}` : `Bung chi tiết nhóm ${g.group}`}
+                >
+                  {isExpanded ? <ChevronUp className="w-5 h-5 text-indigo-600" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
