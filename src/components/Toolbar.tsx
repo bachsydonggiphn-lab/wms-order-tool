@@ -83,14 +83,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const [quickToastMessage, setQuickToastMessage] = useState<string | null>(null);
 
   // Refs and scroll helpers for horizontal laptop scrolling
-  const carrierContainerRef = useRef<HTMLDivElement>(null);
   const subTabsContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollCarriers = (direction: 'left' | 'right') => {
-    if (carrierContainerRef.current) {
-      carrierContainerRef.current.scrollBy({ left: direction === 'left' ? -260 : 260, behavior: 'smooth' });
-    }
-  };
 
   const scrollSubTabs = (direction: 'left' | 'right') => {
     if (subTabsContainerRef.current) {
@@ -693,171 +686,206 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       )}
 
-      {/* Row 2: Chọn Đơn Vị Vận Chuyển */}
-      <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-indigo-50/40 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-2 sm:gap-3">
-        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-white px-2 sm:px-2.5 py-1.5 rounded-xl border border-indigo-200 shadow-2xs shrink-0">
-            <Truck className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="hidden sm:inline">Đóng Gói Theo ĐVVC:</span>
-            <span className="sm:hidden">ĐVVC:</span>
-          </div>
-
-          {/* Nút mở Modal Sao Chép Đơn Theo Hãng */}
-          <button
-            type="button"
-            onClick={() => {
-              setCopyModalCarrier(selectedCarrier);
-              setIsCopyModalOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 rounded-xl shadow-2xs transition-all cursor-pointer hover:border-indigo-300"
-            title="Mở bảng sao chép mã đơn hàng hoặc tracking theo từng hãng vận chuyển"
-          >
-            <Copy className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Copy Đơn Theo Hãng</span>
-          </button>
-
-          {/* CẦN GẠT BẬT/TẮT GỘP ĐVVC (Tránh trường hợp người dùng quên đang gộp) */}
-          <div
-            onClick={handleToggleMultiCarrierMode}
-            className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer select-none shadow-2xs ${
-              isMultiCarrierMode
-                ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-indigo-600 shadow-indigo-500/20'
-                : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200'
-            }`}
-            title={
-              isMultiCarrierMode
-                ? 'Cần gạt gộp ĐVVC đang BẬT: Bạn có thể click chọn thêm nhiều hãng để gộp dữ liệu. Click để TẮT'
-                : 'Cần gạt gộp ĐVVC đang TẮT: Chế độ an toàn, chỉ chọn 1 hãng duy nhất tránh người dùng quên. Click để BẬT'
-            }
-          >
-            {/* Toggle Switch Pill */}
-            <div
-              className={`w-7 h-4 flex items-center rounded-full p-0.5 transition-colors ${
-                isMultiCarrierMode ? 'bg-white/35 justify-end' : 'bg-slate-300 justify-start'
-              }`}
-            >
-              <div className="w-3 h-3 rounded-full bg-white shadow-xs" />
-            </div>
-
-            <div className="flex items-center gap-1 text-xs font-black">
-              {isMultiCarrierMode ? (
-                <span className="flex items-center gap-1 text-white">
-                  <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                  <span>Gộp ĐVVC: BẬT</span>
-                </span>
-              ) : (
-                <span className="text-slate-600">
-                  <span>Gộp ĐVVC: TẮT</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {quickToastMessage && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 animate-in fade-in zoom-in-95 duration-150">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{quickToastMessage}</span>
-            </span>
-          )}
-
-          <span className="text-[11px] text-gray-500 hidden xl:inline">
-            {isMultiCarrierMode ? '(Click chọn thêm nhiều hãng để gộp)' : '(Bấm icon 📋 trên từng hãng để copy nhanh)'}
-          </span>
+      {/* Row 2: Chọn Đơn Vị Vận Chuyển - Xếp Gọn Gàng 1 Đường Thẳng */}
+      <div className="px-3 sm:px-4 py-2 bg-indigo-50/40 border-b border-gray-200 flex items-center flex-wrap gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-white px-2.5 py-1.5 rounded-xl border border-indigo-200 shadow-2xs shrink-0">
+          <Truck className="w-3.5 h-3.5 text-indigo-600" />
+          <span className="hidden sm:inline">Đóng Gói Theo ĐVVC:</span>
+          <span className="sm:hidden">ĐVVC:</span>
         </div>
 
-        {/* Carrier Badges Filter Group & 1-Click Copy with Laptop-Friendly Controls */}
-        <div className="relative flex items-center w-full min-w-0">
-          <button
-            type="button"
-            onClick={() => scrollCarriers('left')}
-            className="hidden sm:flex items-center justify-center w-6 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 shadow-2xs border border-indigo-200 shrink-0 mr-1.5 cursor-pointer transition-colors"
-            title="Cuộn hãng sang trái"
-            aria-label="Cuộn hãng sang trái"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
+        {/* Nút mở Modal Sao Chép Đơn Theo Hãng */}
+        <button
+          type="button"
+          onClick={() => {
+            setCopyModalCarrier(selectedCarrier);
+            setIsCopyModalOpen(true);
+          }}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 rounded-xl shadow-2xs transition-all cursor-pointer hover:border-indigo-300 shrink-0"
+          title="Mở bảng sao chép mã đơn hàng hoặc tracking theo từng hãng vận chuyển"
+        >
+          <Copy className="w-3.5 h-3.5 text-indigo-600" />
+          <span>Copy Theo Hãng</span>
+        </button>
 
+        {/* CẦN GẠT BẬT/TẮT GỘP ĐVVC */}
+        <div
+          onClick={handleToggleMultiCarrierMode}
+          className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer select-none shadow-2xs shrink-0 ${
+            isMultiCarrierMode
+              ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-indigo-600 shadow-indigo-500/20'
+              : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200'
+          }`}
+          title={
+            isMultiCarrierMode
+              ? 'Cần gạt gộp ĐVVC đang BẬT: Bạn có thể click chọn thêm nhiều hãng để gộp dữ liệu. Click để TẮT'
+              : 'Cần gạt gộp ĐVVC đang TẮT: Chế độ an toàn, chỉ chọn 1 hãng duy nhất tránh người dùng quên. Click để BẬT'
+          }
+        >
+          {/* Toggle Switch Pill */}
           <div
-            ref={carrierContainerRef}
-            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto custom-scrollbar py-1 w-full scroll-smooth"
+            className={`w-6 h-3.5 flex items-center rounded-full p-0.5 transition-colors ${
+              isMultiCarrierMode ? 'bg-white/35 justify-end' : 'bg-slate-300 justify-start'
+            }`}
           >
-            {carrierOptions.map((opt) => {
-            const count = carrierCounts[opt.code] || 0;
+            <div className="w-2.5 h-2.5 rounded-full bg-white shadow-xs" />
+          </div>
 
-            // Tự động nhận diện: chỉ hiện hãng có từ 1 đơn trở lên (count >= 1). Hãng không có đơn (0 đơn) thì ẩn đi.
-            // Riêng 'ALL' (Tất Cả ĐVVC) luôn luôn hiển thị để xem toàn bộ đơn.
-            if (opt.code !== 'ALL' && count === 0) {
-              return null;
-            }
+          <div className="flex items-center gap-1 text-xs font-black">
+            {isMultiCarrierMode ? (
+              <span className="flex items-center gap-1 text-white">
+                <Zap className="w-3 h-3 text-amber-300 fill-amber-300" />
+                <span>Gộp ĐVVC: BẬT</span>
+              </span>
+            ) : (
+              <span className="text-slate-600">
+                <span>Gộp ĐVVC: TẮT</span>
+              </span>
+            )}
+          </div>
+        </div>
 
-            const isSelected =
-              opt.code === 'ALL'
-                ? selectedCarrier === 'ALL' || !selectedCarrier || activeCarrierCodes.length === 0
-                : activeCarrierCodes.includes(opt.code) ||
-                  (opt.code === 'GHN' && selectedCarrier === 'GHN_ALL') ||
-                  (opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN_ALL') ||
-                  (opt.code === 'SPX' && selectedCarrier === 'SPX_ALL') ||
-                  (opt.code === 'SPX_INSTANT' && selectedCarrier === 'SPX_ALL');
-            const isCopied = quickCopiedCarrier === opt.code;
-            const isMergedPart = activeCarrierCodes.length > 1 && isSelected;
+        {quickToastMessage && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 animate-in fade-in zoom-in-95 duration-150 shrink-0">
+            <Check className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{quickToastMessage}</span>
+          </span>
+        )}
 
-            return (
-              <React.Fragment key={opt.code}>
-                <div
-                  className={`inline-flex items-center rounded-xl border transition-all shrink-0 ${
-                    isSelected ? opt.activeStyle : opt.colorStyle
-                  } ${isMergedPart ? 'ring-2 ring-blue-300' : ''}`}
+        {/* Divider ngăn cách nhẹ */}
+        <div className="hidden sm:block w-px h-5 bg-indigo-200/80 mx-0.5 shrink-0" />
+
+        {/* Carrier Badges Filter Group & 1-Click Copy - Trực tiếp trên 1 hàng */}
+        {carrierOptions.map((opt) => {
+          const count = carrierCounts[opt.code] || 0;
+
+          // Tự động nhận diện: chỉ hiện hãng có từ 1 đơn trở lên (count >= 1). Hãng không có đơn (0 đơn) thì ẩn đi.
+          // Riêng 'ALL' (Tất Cả ĐVVC) luôn luôn hiển thị để xem toàn bộ đơn.
+          if (opt.code !== 'ALL' && count === 0) {
+            return null;
+          }
+
+          const isSelected =
+            opt.code === 'ALL'
+              ? selectedCarrier === 'ALL' || !selectedCarrier || activeCarrierCodes.length === 0
+              : activeCarrierCodes.includes(opt.code) ||
+                (opt.code === 'GHN' && selectedCarrier === 'GHN_ALL') ||
+                (opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN_ALL') ||
+                (opt.code === 'SPX' && selectedCarrier === 'SPX_ALL') ||
+                (opt.code === 'SPX_INSTANT' && selectedCarrier === 'SPX_ALL');
+          const isCopied = quickCopiedCarrier === opt.code;
+          const isMergedPart = activeCarrierCodes.length > 1 && isSelected;
+
+          return (
+            <React.Fragment key={opt.code}>
+              <div
+                className={`inline-flex items-center rounded-xl border transition-all shrink-0 ${
+                  isSelected ? opt.activeStyle : opt.colorStyle
+                } ${isMergedPart ? 'ring-2 ring-blue-300' : ''}`}
+              >
+                {/* Nút lọc hãng (Click chọn gộp nếu click cả GHN/GHN TikTok hoặc SPX/SPX Hỏa Tốc) */}
+                <button
+                  onClick={() => handleCarrierClick(opt.code)}
+                  className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-xs font-semibold cursor-pointer"
+                  title={
+                    isMergedPart
+                      ? `Đang gộp. Click để bỏ chọn ${opt.label}`
+                      : opt.code === 'GHN' && selectedCarrier === 'GHN_TIKTOK'
+                      ? 'Click để GỘP chung với GHN TikTok'
+                      : opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN'
+                      ? 'Click để GỘP chung với GHN'
+                      : opt.code === 'SPX' && selectedCarrier === 'SPX_INSTANT'
+                      ? 'Click để GỘP chung với SPX Hỏa Tốc'
+                      : opt.code === 'SPX_INSTANT' && selectedCarrier === 'SPX'
+                      ? 'Click để GỘP chung với Shopee Express'
+                      : `Lọc đơn ${opt.label} (${opt.prefixHint})`
+                  }
                 >
-                  {/* Nút lọc hãng (Click chọn gộp nếu click cả GHN/GHN TikTok hoặc SPX/SPX Hỏa Tốc) */}
+                  {isMergedPart && <CheckCircle2 className="w-3.5 h-3.5 text-white animate-in zoom-in" />}
+                  <span>{opt.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                      isSelected
+                        ? 'bg-white/30 text-white'
+                        : 'bg-black/5 text-gray-700'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+
+                {/* Nút Copy Nhanh 1-Click trực tiếp trên từng Badge */}
+                {count > 0 && (
                   <button
-                    onClick={() => handleCarrierClick(opt.code)}
-                    className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-xs font-semibold cursor-pointer"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuickCopyOrders(opt.code, opt.label);
+                    }}
+                    title={`Click để copy nhanh ${count} mã đơn của ${opt.label} (mỗi mã 1 dòng)`}
+                    className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'hover:bg-white/20 text-white'
+                        : 'hover:bg-black/10 text-gray-600'
+                    }`}
+                  >
+                    {isCopied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Nút Gộp Cả SPX: chỉ hiển thị khi CẢ 2 hãng SPX và SPX Hỏa Tốc đều có từ 1 đơn trở lên */}
+              {opt.code === 'SPX_INSTANT' && (carrierCounts.SPX || 0) > 0 && (carrierCounts.SPX_INSTANT || 0) > 0 && (
+                <div
+                  key="SPX_ALL_BTN"
+                  className={`inline-flex items-center rounded-xl border transition-all shrink-0 ${
+                    selectedCarrier === 'SPX_ALL'
+                      ? 'bg-gradient-to-r from-orange-600 via-amber-600 to-red-600 text-white border-orange-600 shadow-xs ring-2 ring-orange-300'
+                      : 'border-orange-300 text-orange-800 bg-orange-50/80 hover:bg-orange-100/90'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleCarrierClick('SPX_ALL')}
+                    className="flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 text-xs font-bold cursor-pointer"
                     title={
-                      isMergedPart
-                        ? `Đang gộp. Click để bỏ chọn ${opt.label}`
-                        : opt.code === 'GHN' && selectedCarrier === 'GHN_TIKTOK'
-                        ? 'Click để GỘP chung với GHN TikTok'
-                        : opt.code === 'GHN_TIKTOK' && selectedCarrier === 'GHN'
-                        ? 'Click để GỘP chung với GHN'
-                        : opt.code === 'SPX' && selectedCarrier === 'SPX_INSTANT'
-                        ? 'Click để GỘP chung với SPX Hỏa Tốc'
-                        : opt.code === 'SPX_INSTANT' && selectedCarrier === 'SPX'
-                        ? 'Click để GỘP chung với Shopee Express'
-                        : `Lọc đơn ${opt.label}`
+                      selectedCarrier === 'SPX_ALL'
+                        ? 'Đang gộp SPX & SPX Hỏa Tốc. Click để hủy gộp'
+                        : 'Click để gộp toàn bộ dữ liệu Shopee Express (SPX + SPX Hỏa Tốc VN26...)'
                     }
                   >
-                    {isMergedPart && <CheckCircle2 className="w-3.5 h-3.5 text-white animate-in zoom-in" />}
-                    <span>{opt.label}</span>
+                    <Zap className={`w-3.5 h-3.5 ${selectedCarrier === 'SPX_ALL' ? 'text-amber-200 fill-amber-200' : 'text-orange-600'}`} />
+                    <span>Gộp Cả SPX</span>
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                        isSelected
+                        selectedCarrier === 'SPX_ALL'
                           ? 'bg-white/30 text-white'
-                          : 'bg-black/5 text-gray-700'
+                          : 'bg-orange-200/90 text-orange-900'
                       }`}
                     >
-                      {count}
-                    </span>
-                    <span className="text-[10px] opacity-75 hidden xl:inline">
-                      ({opt.prefixHint})
+                      {carrierCounts.SPX_ALL || 0}
                     </span>
                   </button>
 
-                  {/* Nút Copy Nhanh 1-Click trực tiếp trên từng Badge */}
-                  {count > 0 && (
+                  {(carrierCounts.SPX_ALL || 0) > 0 && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleQuickCopyOrders(opt.code, opt.label);
+                        handleQuickCopyOrders('SPX_ALL', 'Gộp SPX (SPX + Hỏa Tốc)');
                       }}
-                      title={`Click để copy nhanh ${count} mã đơn của ${opt.label} (mỗi mã 1 dòng)`}
+                      title={`Click để copy nhanh toàn bộ ${(carrierCounts.SPX_ALL || 0)} mã đơn của SPX & SPX Hỏa Tốc`}
                       className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
-                        isSelected
+                        selectedCarrier === 'SPX_ALL'
                           ? 'hover:bg-white/20 text-white'
-                          : 'hover:bg-black/10 text-gray-600'
+                          : 'hover:bg-orange-200 text-orange-700'
                       }`}
                     >
-                      {isCopied ? (
+                      {quickCopiedCarrier === 'SPX_ALL' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
                       ) : (
                         <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
@@ -865,141 +893,67 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     </button>
                   )}
                 </div>
+              )}
 
-                {/* Nút Gộp Cả SPX: chỉ hiển thị khi CẢ 2 hãng SPX và SPX Hỏa Tốc đều có từ 1 đơn trở lên */}
-                {opt.code === 'SPX_INSTANT' && (carrierCounts.SPX || 0) > 0 && (carrierCounts.SPX_INSTANT || 0) > 0 && (
-                  <div
-                    key="SPX_ALL_BTN"
-                    className={`inline-flex items-center rounded-xl border transition-all ${
-                      selectedCarrier === 'SPX_ALL'
-                        ? 'bg-gradient-to-r from-orange-600 via-amber-600 to-red-600 text-white border-orange-600 shadow-xs ring-2 ring-orange-300'
-                        : 'border-orange-300 text-orange-800 bg-orange-50/80 hover:bg-orange-100/90'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleCarrierClick('SPX_ALL')}
-                      className="flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 text-xs font-bold cursor-pointer"
-                      title={
-                        selectedCarrier === 'SPX_ALL'
-                          ? 'Đang gộp SPX & SPX Hỏa Tốc. Click để hủy gộp'
-                          : 'Click để gộp toàn bộ dữ liệu Shopee Express (SPX + SPX Hỏa Tốc VN26...)'
-                      }
-                    >
-                      <Zap className={`w-3.5 h-3.5 ${selectedCarrier === 'SPX_ALL' ? 'text-amber-200 fill-amber-200' : 'text-orange-600'}`} />
-                      <span>Gộp Cả SPX</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                          selectedCarrier === 'SPX_ALL'
-                            ? 'bg-white/30 text-white'
-                            : 'bg-orange-200/90 text-orange-900'
-                        }`}
-                      >
-                        {carrierCounts.SPX_ALL || 0}
-                      </span>
-                      <span className="text-[10px] opacity-85 hidden xl:inline">
-                        ({carrierCounts.SPX || 0}+{carrierCounts.SPX_INSTANT || 0})
-                      </span>
-                    </button>
-
-                    {(carrierCounts.SPX_ALL || 0) > 0 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleQuickCopyOrders('SPX_ALL', 'Gộp SPX (SPX + Hỏa Tốc)');
-                        }}
-                        title={`Click để copy nhanh toàn bộ ${(carrierCounts.SPX_ALL || 0)} mã đơn của SPX & SPX Hỏa Tốc`}
-                        className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
-                          selectedCarrier === 'SPX_ALL'
-                            ? 'hover:bg-white/20 text-white'
-                            : 'hover:bg-orange-200 text-orange-700'
-                        }`}
-                      >
-                        {quickCopiedCarrier === 'SPX_ALL' ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Nút Gộp Cả GHN: chỉ hiển thị khi CẢ 2 hãng GHN và GHN TikTok đều có từ 1 đơn trở lên */}
-                {opt.code === 'GHN_TIKTOK' && (carrierCounts.GHN || 0) > 0 && (carrierCounts.GHN_TIKTOK || 0) > 0 && (
-                  <div
-                    key="GHN_ALL_BTN"
-                    className={`inline-flex items-center rounded-xl border transition-all ${
+              {/* Nút Gộp Cả GHN: chỉ hiển thị khi CẢ 2 hãng GHN và GHN TikTok đều có từ 1 đơn trở lên */}
+              {opt.code === 'GHN_TIKTOK' && (carrierCounts.GHN || 0) > 0 && (carrierCounts.GHN_TIKTOK || 0) > 0 && (
+                <div
+                  key="GHN_ALL_BTN"
+                  className={`inline-flex items-center rounded-xl border transition-all shrink-0 ${
+                    selectedCarrier === 'GHN_ALL'
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-300'
+                      : 'border-blue-300 text-blue-800 bg-blue-50/80 hover:bg-blue-100/90'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleCarrierClick('GHN_ALL')}
+                    className="flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 text-xs font-bold cursor-pointer"
+                    title={
                       selectedCarrier === 'GHN_ALL'
-                        ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-300'
-                        : 'border-blue-300 text-blue-800 bg-blue-50/80 hover:bg-blue-100/90'
-                    }`}
+                        ? 'Đang gộp GHN & GHN TikTok. Click để hủy gộp'
+                        : 'Click để gộp toàn bộ dữ liệu Giao Hàng Nhanh (GHN + GHN TikTok VNGH...)'
+                    }
                   >
+                    <Zap className={`w-3.5 h-3.5 ${selectedCarrier === 'GHN_ALL' ? 'text-amber-300 fill-amber-300' : 'text-blue-600'}`} />
+                    <span>Gộp Cả GHN</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                        selectedCarrier === 'GHN_ALL'
+                          ? 'bg-white/30 text-white'
+                          : 'bg-blue-200/90 text-blue-900'
+                      }`}
+                    >
+                      {carrierCounts.GHN_ALL || 0}
+                    </span>
+                  </button>
+
+                  {(carrierCounts.GHN_ALL || 0) > 0 && (
                     <button
                       type="button"
-                      onClick={() => handleCarrierClick('GHN_ALL')}
-                      className="flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 text-xs font-bold cursor-pointer"
-                      title={
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickCopyOrders('GHN_ALL', 'Gộp GHN (GHN + TikTok)');
+                      }}
+                      title={`Click để copy nhanh toàn bộ ${(carrierCounts.GHN_ALL || 0)} mã đơn của GHN & GHN TikTok`}
+                      className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
                         selectedCarrier === 'GHN_ALL'
-                          ? 'Đang gộp GHN & GHN TikTok. Click để hủy gộp'
-                          : 'Click để gộp toàn bộ dữ liệu Giao Hàng Nhanh (GHN + GHN TikTok VNGH...)'
-                      }
+                          ? 'hover:bg-white/20 text-white'
+                          : 'hover:bg-blue-200 text-blue-700'
+                      }`}
                     >
-                      <Zap className={`w-3.5 h-3.5 ${selectedCarrier === 'GHN_ALL' ? 'text-amber-300 fill-amber-300' : 'text-blue-600'}`} />
-                      <span>Gộp Cả GHN</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                          selectedCarrier === 'GHN_ALL'
-                            ? 'bg-white/30 text-white'
-                            : 'bg-blue-200/90 text-blue-900'
-                        }`}
-                      >
-                        {carrierCounts.GHN_ALL || 0}
-                      </span>
-                      <span className="text-[10px] opacity-85 hidden xl:inline">
-                        ({carrierCounts.GHN || 0}+{carrierCounts.GHN_TIKTOK || 0})
-                      </span>
+                      {quickCopiedCarrier === 'GHN_ALL' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
+                      )}
                     </button>
-
-                    {(carrierCounts.GHN_ALL || 0) > 0 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleQuickCopyOrders('GHN_ALL', 'Gộp GHN (GHN + TikTok)');
-                        }}
-                        title={`Click để copy nhanh toàn bộ ${(carrierCounts.GHN_ALL || 0)} mã đơn của GHN & GHN TikTok`}
-                        className={`p-1.5 mr-1 rounded-lg transition-colors cursor-pointer ${
-                          selectedCarrier === 'GHN_ALL'
-                            ? 'hover:bg-white/20 text-white'
-                            : 'hover:bg-blue-200 text-blue-700'
-                        }`}
-                      >
-                        {quickCopiedCarrier === 'GHN_ALL' ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </React.Fragment>
-            );
-          })}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => scrollCarriers('right')}
-            className="hidden sm:flex items-center justify-center w-6 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 shadow-2xs border border-indigo-200 shrink-0 ml-1.5 cursor-pointer transition-colors"
-            title="Cuộn hãng sang phải"
-            aria-label="Cuộn hãng sang phải"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+                  )}
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
 
       {/* Dynamic List & Carrier Breakdown Insights Bar (Thống kê chi tiết List & ĐVVC) */}
