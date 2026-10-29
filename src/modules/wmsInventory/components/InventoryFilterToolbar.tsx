@@ -254,7 +254,7 @@ export const InventoryFilterToolbar: React.FC<InventoryFilterToolbarProps> = ({
       </div>
 
         {/* Filter Status Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
           <button
             onClick={() => setStockFilter('ALL')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${

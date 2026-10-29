@@ -116,7 +116,7 @@ export const InventoryHeaderBar: React.FC<InventoryHeaderBarProps> = ({
           </div>
 
           {/* Action Tools & Polling Controls */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full lg:w-auto">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar py-1 w-full lg:w-auto">
             {/* Auto-Refresh Toggle + Interval Dropdown */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
               <button

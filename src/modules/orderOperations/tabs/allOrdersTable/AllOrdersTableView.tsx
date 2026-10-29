@@ -48,7 +48,7 @@ export const AllOrdersTableView: React.FC<AllOrdersTableViewProps> = ({
       />
 
       {/* Table Content */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left text-xs border-collapse">
           <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100">
             <tr>

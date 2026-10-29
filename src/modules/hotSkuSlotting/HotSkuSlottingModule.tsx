@@ -121,7 +121,7 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
 
         {/* SUB-TABS NAVIGATION BAR */}
         <div className="flex items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto py-1">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full sm:w-auto py-1">
             <button
               onClick={() => setActiveSubTab('map_and_table')}
               className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${

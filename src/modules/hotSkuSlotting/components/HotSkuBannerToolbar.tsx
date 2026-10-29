@@ -108,7 +108,7 @@ export const HotSkuBannerToolbar: React.FC<HotSkuBannerToolbarProps> = ({
 
       {/* Dải Lựa Chọn Khung Thời Gian & Chế Độ Phân Hạng */}
       <div className="mt-6 pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto custom-scrollbar-dark py-1 w-full sm:w-auto">
           <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1 shrink-0">
             Khung Giờ:
           </span>
@@ -135,7 +135,7 @@ export const HotSkuBannerToolbar: React.FC<HotSkuBannerToolbarProps> = ({
         </div>
 
         {/* Toggle Chế Độ Phân Hạng */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
+        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar-dark py-1 w-full sm:w-auto">
           <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1 shrink-0 hidden sm:inline">
             Góc Nhìn ABC:
           </span>

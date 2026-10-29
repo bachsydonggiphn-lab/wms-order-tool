@@ -779,57 +779,57 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
   const currentConfig = WMS_STATUS_CONFIG[status];
 
   return (
-    <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border-b border-indigo-900/60 shadow-lg lg:sticky lg:top-14 z-20">
-      <div className="w-full mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-2.5 space-y-2">
+    <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border-b border-indigo-900/60 shadow-md relative z-10">
+      <div className="w-full mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-1.5 sm:py-2 space-y-1.5">
         {/* ROW 1: 4 STATS (ĐƠN, SKU, PCS, LISTS) & 3 ACTIONS (ĐỒNG BỘ YUNWMS, DỮ LIỆU MẪU, XÓA) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-800/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 pb-1.5 border-b border-slate-800/80">
           {/* Left: 4 Stat Cards */}
-          <div className="grid grid-cols-4 sm:flex items-center gap-1.5 sm:gap-2.5 w-full sm:w-auto">
+          <div className="grid grid-cols-4 sm:flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
             {/* ĐƠN */}
-            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-xs shadow-indigo-400"></span>
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1.5 shadow-2xs transition-colors shrink-0">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-500 shadow-xs shadow-indigo-400"></span>
               <div>
-                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">Đơn</div>
+                <div className="text-[8px] sm:text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">Đơn</div>
                 <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{effectiveOrders.length}</div>
               </div>
             </div>
 
             {/* SKU */}
-            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-400"></span>
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1.5 shadow-2xs transition-colors shrink-0">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-400"></span>
               <div>
-                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">SKU</div>
+                <div className="text-[8px] sm:text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">SKU</div>
                 <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{totalSkus}</div>
               </div>
             </div>
 
             {/* PCS */}
-            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
-              <span className="w-2 h-2 rounded-full bg-purple-500 shadow-xs shadow-purple-400"></span>
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1.5 shadow-2xs transition-colors shrink-0">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-500 shadow-xs shadow-purple-400"></span>
               <div>
-                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">PCS</div>
+                <div className="text-[8px] sm:text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">PCS</div>
                 <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{totalPcs}</div>
               </div>
             </div>
 
             {/* LISTS */}
-            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-2 shadow-2xs transition-colors shrink-0">
-              <span className="w-2 h-2 rounded-full bg-amber-400 shadow-xs shadow-amber-300"></span>
+            <div className="bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 rounded-xl px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1.5 shadow-2xs transition-colors shrink-0">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-xs shadow-amber-300"></span>
               <div>
-                <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">Lists</div>
+                <div className="text-[8px] sm:text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-none">Lists</div>
                 <div className="text-xs sm:text-sm font-black text-white leading-tight font-mono">{totalLists}</div>
               </div>
             </div>
           </div>
 
           {/* Right: 3 Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 overflow-x-auto custom-scrollbar-dark pb-0.5">
             {onOpenWmsSync && (
               <button
                 type="button"
                 onClick={onOpenWmsSync}
                 title="Kết nối trực tiếp YunWMS để lấy đơn Submitted"
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-600/30 border border-blue-400/40 transition-all cursor-pointer hover:scale-102 active:scale-98 shrink-0"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-600/30 border border-blue-400/40 transition-all cursor-pointer hover:scale-102 active:scale-98 shrink-0"
               >
                 <span className="text-amber-300">⚡</span>
                 <span className="hidden sm:inline">Đồng Bộ YunWMS</span>
@@ -842,7 +842,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                 type="button"
                 onClick={onLoadSample}
                 title="Tải 22 đơn hàng mẫu để kiểm tra tính năng"
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-850 hover:bg-slate-750 text-slate-200 border border-slate-700 transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium bg-slate-850 hover:bg-slate-750 text-slate-200 border border-slate-700 transition-colors cursor-pointer shrink-0"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-400" />
                 <span className="hidden sm:inline">Dữ liệu mẫu</span>
@@ -855,7 +855,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
                 type="button"
                 onClick={onClear}
                 title="Xóa toàn bộ dữ liệu đơn hàng cũ"
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 transition-colors cursor-pointer shrink-0"
               >
                 <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                 <span>Xóa</span>
@@ -865,10 +865,10 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
         </div>
 
         {/* ROW 2: CONTROLS & TRẠNG THÁI */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-1.5 lg:gap-2">
           
           {/* CỤM 1: BỘ 3 NÚT CHUYỂN TRẠNG THÁI VỚI SỐ LƯỢNG REALTIME */}
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full lg:w-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto custom-scrollbar-dark py-0.5 w-full lg:w-auto">
             <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold shrink-0">
               <span className="text-amber-400">⚡</span>
               <span className="hidden sm:inline font-bold">AUTO-REFRESH:</span>
@@ -1025,7 +1025,7 @@ export const RealTimeTrackerBar: React.FC<RealTimeTrackerBarProps> = ({
           </div>
 
           {/* CỤM 2: CONTROLS - LIVE, CONFIG */}
-          <div className="flex items-center gap-1.5 sm:gap-2 text-xs overflow-x-auto no-scrollbar py-0.5 w-full lg:w-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs overflow-x-auto custom-scrollbar-dark py-0.5 w-full lg:w-auto">
             
             {/* Công tắc Chế độ: Xóa cũ & Kéo mới mỗi 10s */}
             <button

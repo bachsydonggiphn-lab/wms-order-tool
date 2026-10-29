@@ -32,7 +32,7 @@ export const AreaGroupingMatrixTable: React.FC<AreaGroupingMatrixTableProps> = (
         </span>
       </div>
 
-      <div className="overflow-x-auto max-w-full">
+      <div className="overflow-x-auto max-w-full custom-scrollbar">
         <table className="w-full text-xs border-collapse font-sans min-w-max">
           {/* DÒNG 1: HEADER KHU VỰC (MÀU XANH DƯƠNG #1A73E8) */}
           <thead>
