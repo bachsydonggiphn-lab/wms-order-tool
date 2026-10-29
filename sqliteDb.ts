@@ -626,6 +626,16 @@ export interface PairedSkuInfo {
   productTitle?: string;
 }
 
+export interface PairedSkuMatrixItem {
+  skuA: string;
+  skuB: string;
+  titleA?: string;
+  titleB?: string;
+  groupA?: string;
+  groupB?: string;
+  count: number;
+}
+
 export interface SlottingRelocationTask {
   id: string;
   sku: string;
@@ -664,6 +674,7 @@ export interface HotSkuAnalyticsResult {
   trendingUpCount?: number;
   coolingDownCount?: number;
   items: HotSkuAnalysisItem[];
+  pairedSkus?: PairedSkuMatrixItem[];
   relocationTasks?: SlottingRelocationTask[];
   meta: ShippedSyncMeta;
 }
@@ -958,6 +969,7 @@ export async function getShippedOrdersAnalytics(params: {
       SUM(i.qty) as total_sold,
       COUNT(i.order_no) as order_count,
       SUM(CASE WHEN i.is_single_sku = 1 THEN 1 ELSE 0 END) as single_sku_orders,
+      SUM(CASE WHEN i.is_single_sku = 0 THEN 1 ELSE 0 END) as mix_sku_orders,
       MIN(i.shipped_time) as first_shipped,
       MAX(i.shipped_time) as last_shipped
     FROM wms_shipped_order_items i ${indexHint}
@@ -1100,33 +1112,92 @@ export async function getShippedOrdersAnalytics(params: {
     };
   });
 
-  // 3. Phân Tích Cặp SKU Hay Mua Kèm (Basket Affinity) cho Top 25 SKU
-  const top25Skus = items.slice(0, 25).map(it => it.sku);
-  if (top25Skus.length > 0) {
+  // 3. Phân Tích Cặp SKU Hay Mua Kèm (Basket Affinity) cho Đơn Ghép (Mix SKU)
+  const pairedSkus: PairedSkuMatrixItem[] = [];
+  const topSkusForAffinity = items.slice(0, 80).map(it => it.sku);
+  if (topSkusForAffinity.length > 0) {
     try {
-      const placeholders = top25Skus.map(() => '?').join(',');
+      const skuInfoMap = new Map<string, { title: string; group: string }>();
+      items.forEach(it => {
+        skuInfoMap.set(it.sku, { title: it.productTitle || '', group: it.groupName || '' });
+      });
+
+      const placeholders = topSkusForAffinity.map(() => '?').join(',');
+      const affinityWhereExtra: string[] = [];
+      const affinityArgs: any[] = [...topSkusForAffinity];
+
+      if (effectiveStartDate) {
+        affinityWhereExtra.push('AND a.shipped_time >= ?');
+        affinityArgs.push(effectiveStartDate);
+      }
+      if (effectiveEndDate) {
+        affinityWhereExtra.push('AND a.shipped_time <= ?');
+        affinityArgs.push(`${effectiveEndDate} 23:59:59`);
+      }
+
       const affinitySql = `
-        SELECT a.sku as sku1, b.sku as sku2, MAX(b.product_title) as title2, COUNT(*) as pair_count
+        SELECT 
+          a.sku as sku1, 
+          b.sku as sku2, 
+          MAX(a.product_title) as title1,
+          MAX(b.product_title) as title2, 
+          COUNT(DISTINCT a.order_no) as pair_count
         FROM wms_shipped_order_items a
         JOIN wms_shipped_order_items b ON a.order_no = b.order_no AND a.sku != b.sku
-        WHERE a.is_single_sku = 0 AND a.sku IN (${placeholders}) ${effectiveStartDate ? 'AND a.shipped_time >= ?' : ''}
+        WHERE a.is_single_sku = 0 
+          AND a.sku IN (${placeholders}) 
+          ${affinityWhereExtra.join(' ')}
         GROUP BY a.sku, b.sku
         HAVING pair_count >= 2
-        ORDER BY a.sku, pair_count DESC;
+        ORDER BY pair_count DESC;
       `;
-      const affinityArgs = effectiveStartDate ? [...top25Skus, effectiveStartDate] : top25Skus;
       const affinityRes = await db.execute({ sql: affinitySql, args: affinityArgs });
 
       const affinityMap = new Map<string, PairedSkuInfo[]>();
+      const seenMatrixPairs = new Set<string>();
+
       (affinityRes.rows || []).forEach(r => {
-        const s1 = String(r.sku1);
+        const s1 = String(r.sku1 || '').trim();
+        const s2 = String(r.sku2 || '').trim();
+        const cnt = Number(r.pair_count || 0);
+        if (!s1 || !s2 || s1 === s2 || cnt < 2) return;
+
+        const t1 = r.title1 ? String(r.title1) : (skuInfoMap.get(s1)?.title || undefined);
+        const t2 = r.title2 ? String(r.title2) : (skuInfoMap.get(s2)?.title || undefined);
+        const g1 = skuInfoMap.get(s1)?.group || layNhomTuSKU(s1, DEFAULT_SKU_GROUPS);
+        const g2 = skuInfoMap.get(s2)?.group || layNhomTuSKU(s2, DEFAULT_SKU_GROUPS);
+
         if (!affinityMap.has(s1)) affinityMap.set(s1, []);
-        const list = affinityMap.get(s1)!;
-        if (list.length < 3) {
-          list.push({
-            sku: String(r.sku2),
-            pairCount: Number(r.pair_count),
-            productTitle: r.title2 ? String(r.title2) : undefined
+        const list1 = affinityMap.get(s1)!;
+        if (list1.length < 3 && !list1.some(x => x.sku === s2)) {
+          list1.push({
+            sku: s2,
+            pairCount: cnt,
+            productTitle: t2
+          });
+        }
+
+        if (!affinityMap.has(s2)) affinityMap.set(s2, []);
+        const list2 = affinityMap.get(s2)!;
+        if (list2.length < 3 && !list2.some(x => x.sku === s1)) {
+          list2.push({
+            sku: s1,
+            pairCount: cnt,
+            productTitle: t1
+          });
+        }
+
+        const pairKey = [s1, s2].sort().join('___');
+        if (!seenMatrixPairs.has(pairKey) && pairedSkus.length < 100) {
+          seenMatrixPairs.add(pairKey);
+          pairedSkus.push({
+            skuA: s1,
+            skuB: s2,
+            titleA: t1,
+            titleB: t2,
+            groupA: g1,
+            groupB: g2,
+            count: cnt
           });
         }
       });
@@ -1215,6 +1286,7 @@ export async function getShippedOrdersAnalytics(params: {
     trendingUpCount,
     coolingDownCount,
     items,
+    pairedSkus,
     relocationTasks,
     meta
   };

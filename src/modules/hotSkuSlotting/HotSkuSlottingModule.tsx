@@ -16,7 +16,7 @@ import { GroupSlottingSection } from './components/GroupSlottingSection';
 import { RelocationTasksSection } from './components/RelocationTasksSection';
 import { PairedSkusSection } from './components/PairedSkusSection';
 import { SyncShippedModal } from './components/SyncShippedModal';
-import { PairedSkuInfo } from '../../../sqliteDb';
+import { PairedSkuMatrixItem } from '../../../sqliteDb';
 
 export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
   skuGroups = {},
@@ -82,19 +82,50 @@ export const HotSkuSlottingModule: React.FC<HotSkuSlottingModuleProps> = ({
     onSyncComplete: () => fetchAnalytics(false),
   });
 
-  // Gom các cặp mua kèm duy nhất
+  // Gom các cặp mua kèm duy nhất (hỗ trợ cả analytics.pairedSkus và fallback từ items[].topPairedSkus)
   const uniquePairs = useMemo(() => {
-    if (!analytics?.pairedSkus) return [];
     const seen = new Set<string>();
-    const list: PairedSkuInfo[] = [];
+    const list: PairedSkuMatrixItem[] = [];
 
-    analytics.pairedSkus.forEach((p) => {
-      const key = [p.skuA, p.skuB].sort().join('___');
-      if (!seen.has(key)) {
-        seen.add(key);
-        list.push(p);
-      }
-    });
+    if (Array.isArray(analytics?.pairedSkus) && analytics.pairedSkus.length > 0) {
+      analytics.pairedSkus.forEach((p) => {
+        if (!p.skuA || !p.skuB) return;
+        const key = [p.skuA, p.skuB].sort().join('___');
+        if (!seen.has(key)) {
+          seen.add(key);
+          list.push(p);
+        }
+      });
+    }
+
+    if (Array.isArray(analytics?.items)) {
+      const itemMap = new Map<string, { title?: string; group?: string }>();
+      analytics.items.forEach((it) => {
+        itemMap.set(it.sku, { title: it.productTitle, group: it.groupName });
+      });
+
+      analytics.items.forEach((it) => {
+        if (Array.isArray(it.topPairedSkus)) {
+          it.topPairedSkus.forEach((p) => {
+            if (!p.sku || it.sku === p.sku) return;
+            const key = [it.sku, p.sku].sort().join('___');
+            if (!seen.has(key)) {
+              seen.add(key);
+              const infoB = itemMap.get(p.sku);
+              list.push({
+                skuA: it.sku,
+                skuB: p.sku,
+                titleA: it.productTitle || undefined,
+                titleB: p.productTitle || infoB?.title || undefined,
+                groupA: it.groupName || undefined,
+                groupB: infoB?.group || undefined,
+                count: p.pairCount || (p as any).count || 0,
+              });
+            }
+          });
+        }
+      });
+    }
 
     return list.sort((a, b) => b.count - a.count);
   }, [analytics]);

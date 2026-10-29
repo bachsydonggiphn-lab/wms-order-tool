@@ -13,15 +13,17 @@ export const exportRelocationTasksToExcel = (
   const rows = analytics.relocationTasks.map((t, idx) => ({
     STT: idx + 1,
     'Phân Loại':
-      t.type === 'PROMOTE_TO_ZONE_A'
+      t.actionType === 'promote_zone_a'
         ? 'ĐÔN HÀNG VỀ ZONE A'
-        : t.type === 'DEMOTE_TO_ZONE_BC'
+        : t.actionType === 'demote_zone_b'
         ? 'RÚT HÀNG VỀ ZONE B/C'
+        : t.actionType === 'pair_skus'
+        ? 'GHÉP CẶP ĐƠN MIX'
         : 'ĐẶT CHỖ ĐÓN HÀNG VỀ',
-    'Mức Độ Khẩn': t.priority.toUpperCase(),
+    'Mức Độ Khẩn': (t.urgency || 'medium').toUpperCase(),
     'Mã SKU': t.sku,
-    'Tên Sản Phẩm': t.title || '',
-    'Hành Động Yêu Cầu': t.action,
+    'Tên Sản Phẩm': t.productTitle || '',
+    'Hành Động Yêu Cầu': t.title,
     'Vị Trí Hiện Tại': t.currentZone,
     'Vị Trí Mới / Đề Xuất': t.targetZone,
     'Lý Do Nghiệp Vụ': t.reason,
